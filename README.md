@@ -1,2 +1,45 @@
-# smoc-poc
-Initial system for creating and serving multi-omics digital objects
+# SMOC-PoC
+
+Initial system for creating and serving multi-omics digital objects.
+
+## Motivation
+
+Provide a digital object and system to process, store and serve multi-omics data with their metadata such that:
+* Traceability and reproducibility is ensured by rich metadata
+* The different omics layers are processed and distributed together
+* Common operations such as liftover can be automated easily and ensure that omics layers are kept in sync
+
+## Architecture
+
+The digital object is composed of multiple files:
+* CRAM files for alignment data, Zarr
+* HDF5 files for array data
+* RDF for metadata (either separate, or embedded in the array file.
+
+A webserver is required to list available objects and serve them over the network.
+
+The basic structure is as follows:
+
+```mermaid
+
+flowchart LR;
+
+subgraph smoc[SMOC server]
+    OBJ[Digital object metadata]
+    CRAMG[Genomics CRAM]
+    CRAMT[Transcriptomics CRAM]
+    MATP[Proteomics matrix]
+    MATM[Metabolomics matrix]
+end;
+subgraph UI[User interface]
+    CAT[Catalogue]
+    INS[Inspector]
+end;
+
+    OBJ -.-> CRAMG;
+    OBJ -.-> CRAMT;
+    OBJ -.-> MATP;
+    OBJ -.-> MATM;
+    OBJ -->|list objects| CAT
+    OBJ -->|display metadata| INS
+```
