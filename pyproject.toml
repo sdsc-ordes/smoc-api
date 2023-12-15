@@ -5,7 +5,7 @@ description = "SMOC Multi-Omics Digital Object PoC"
 authors = ["SDSC-ORDES"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "smoc_poc"}]
+packages = [{include = "modo"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
