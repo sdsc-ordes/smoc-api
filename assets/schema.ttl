@@ -1,0 +1,82 @@
+@prefix ex: <http://example.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix bioschemas: <http://bioschemas.org/> .
+@prefix taxon: <http://purl.uniprot.org/taxonomy/> .
+@prefix schema: <http://schema.org/> .
+@prefix mondo: <http://purl.obolibrary.org/obo/mondo#> .
+@prefix ror: <https://ror.org/> .
+@prefix smoc: <http://smoc.ethz.ch> .
+
+# Classes
+
+smoc:MODO a rdfs:Class ;
+    rdfs:label "Multi-Omics Digital Object" ;
+    rdfs:comment "A digital object which can contain multiple omics data records and samples" .
+
+smoc:CRAMFile a rdfs:Class ;
+    rdfs:label "CRAM file" ;
+    rdfs:comment "A file containing aligned genomic intervals" .
+
+smoc:Array a rdfs:Class ;
+    rdfs:label "Array" ;
+    rdfs:comment "An array inside a Zarr archive containing data and metadata. Part of a digital object." .
+
+smoc:Reference a rdfs:Class ;
+    rdfs:label "Reference genome" ;
+    rdfs:comment "A genome assembly used as reference coordinate system for aligning data records." .
+
+smoc:BioSample a rdfs:Class ;
+    rdfs:label "Biological sample" ;
+    rdfs:comment "A sample of biological material." .
+
+# In practice, we should use http://purl.obolibrary.org/obo/ncbitaxon.owl
+smoc:Taxon a rdfs:Class ;
+    rdfs:label "Taxon" ;
+    rdfs:comment "A taxonomic unit describing a biological entity" .
+
+smoc:OmicsType a rdfs:Class ;
+    rdfs:label "Omics type" ;
+    rdfs:comment "A type of omics field, tied to a biological molecule" .
+
+# Properties
+
+smoc:hasTaxonomicRange a rdf:Property ;
+    rdfs:domain smoc:BioSample, smoc:Reference ;
+    rdfs:range smoc:Taxon ;
+    rdfs:label "has taxonomic range" .
+
+smoc:hasSample a rdf:Property ;
+    rdfs:domain smoc:MODO, smoc:CRAMFile .
+
+smoc:hasRecord a rdf:Property ;
+    rdfs:domain smoc:MODO ;
+    rdfs:range smoc:Record ;
+    rdfs:label "has record" .
+
+smoc:hasReference a rdf:Property ;
+    rdfs:domain smoc:MODO, smoc:Record ;
+    rdfs:range smoc:Reference .
+
+smoc:hasOmicsType a rdf:Property ;
+    rdfs:domain smoc:Array ;
+    rdfs:range smoc:OmicsType .
+
+smoc:hasLocation a rdf:property ;
+    rdfs:domain smoc:MODO, smoc:CRAMFile, smoc:Reference ;
+    rdfs:range xsd:anyURI ;
+    rdfs:label "has location" ;
+    rdfs:comment "The location of a resource, either on the filesystem or online" .
+
+smoc:hasTaxId a rdf:Property ;
+    rdfs:domain smoc:Taxon ;
+    rdfs:range xsd:integer .
+
+# Named individuals
+
+smoc:Genomics a smoc:OmicsType .
+smoc:Transcriptomics a smoc:OmicsType .
+smoc:Proteomics a smoc:OmicsType .
+smoc:Metabolomics a smoc:OmicsType .
