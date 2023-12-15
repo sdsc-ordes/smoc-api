@@ -1,4 +1,4 @@
-@prefix ex: <http://example.org/>
+@prefix ex: <http://example.org/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -32,6 +32,7 @@ smoc:BioSample a rdfs:Class ;
     rdfs:label "Biological sample" ;
     rdfs:comment "A sample of biological material." .
 
+# In practice, we should use http://purl.obolibrary.org/obo/ncbitaxon.owl
 smoc:Taxon a rdfs:Class ;
     rdfs:label "Taxon" ;
     rdfs:comment "A taxonomic unit describing a biological entity" .
@@ -43,7 +44,7 @@ smoc:OmicsType a rdfs:Class ;
 # Properties
 
 smoc:hasTaxonomicRange a rdf:Property ;
-    rdfs:domain smoc:BioSample ;
+    rdfs:domain smoc:BioSample, smoc:Reference ;
     rdfs:range smoc:Taxon ;
     rdfs:label "has taxonomic range" .
 
@@ -69,6 +70,9 @@ smoc:hasLocation a rdf:property ;
     rdfs:label "has location" ;
     rdfs:comment "The location of a resource, either on the filesystem or online" .
 
+smoc:hasTaxId a rdf:Property ;
+    rdfs:domain smoc:Taxon ;
+    rdfs:range xsd:integer
 
 # Named individuals
 
