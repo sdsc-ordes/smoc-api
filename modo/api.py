@@ -23,7 +23,7 @@ class MODO:
     ['http://example.org/bac1', 'http://example.org/bac2']
 
     # List files in the archive
-    >>> [file.name for file in demo.list_files()]
+    >>> sorted([file.name for file in demo.list_files()])
     ['demo1.cram', 'demo2.cram', 'ecoli_ref.fa', 'metadata.ttl']
 
     # Query the metadata graph to find the location of the
