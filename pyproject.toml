@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "modo"
+version = "0.1.0"
+description = "SMOC Multi-Omics Digital Object PoC"
+authors = ["SDSC-ORDES"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "smoc_poc"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+rdflib = "^6.3"
+zarr = "^2.16.1"
+calamus = "^0.4.2"
+pysam = "^0.22.0"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.6.0"
+black = "^23.12.0"
+pytest-cov = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
