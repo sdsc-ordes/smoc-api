@@ -20,13 +20,13 @@ smoc:CRAMFile a rdfs:Class ;
     rdfs:label "CRAM file" ;
     rdfs:comment "A file containing aligned genomic intervals" .
 
-smoc:ZarrArchive a rdfs:Class ;
-    rdfs:label "Zarr archive" ;
-    rdfs:comment "A Zarr archive containing metadata and nested array. Part of a digital object." .
+smoc:Array a rdfs:Class ;
+    rdfs:label "Array" ;
+    rdfs:comment "An array inside a Zarr archive containing data and metadata. Part of a digital object." .
 
 smoc:Reference a rdfs:Class ;
     rdfs:label "Reference genome" ;
-    rdfs:comment "A genome assembly used as reference coordinate system for aligning data records."
+    rdfs:comment "A genome assembly used as reference coordinate system for aligning data records." .
 
 smoc:BioSample a rdfs:Class ;
     rdfs:label "Biological sample" ;
@@ -39,7 +39,7 @@ smoc:Taxon a rdfs:Class ;
 
 smoc:OmicsType a rdfs:Class ;
     rdfs:label "Omics type" ;
-    rdfs:comment "A type of omics field, tied to a biological molecule" ;
+    rdfs:comment "A type of omics field, tied to a biological molecule" .
 
 # Properties
 
@@ -49,7 +49,7 @@ smoc:hasTaxonomicRange a rdf:Property ;
     rdfs:label "has taxonomic range" .
 
 smoc:hasSample a rdf:Property ;
-    rdfs:domain smoc:MODO,
+    rdfs:domain smoc:MODO, smoc:CRAMFile .
 
 smoc:hasRecord a rdf:Property ;
     rdfs:domain smoc:MODO ;
@@ -61,18 +61,18 @@ smoc:hasReference a rdf:Property ;
     rdfs:range smoc:Reference .
 
 smoc:hasOmicsType a rdf:Property ;
-    rdfs:domain smoc:Record ;
+    rdfs:domain smoc:Array ;
     rdfs:range smoc:OmicsType .
 
 smoc:hasLocation a rdf:property ;
-    rdfs:domain smoc:MODO, smoc:CRAMFile, smoc:Reference, smoc:ZarrArchive ;
-    rdfs:range xsd:string, xsd:uri ;
+    rdfs:domain smoc:MODO, smoc:CRAMFile, smoc:Reference ;
+    rdfs:range xsd:anyURI ;
     rdfs:label "has location" ;
     rdfs:comment "The location of a resource, either on the filesystem or online" .
 
 smoc:hasTaxId a rdf:Property ;
     rdfs:domain smoc:Taxon ;
-    rdfs:range xsd:integer
+    rdfs:range xsd:integer .
 
 # Named individuals
 
