@@ -27,13 +27,6 @@ class MODO:
     >>> modo.list_files()
     ["demo1.cram", "demo2.cram"]
     >>> modo.query("SELECT *")
-    >>>
-    SELECT ?path
-    WHERE {
-        [] rdf:type smoc:CRAMFile ;
-            smoc:hasLocation ?path .
-            smoc:hasSample ex:Bob .
-    }
     """
 
     def __init__(self, path: Path):
