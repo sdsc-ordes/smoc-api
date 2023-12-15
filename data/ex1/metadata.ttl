@@ -10,19 +10,19 @@
 
 
 
-ex:Bob a smoc:BioSample ;
-    smoc:hasTaxonomicRange ex:ecoli.
-
-ex:Alice a smoc:BioSample ;
+ex:bac1 a smoc:BioSample ;
     smoc:hasTaxonomicRange ex:ecoli .
 
-ex:human a smoc:Taxon ;
+ex:bac2 a smoc:BioSample ;
+    smoc:hasTaxonomicRange ex:ecoli .
+
+ex:ecoli a smoc:Taxon ;
     smoc:hasTaxId 562 .
 
-ex:demo1cram a smoc:CRAMFile;
-    smoc:hasSample ex:Bob ;
+ex:demo1cram a smoc:CRAMFile ;
+    smoc:hasSample ex:bac1 ;
     smoc:hasLocation "demo1.cram" .
 
-ex:demo2cram a smoc:CRAMFile;
-    smoc:hasSample ex:Alice ;
+ex:demo2cram a smoc:CRAMFile ;
+    smoc:hasSample ex:bac2 ;
     smoc:hasLocation "demo2.cram" .
