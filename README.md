@@ -52,3 +52,9 @@ end;
 * The paths of individual files in the digital object must be referenced in a consistent way.
   + Absolute paths are a no-go (machine/system dependent)
   + Relative paths in the digital object could work, but need to be OS-independent
+ 
+
+# Status and limitations
+
+* Focusing on data retrieval, object creation not yet implemented
+* The htsget protocol supports streaming CRAM files, but it is currently only implemented for BAM in major genome browsers (igv.js, jbrowse)
