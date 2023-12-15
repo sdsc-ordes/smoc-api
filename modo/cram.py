@@ -9,7 +9,7 @@ def slice(cram_path: AlignmentFile, coords: str) -> AlignmentFile:
 
     Examples
     --------
-    >>> slice(my_cram, "chr1:100-200")
+    >>> slice("data/ex1/demo1.cram", "chr1:100-200")
     """
     # https://htsget.readthedocs.io/en/stable/index.html
     ...
