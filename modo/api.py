@@ -24,7 +24,7 @@ class MODO:
 
     # List files in the archive
     >>> [file.name for file in demo.list_files()]
-    ['demo1.cram', 'demo2.cram', 'ecoli_ref.fa', 'metadata.ttl', 'archive.zarr']
+    ['demo1.cram', 'demo2.cram', 'ecoli_ref.fa', 'metadata.ttl']
 
     # Query the metadata graph to find the location of the
     # CRAM files for the sample bac1
@@ -58,7 +58,14 @@ class MODO:
         return [str(res.sample) for res in samples]
 
     def list_files(self) -> Generator[Path, None, None]:
-        return self.path.rglob("*")
+        """Lists files in the archive recursively (except for the zarr file)."""
+        for path in self.path.glob("*"):
+            if path.name == "archive.zarr":
+                continue
+            elif path.is_file():
+                yield path
+            for file in path.rglob("*"):
+                yield file
 
     def query(self, query: str):
         """Use SPARQL to query the metadata graph"""
