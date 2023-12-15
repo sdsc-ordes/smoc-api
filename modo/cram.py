@@ -11,6 +11,7 @@ def slice(cram_path: AlignmentFile, coords: str) -> AlignmentFile:
     --------
     >>> slice(my_cram, "chr1:100-200")
     """
+    # https://htsget.readthedocs.io/en/stable/index.html
     ...
 
 
@@ -22,9 +23,10 @@ def extract_metadata(AlignmentHeader) -> Graph:
     ...
 
 
-def validata_cram_files(cram_path: str) -> bool:
+def validate_cram_files(cram_path: str):
     """Validate CRAM files using pysam.
     Checks if the file is sorted and has an index."""
+    # NOTE: Not a priority
     # TODO:
     # Check if sorted
     # Check if index exists
