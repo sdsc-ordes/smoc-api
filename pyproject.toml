@@ -13,6 +13,7 @@ rdflib = "^6.3"
 zarr = "^2.16.1"
 calamus = "^0.4.2"
 pysam = "^0.22.0"
+smoc_schema = { git = "git@github.com:sdsc-ordes/smoc-schema.git", branch = "refactor/sphn" }
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.6.0"
