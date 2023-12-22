@@ -1566,7 +1566,7 @@ files = []
 develop = false
 
 [package.dependencies]
-linkml-runtime = "^1.1.24"
+linkml-runtime = "^1.6"
 
 [package.extras]
 docs = []
@@ -1575,7 +1575,7 @@ docs = []
 type = "git"
 url = "git@github.com:sdsc-ordes/smoc-schema.git"
 reference = "refactor/sphn"
-resolved_reference = "b6d45a9cb5f2d3c7d427573fef8bd3a88e500424"
+resolved_reference = "0c47d380e11ebdb40e9b40e8d052a3c81d0149a0"
 
 [[package]]
 name = "sortedcontainers"
