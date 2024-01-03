@@ -1,0 +1,7 @@
+{
+    "@type": "Study",
+    "has_assay": [
+        "demo-assay"
+    ],
+    "start_date": "2024-01-03T00:00:00"
+}

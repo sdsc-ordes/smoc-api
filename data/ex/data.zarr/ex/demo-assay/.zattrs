@@ -1,0 +1,13 @@
+{
+    "@type": "Assay",
+    "description": "Fake dataset used for tests.",
+    "has_data": [
+        "demo1",
+        "demo1",
+        "demo2"
+    ],
+    "name": "E. coli dummy WGS",
+    "omics_type": [
+        "GENOMICS"
+    ]
+}

@@ -1,0 +1,11 @@
+{
+    "@type": "Sample",
+    "collector": [
+        "SDSC"
+    ],
+    "description": "A bacterial sample",
+    "name": "bac 1",
+    "taxon_id": [
+        562
+    ]
+}

@@ -1,0 +1,71 @@
+{
+    "metadata": {
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "ex/.zattrs": {
+            "@type": "Study",
+            "has_assay": [
+                "demo-assay"
+            ],
+            "start_date": "2024-01-03T00:00:00"
+        },
+        "ex/.zgroup": {
+            "zarr_format": 2
+        },
+        "ex/demo-assay/.zattrs": {
+            "@type": "Assay",
+            "description": "Fake dataset used for tests.",
+            "has_data": [
+                "demo1",
+                "demo1",
+                "demo2"
+            ],
+            "name": "E. coli dummy WGS",
+            "omics_type": [
+                "GENOMICS"
+            ]
+        },
+        "ex/demo-assay/.zgroup": {
+            "zarr_format": 2
+        },
+        "ex/demo-assay/demo1/.zattrs": {
+            "@type": "AlignmentSet",
+            "data_format": "CRAM",
+            "description": "E. coli wgs",
+            "has_sample": [
+                "bac1"
+            ],
+            "location": "demo1.cram",
+            "name": "demo 1"
+        },
+        "ex/demo-assay/demo1/.zgroup": {
+            "zarr_format": 2
+        },
+        "ex/demo-assay/demo1/bac1/.zattrs": {
+            "@type": "Sample",
+            "collector": [
+                "SDSC"
+            ],
+            "description": "A bacterial sample",
+            "name": "bac 1",
+            "taxon_id": [
+                562
+            ]
+        },
+        "ex/demo-assay/demo1/bac1/.zgroup": {
+            "zarr_format": 2
+        },
+        "ex/demo-assay/demo2/.zattrs": {
+            "@type": "AlignmentSet",
+            "data_format": "CRAM",
+            "description": "E. coli wgs resequencing",
+            "location": "demo2.cram",
+            "name": "demo 2"
+        },
+        "ex/demo-assay/demo2/.zgroup": {
+            "zarr_format": 2
+        }
+    },
+    "zarr_consolidated_format": 1
+}

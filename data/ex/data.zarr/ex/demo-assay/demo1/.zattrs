@@ -1,0 +1,10 @@
+{
+    "@type": "AlignmentSet",
+    "data_format": "CRAM",
+    "description": "E. coli wgs",
+    "has_sample": [
+        "bac1"
+    ],
+    "location": "demo1.cram",
+    "name": "demo 1"
+}
