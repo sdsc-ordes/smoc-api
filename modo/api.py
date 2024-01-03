@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import shutil
 from typing import Generator, Optional
+import yaml
 
 from linkml_runtime.dumpers import json_dumper
 import rdflib
@@ -23,11 +24,11 @@ class MODO:
 
     Examples
     --------
-    >>> demo = MODO("data/ex1")
+    >>> demo = MODO("data/ex")
 
     # List identifiers of samples in the archive
     >>> demo.list_samples()
-    ['http://example.org/bac1', 'http://example.org/bac2']
+    ['ex/demo-assay/demo1/bac1']
 
     # List files in the archive
     >>> sorted([file.name for file in demo.list_files()])
@@ -94,7 +95,6 @@ class MODO:
         """human-readable print of the object's contents"""
         meta = self.metadata
         # Pretty print metadata contents as yaml
-        import yaml
 
         return yaml.dump(meta, sort_keys=False)
 
@@ -114,7 +114,18 @@ class MODO:
 
     def query(self, query: str):
         """Use SPARQL to query the metadata graph"""
-        return self.knowledge_graph.query(query)
+        return self.knowledge_graph().query(query)
+
+    def list_samples(self):
+        """Lists samples in the archive."""
+        res = self.query("SELECT ?s WHERE { ?s a smoc_schema:Sample }")
+        samples = []
+        for row in res:
+            for val in row:
+                samples.append(
+                    str(val).removeprefix(f"file://{self.path.name}")
+                )
+        return samples
 
     def add_element(
         self,
