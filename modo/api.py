@@ -1,25 +1,25 @@
+from datetime import date
 import json
-import shutil
 from pathlib import Path
+import shutil
 from typing import Generator, Optional
 
 from linkml_runtime.dumpers import json_dumper
 import rdflib
-from smoc_schema.datamodel import Assay, DataEntity, Sample
+from smoc_schema.datamodel import Assay, DataEntity, Sample, Study
 import zarr
 
 from .introspection import get_haspart_property
 from .rdf import attrs_to_graph
-from .storage import add_metadata_group, init_zarr
+from .storage import add_metadata_group, init_zarr, list_zarr_items
 
 
 class MODO:
     """Multi-Omics Digital Object
     A digital archive containing several multi-omics data and records.
     The archive contains:
-    * A zarr file, with array-based data
-    * A metadata file, with RDF metadata describing and pointing to the actual data
-    * CRAM files, with genomic-interval data
+    * A zarr file, array-based data and metadata pointing to arrays and data files
+    * CRAM files, with genomic-alignments data
 
     Examples
     --------
@@ -33,23 +33,37 @@ class MODO:
     >>> sorted([file.name for file in demo.list_files()])
     ['demo1.cram', 'demo2.cram', 'ecoli_ref.fa', 'metadata.ttl']
 
-    # Query the metadata graph to find the location of the
-    # CRAM files for the sample bac1
-    >>> bac1_files = demo.query('''
-    ...   SELECT ?path
-    ...   WHERE {
-    ...   [] rdf:type smoc:CRAMFile ;
-    ...     smoc:hasSample ex:bac1 ;
-    ...     smoc:hasLocation ?path .
-    ... }
-    ... ''').serialize(format="csv").decode()
     """
 
-    def __init__(self, path: Path, id_: Optional[str] = None):
+    def __init__(
+        self,
+        path: Path,
+        id_: Optional[str] = None,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        start_date: date = date.today(),
+        completion_date: Optional[date] = None,
+    ):
         self.path: Path = Path(path)
         self.archive = init_zarr(self.path)
-        if id_ is None:
-            self.id_ = self.path.name
+        # Opened existing object
+        try:
+            self.id_ = next(self.archive.groups())[0]
+        # Creating from scratch
+        except StopIteration:
+            if id_ is None:
+                self.id_ = self.path.name
+            self.add_element(
+                Study(
+                    self.id_,
+                    start_date=str(start_date),
+                    completion_date=str(completion_date)
+                    if completion_date
+                    else None,
+                    name=name,
+                    description=description,
+                )
+            )
 
     @property
     def metadata(self) -> dict:
@@ -62,7 +76,7 @@ class MODO:
 
         # Get flat dictionary with all attrs, easier to search
         group_attrs = dict()
-        for name, value in root.groups():
+        for name, value in list_zarr_items(root):
             group_attrs[name] = dict(value.attrs)
         return group_attrs
 
@@ -114,9 +128,10 @@ class MODO:
         will be updated."""
 
         # Copy data file to archive and update location in metadata
+        data_path = Path(data_file)
         if data_file is not None:
-            shutil.copy(data_file, self.path / data_file.name)
-            element.location = str(data_file.name)
+            shutil.copy(data_file, self.path / data_path.name)
+            element.location = str(data_path.name)
 
         # Link element to parent element
         if part_of is None:
@@ -127,9 +142,10 @@ class MODO:
             # has_part is multivalued
             if has_prop not in self.archive[part_of].attrs:
                 self.archive[part_of].attrs[has_prop] = []
-            self.archive[part_of].attrs[has_prop].append(element.id)
+            self.archive[part_of].attrs[has_prop] += [element.id]
 
         # Add element to metadata
         parent_group = self.archive[path]
         attrs = json.loads(json_dumper.dumps(element))
         add_metadata_group(parent_group, attrs)
+        zarr.consolidate_metadata(self.archive.store)

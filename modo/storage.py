@@ -42,3 +42,14 @@ def attrs_to_instance(group: zarr.Group, id: str) -> Any:
     target_class = ElementType(meta["@type"].lower()).get_target_class()
 
     return json_loader.loads(json.dumps(meta), target_class=target_class)
+
+
+def list_zarr_items(group: zarr.Group) -> list[zarr.Group | zarr.Array]:
+    """Recursively list all zarr groups and arrays"""
+    found = []
+
+    def list_all(path: str, elem):
+        found.append((path, elem))
+
+    group.visititems(list_all)
+    return found
