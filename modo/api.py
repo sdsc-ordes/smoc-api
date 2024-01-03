@@ -28,7 +28,7 @@ class MODO:
 
     # List identifiers of samples in the archive
     >>> demo.list_samples()
-    ['ex/demo-assay/demo1/bac1']
+    ['/ex/demo-assay/demo1/bac1']
 
     # List files in the archive
     >>> sorted([file.name for file in demo.list_files()])
@@ -139,8 +139,8 @@ class MODO:
         will be updated."""
 
         # Copy data file to archive and update location in metadata
-        data_path = Path(data_file)
         if data_file is not None:
+            data_path = Path(data_file)
             shutil.copy(data_file, self.path / data_path.name)
             element.location = str(data_path.name)
 
