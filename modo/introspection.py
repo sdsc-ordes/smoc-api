@@ -101,13 +101,13 @@ def get_haspart_property(child_class: str) -> Optional[str]:
     prop_names = load_schema().slot_children("has_part")
     for prop_name in prop_names:
         has_prop = load_schema().get_slot(prop_name)
-        # When considering the slot range,
-        # include subclasses or targets
         targets = has_prop.range
         if isinstance(targets, str):
             targets = [targets]
+        # When considering the slot range,
+        # include subclasses or targets
         sub_targets = map(load_schema().get_children, targets)
-        sub_targets = list(reduce(lambda x, y: x + y, sub_targets))
+        sub_targets = reduce(lambda x, y: x + y, sub_targets)
         all_targets = targets + [t for t in sub_targets if t]
         if child_class in all_targets:
             return prop_name
