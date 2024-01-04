@@ -190,7 +190,7 @@ def show(
     elif files:
         out = "\n".join([str(path) for path in obj.list_files()])
     else:
-        out = list(obj.show_contents())
+        out = obj.show_contents()
     print(out)
 
 
