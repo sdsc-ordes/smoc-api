@@ -3,7 +3,7 @@
 This module provides utilities for accessing the schema structure
 and for converting instances to different representations.
 """
-from functools import lru_cache
+from functools import lru_cache, reduce
 from pathlib import Path
 from typing import Any, Optional
 
@@ -87,16 +87,28 @@ def get_class(class_name: str):
 
 def get_haspart_property(child_class: str) -> Optional[str]:
     """Return the name of the "has_part" property for a target class.
-    If no such property is in the schema, return None."""
+    If no such property is in the schema, return None.
+
+    Examples
+    --------
+    >>> get_haspart_property('AlignmentSet')
+    'has_data'
+    >>> get_haspart_property('Assay')
+    'has_assay'
+    """
 
     # find all subproperties of has_part
     prop_names = load_schema().slot_children("has_part")
     for prop_name in prop_names:
-        has_prop = schema.get_slot(prop_name)
+        has_prop = load_schema().get_slot(prop_name)
         # When considering the slot range,
         # include subclasses or targets
-        target = has_prop.range
-        all_targets = list(target) + schema.get_children(target)
+        targets = has_prop.range
+        if isinstance(targets, str):
+            targets = [targets]
+        sub_targets = map(load_schema().get_children, targets)
+        sub_targets = list(reduce(lambda x, y: x + y, sub_targets))
+        all_targets = targets + [t for t in sub_targets if t]
         if child_class in all_targets:
             return prop_name
     return None
