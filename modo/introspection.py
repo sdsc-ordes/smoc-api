@@ -89,15 +89,14 @@ def get_haspart_property(child_class: str) -> Optional[str]:
     """Return the name of the "has_part" property for a target class.
     If no such property is in the schema, return None."""
 
-    # TODO: Improve schema to have subproperties of "has_part"
-    # Then use inheritance to find the correct property
-    # (or just use has_part for everything?)
-    has_prop = {
-        "Sample": "has_sample",
-        "Assay": "has_assay",
-        "DataEntity": "has_data",
-        "Array": "has_data",
-        "AlignmentSet": "has_data",
-        "VariantSet": "has_data",
-    }
-    return has_prop.get(child_class)
+    # find all subproperties of has_part
+    prop_names = load_schema().slot_children("has_part")
+    for prop_name in prop_names:
+        has_prop = schema.get_slot(prop_name)
+        # When considering the slot range,
+        # include subclasses or targets
+        target = has_prop.range
+        all_targets = list(target) + schema.get_children(target)
+        if child_class in all_targets:
+            return prop_name
+    return None
