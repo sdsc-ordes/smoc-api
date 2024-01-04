@@ -32,7 +32,7 @@ class MODO:
 
     # List files in the archive
     >>> sorted([file.name for file in demo.list_files()])
-    ['demo1.cram', 'demo2.cram', 'ecoli_ref.fa', 'metadata.ttl']
+    ['demo1.cram', 'demo2.cram']
 
     """
 
