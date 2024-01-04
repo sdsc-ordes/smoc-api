@@ -118,7 +118,7 @@ class MODO:
 
     def list_samples(self):
         """Lists samples in the archive."""
-        res = self.query("SELECT ?s WHERE { ?s a smoc_schema:Sample }")
+        res = self.query("SELECT ?s WHERE { ?s a smoc:Sample }")
         samples = []
         for row in res:
             for val in row:
