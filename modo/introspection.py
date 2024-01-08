@@ -7,7 +7,6 @@ from functools import lru_cache, reduce
 from pathlib import Path
 from typing import Any, Optional
 
-from linkml.generators.owlgen import MetadataProfile, OwlSchemaGenerator
 from linkml_runtime.dumpers import rdflib_dumper
 from linkml_runtime.utils.schemaview import SchemaView
 from rdflib import Graph
@@ -57,17 +56,6 @@ def instance_to_graph(instance) -> Graph:
         prefix_map=prefixes,
         schemaview=load_schema(),
     )
-
-
-def load_schema_rdflib_graph() -> Graph:
-    """Load the schema as an RDFLib Graph."""
-    metadata_profile = MetadataProfile.linkml
-    schema = OwlSchemaGenerator(
-        str(SCHEMA_PATH), metadata_profile=metadata_profile
-    )
-    ttl_data = schema.serialize(format="owl")
-    graph = Graph().parse(data=ttl_data, format="turtle")
-    return graph
 
 
 def get_slot_range(slot_name: str) -> str:
