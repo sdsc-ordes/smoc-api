@@ -4,6 +4,7 @@
 
 from enum import Enum
 import json
+import os
 from pathlib import Path
 from typing import Any, Iterable, Optional
 from typing_extensions import Annotated
@@ -110,6 +111,22 @@ def create(
 
 
 @cli.command()
+def remove(
+    object_directory: Annotated[Path, typer.Argument(...)],
+    element_id: Annotated[
+        str,
+        typer.Argument(
+            ...,
+            help="The identifying path within the digital object. Use modo show to check it.",
+        ),
+    ],
+):
+    """Removes the target element from the digital object, along with its files (if any) and links from other elements"""
+    modo = MODO(object_directory)
+    modo.remove_element(element_id)
+
+
+@cli.command()
 def add(
     object_directory: Annotated[Path, typer.Argument(...)],
     element_type: Annotated[
@@ -184,7 +201,10 @@ def show(
     ] = False,
 ):
     """Show the contents of a digital object."""
-    obj = MODO(object_directory)
+    if os.path.exists(object_directory):
+        obj = MODO(object_directory)
+    else:
+        raise ValueError(f"{object_directory} does not exists")
     if zarr:
         out = obj.list_arrays()
     elif files:

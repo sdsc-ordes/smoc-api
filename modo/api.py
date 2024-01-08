@@ -127,6 +127,34 @@ class MODO:
                 )
         return samples
 
+    def remove_element(self, element_id: str):
+        """Remove an element from the archive, along with any files
+        directly attached to it and links from other elements to it.
+        """
+        try:
+            attrs = self.archive[element_id].attrs
+        except KeyError as err:
+            keys = []
+            self.archive.visit(lambda k: keys.append(k))
+            print(f"Element {element_id} not found in the archive.")
+            print(f"Available elements are {keys}")
+            raise err
+
+        # Remove data file
+        if "location" in attrs.keys():
+            data_file = self.path / attrs["location"]
+            if data_file.exists():
+                data_file.unlink()
+
+        # Remove links from other elements
+        for elem, attrs in self.metadata.items():
+            for key, value in attrs.items():
+                if value == element_id:
+                    del self.archive[elem].attrs[key]
+                elif isinstance(value, list) and element_id in value:
+                    self.archive[elem].attrs[key].remove(element_id)
+        zarr.consolidate_metadata(self.archive.store)
+
     def add_element(
         self,
         element: DataEntity | Sample | Assay,
