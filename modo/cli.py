@@ -155,7 +155,15 @@ def add(
         typer.Option(
             "--from-file",
             "-f",
-            help="Create instance from a file. The file must be in json or yaml format.",
+            help="Include a data file associated with the instance. The file must be in json or yaml format.",
+        ),
+    ] = None,
+    data_file: Annotated[
+        Optional[Path],
+        typer.Option(
+            "--data-file",
+            "-d",
+            help="Specify a data file to copy into the digital object and associate with the instance.",
         ),
     ] = None,
 ):
@@ -177,7 +185,7 @@ def add(
         obj = target_class(**filled)
 
     modo = MODO(object_directory)
-    modo.add_element(obj, data_file=from_file, part_of=parent)
+    modo.add_element(obj, data_file=data_file, part_of=parent)
 
 
 @cli.command()
