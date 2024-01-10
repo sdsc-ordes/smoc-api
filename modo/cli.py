@@ -11,7 +11,7 @@ from typing_extensions import Annotated
 
 from linkml_runtime.loaders import json_loader
 from linkml_runtime.dumpers import json_dumper, rdflib_dumper
-from smoc_schema.datamodel import Study
+from smoc_schema.datamodel import MODO
 import typer
 import zarr
 
@@ -97,12 +97,12 @@ def create(
     if from_file and meta:
         raise ValueError("Only one of --from-file or --data can be used.")
     elif from_file:
-        obj = parse_instances(from_file, target_class=Study)
+        obj = parse_instances(from_file, target_class=MODO)
     elif meta:
-        obj = json_loader.loads(meta, target_class=Study)
+        obj = json_loader.loads(meta, target_class=MODO)
     else:
-        filled = prompt_for_slots("Study")
-        obj = Study(**filled)
+        filled = prompt_for_slots("MODO")
+        obj = MODO(**filled)
 
     # Dump object to zarr metadata
     group = init_zarr(object_directory)

@@ -26,7 +26,7 @@ def get_loader(path: Path):
 
 
 def parse_instances(path: Path, target_class):
-    """Load a Study from a file."""
+    """Load a MODO from a file."""
     loader = get_loader(path)
     if not loader:
         raise ValueError(f"Unsupported file format: {path}")

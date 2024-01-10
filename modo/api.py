@@ -7,7 +7,7 @@ import yaml
 
 from linkml_runtime.dumpers import json_dumper
 import rdflib
-from smoc_schema.datamodel import Assay, DataEntity, Sample, Study
+from smoc_schema.datamodel import Assay, DataEntity, MODO, Sample
 import zarr
 
 from .introspection import get_haspart_property
@@ -42,8 +42,8 @@ class MODO:
         id_: Optional[str] = None,
         name: Optional[str] = None,
         description: Optional[str] = None,
-        start_date: date = date.today(),
-        completion_date: Optional[date] = None,
+        creation_date: date = date.today(),
+        last_update_date: date = date.today(),
     ):
         self.path: Path = Path(path)
         self.archive = init_zarr(self.path)
@@ -55,12 +55,10 @@ class MODO:
             if id_ is None:
                 self.id_ = self.path.name
             self.add_element(
-                Study(
+                MODO(
                     self.id_,
-                    start_date=str(start_date),
-                    completion_date=str(completion_date)
-                    if completion_date
-                    else None,
+                    creation_date=str(start_date),
+                    last_update_date=str(completion_date),
                     name=name,
                     description=description,
                 )
@@ -141,8 +139,8 @@ class MODO:
             raise err
 
         # Remove data file
-        if "location" in attrs.keys():
-            data_file = self.path / attrs["location"]
+        if "data_path" in attrs.keys():
+            data_file = self.path / attrs["data_path"]
             if data_file.exists():
                 data_file.unlink()
 
@@ -166,11 +164,11 @@ class MODO:
         If the element is part of another element, the parent metadata
         will be updated."""
 
-        # Copy data file to archive and update location in metadata
+        # Copy data file to archive and update data_path in metadata
         if data_file is not None:
             data_path = Path(data_file)
             shutil.copy(data_file, self.path / data_path.name)
-            element.location = str(data_path.name)
+            element.data_path = str(data_path.name)
 
         # Link element to parent element
         if part_of is None:
