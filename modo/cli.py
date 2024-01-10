@@ -2,6 +2,7 @@
 
 # Use typer for CLI
 
+from datetime import date
 from enum import Enum
 import json
 import os
@@ -9,15 +10,21 @@ from pathlib import Path
 from typing import Any, Iterable, Optional
 from typing_extensions import Annotated
 
+import click
 from linkml_runtime.loaders import json_loader
 from linkml_runtime.dumpers import json_dumper, rdflib_dumper
-from smoc_schema.datamodel import MODO
+import smoc_schema.datamodel as model
 import typer
 import zarr
 
 from .api import MODO
 from .helpers import ElementType
-from .introspection import get_slots
+from .introspection import (
+    get_enum_values,
+    get_slots,
+    get_slot_range,
+    load_schema,
+)
 from .io import parse_instances
 from .storage import add_metadata_group, init_zarr
 
@@ -35,7 +42,16 @@ cli = typer.Typer(add_completion=False)
 
 def prompt_for_slot(slot_name: str, prefix: str = ""):
     """Prompt for a slot value."""
-    return typer.prompt(f"{prefix}Enter a value for {slot_name}")
+    slot_range = get_slot_range(slot_name)
+    choices, default = None, None
+    if slot_range == "datetime":
+        default = date.today()
+    elif load_schema().get_enum(slot_range):
+        choices = click.Choice(get_enum_values(slot_range))
+
+    return typer.prompt(
+        f"{prefix}Enter a value for {slot_name}", default=default, type=choices
+    )
 
 
 def prompt_for_slots(
@@ -97,12 +113,12 @@ def create(
     if from_file and meta:
         raise ValueError("Only one of --from-file or --data can be used.")
     elif from_file:
-        obj = parse_instances(from_file, target_class=MODO)
+        obj = parse_instances(from_file, target_class=model.MODO)
     elif meta:
-        obj = json_loader.loads(meta, target_class=MODO)
+        obj = json_loader.loads(meta, target_class=model.MODO)
     else:
         filled = prompt_for_slots("MODO")
-        obj = MODO(**filled)
+        obj = model.MODO(**filled)
 
     # Dump object to zarr metadata
     group = init_zarr(object_directory)
