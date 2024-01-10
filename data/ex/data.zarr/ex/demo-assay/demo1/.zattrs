@@ -5,6 +5,6 @@
     "has_sample": [
         "bac1"
     ],
-    "location": "demo1.cram",
+    "data_path": "demo1.cram",
     "name": "demo 1"
 }

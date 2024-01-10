@@ -7,7 +7,7 @@ import yaml
 
 from linkml_runtime.dumpers import json_dumper
 import rdflib
-from smoc_schema.datamodel import Assay, DataEntity, MODO, Sample
+import smoc_schema.datamodel as model
 import zarr
 
 from .introspection import get_haspart_property
@@ -55,10 +55,10 @@ class MODO:
             if id_ is None:
                 self.id_ = self.path.name
             self.add_element(
-                MODO(
+                model.MODO(
                     self.id_,
-                    creation_date=str(start_date),
-                    last_update_date=str(completion_date),
+                    creation_date=str(creation_date),
+                    last_update_date=str(last_update_date),
                     name=name,
                     description=description,
                 )
@@ -155,7 +155,7 @@ class MODO:
 
     def add_element(
         self,
-        element: DataEntity | Sample | Assay,
+        element: model.DataEntity | model.Sample | model.Assay,
         data_file: Optional[Path] = None,
         part_of: Optional[str] = None,
     ):

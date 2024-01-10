@@ -4,11 +4,12 @@
             "zarr_format": 2
         },
         "ex/.zattrs": {
-            "@type": "Study",
+            "@type": "MODO",
+            "creation_date": "2024-01-03T00:00:00",
             "has_assay": [
                 "demo-assay"
             ],
-            "start_date": "2024-01-03T00:00:00"
+            "last_update_date": "2024-01-04T00:00:00"
         },
         "ex/.zgroup": {
             "zarr_format": 2
@@ -32,11 +33,11 @@
         "ex/demo-assay/demo1/.zattrs": {
             "@type": "AlignmentSet",
             "data_format": "CRAM",
+            "data_path": "demo1.cram",
             "description": "E. coli wgs",
             "has_sample": [
                 "bac1"
             ],
-            "location": "demo1.cram",
             "name": "demo 1"
         },
         "ex/demo-assay/demo1/.zgroup": {
@@ -59,8 +60,8 @@
         "ex/demo-assay/demo2/.zattrs": {
             "@type": "AlignmentSet",
             "data_format": "CRAM",
+            "data_path": "demo2.cram",
             "description": "E. coli wgs resequencing",
-            "location": "demo2.cram",
             "name": "demo 2"
         },
         "ex/demo-assay/demo2/.zgroup": {

@@ -2,6 +2,6 @@
     "@type": "AlignmentSet",
     "data_format": "CRAM",
     "description": "E. coli wgs resequencing",
-    "location": "demo2.cram",
+    "data_path": "demo2.cram",
     "name": "demo 2"
 }
