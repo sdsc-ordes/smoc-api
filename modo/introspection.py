@@ -67,11 +67,6 @@ def get_enum_values(enum_name: str) -> Optional[list[str]]:
     return list(load_schema().get_enum(enum_name).permissible_values.keys())
 
 
-def get_class_uri(class_name: str) -> str:
-    """Return the URI of a class."""
-    return load_schema().get_class(class_name).uri
-
-
 def get_haspart_property(child_class: str) -> Optional[str]:
     """Return the name of the "has_part" property for a target class.
     If no such property is in the schema, return None.
