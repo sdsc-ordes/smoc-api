@@ -60,6 +60,8 @@ def instance_to_graph(instance) -> Graph:
 
 def get_slot_range(slot_name: str) -> str:
     """Return the range of a slot."""
+    # NOTE: This assumes slot range is class-independent and
+    # will not work if the schema uses linkml's slot_usage feature
     return load_schema().get_slot(slot_name).range
 
 
