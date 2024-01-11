@@ -72,11 +72,6 @@ def get_class_uri(class_name: str) -> str:
     return load_schema().get_class(class_name).uri
 
 
-def get_class(class_name: str):
-    """Return the URI of a class."""
-    return load_schema().get_class(class_name)
-
-
 def get_haspart_property(child_class: str) -> Optional[str]:
     """Return the name of the "has_part" property for a target class.
     If no such property is in the schema, return None.
