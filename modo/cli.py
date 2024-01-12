@@ -65,8 +65,6 @@ def prompt_for_slots(
         set(get_slots(target_class, required_only=False)) - required_slots
     )
 
-    entries["id"] = prompt_for_slot("id", prefix="(required) ")
-
     for slot_name in required_slots:
         entries[slot_name] = prompt_for_slot(slot_name, prefix="(required) ")
         if entries[slot_name] is None:
