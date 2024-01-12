@@ -40,7 +40,7 @@ class RdfFormat(str, Enum):
 cli = typer.Typer(add_completion=False)
 
 
-def prompt_for_slot(slot_name: str, prefix: str = ""):
+def prompt_for_slot(slot_name: str, prefix: str = "", optional: bool = False):
     """Prompt for a slot value."""
     slot_range = get_slot_range(slot_name)
     choices, default = None, None
@@ -48,10 +48,16 @@ def prompt_for_slot(slot_name: str, prefix: str = ""):
         default = date.today()
     elif load_schema().get_enum(slot_range):
         choices = click.Choice(get_enum_values(slot_range))
+    elif optional:
+        default = ""
 
-    return typer.prompt(
+    output = typer.prompt(
         f"{prefix}Enter a value for {slot_name}", default=default, type=choices
     )
+    if output == "":
+        output = None
+
+    return output
 
 
 def prompt_for_slots(
@@ -65,6 +71,11 @@ def prompt_for_slots(
         set(get_slots(target_class, required_only=False)) - required_slots
     )
 
+    # Always require identifiers if possible
+    if "id" in optional_slots:
+        optional_slots.remove("id")
+        required_slots.add("id")
+
     for slot_name in required_slots:
         entries[slot_name] = prompt_for_slot(slot_name, prefix="(required) ")
         if entries[slot_name] is None:
@@ -72,7 +83,9 @@ def prompt_for_slots(
     if optional_slots:
         for slot_name in optional_slots:
             entries[slot_name] = prompt_for_slot(
-                slot_name, prefix="(optional) "
+                slot_name,
+                prefix="(optional) ",
+                optional=True,
             )
     return entries
 
