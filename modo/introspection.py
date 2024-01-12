@@ -29,19 +29,16 @@ def load_prefixmap() -> Any:
     return SchemaView(SCHEMA_PATH, merge_imports=False).schema.prefixes
 
 
-def get_slots(target_class: str, required_only=False) -> list[str]:
+def get_slots(target_class: type, required_only=False) -> list[str]:
     """Return a list of required slots for a class."""
-    required = []
-    class_slots = load_schema().get_class(target_class).slots
-    if not class_slots:
-        return required
+    slots = []
+    class_slots = target_class.__match_args__
 
-    # NOTE: May need to check inheritance and slot_usage
     for slot_name in class_slots:
         if not required_only or load_schema().get_slot(slot_name).required:
-            required.append(slot_name)
+            slots.append(slot_name)
 
-    return required
+    return slots
 
 
 def instance_to_graph(instance) -> Graph:

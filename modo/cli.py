@@ -55,7 +55,7 @@ def prompt_for_slot(slot_name: str, prefix: str = ""):
 
 
 def prompt_for_slots(
-    target_class: str,
+    target_class: type,
 ) -> dict[str, Any]:
     """Prompt the user to provide values for the slots of input class."""
 
@@ -117,7 +117,7 @@ def create(
     elif meta:
         obj = json_loader.loads(meta, target_class=model.MODO)
     else:
-        filled = prompt_for_slots("MODO")
+        filled = prompt_for_slots(model.MODO)
         obj = model.MODO(**filled)
 
     # Dump object to zarr metadata
@@ -197,7 +197,7 @@ def add(
     elif meta:
         obj = json_loader.loads(meta, target_class=target_class)
     else:
-        filled = prompt_for_slots(target_class.__name__)
+        filled = prompt_for_slots(target_class)
         obj = target_class(**filled)
 
     modo = MODO(object_directory)
