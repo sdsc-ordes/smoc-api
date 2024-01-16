@@ -164,7 +164,6 @@ class MODO:
         If the element is part of another element, the parent metadata
         will be updated."""
 
-        breakpoint()
         # Copy data file to archive and update data_path in metadata
         if data_file is not None:
             data_path = Path(data_file)
@@ -172,17 +171,26 @@ class MODO:
 
         # Link element to parent element
         if part_of is None:
-            path = "/"
+            parent_path = "/"
         else:
-            path = part_of
+            parent_path = part_of
+            parent_type = getattr(
+                model,
+                self.metadata[parent_path]["@type"],
+            )
             has_prop = get_haspart_property(element.__class__.__name__)
+            parent_slots = parent_type.__match_args__
+            if has_prop not in parent_slots:
+                raise ValueError(
+                    f"Cannot make {element.id} part of {part_of}: {parent_type} does not have property {has_prop}"
+                )
             # has_part is multivalued
             if has_prop not in self.archive[part_of].attrs:
                 self.archive[part_of].attrs[has_prop] = []
             self.archive[part_of].attrs[has_prop] += [element.id]
 
         # Add element to metadata
-        parent_group = self.archive[path]
+        parent_group = self.archive[parent_path]
         attrs = json.loads(json_dumper.dumps(element))
         add_metadata_group(parent_group, attrs)
         zarr.consolidate_metadata(self.archive.store)

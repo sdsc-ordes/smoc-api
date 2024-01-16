@@ -79,8 +79,7 @@ def get_haspart_property(child_class: str) -> Optional[str]:
     # find all subproperties of has_part
     prop_names = load_schema().slot_children("has_part")
     for prop_name in prop_names:
-        has_prop = load_schema().get_slot(prop_name)
-        targets = has_prop.range
+        targets = get_slot_range(prop_name)
         if isinstance(targets, str):
             targets = [targets]
         # When considering the slot range,
