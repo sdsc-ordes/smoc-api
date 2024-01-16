@@ -164,11 +164,11 @@ class MODO:
         If the element is part of another element, the parent metadata
         will be updated."""
 
+        breakpoint()
         # Copy data file to archive and update data_path in metadata
         if data_file is not None:
             data_path = Path(data_file)
-            shutil.copy(data_file, self.path / data_path.name)
-            element.data_path = str(data_path.name)
+            shutil.copy(data_file, self.path / element.data_path)
 
         # Link element to parent element
         if part_of is None:
