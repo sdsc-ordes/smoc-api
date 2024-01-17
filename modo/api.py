@@ -28,11 +28,11 @@ class MODO:
 
     # List identifiers of samples in the archive
     >>> demo.list_samples()
-    ['/ex/demo-assay/demo1/bac1']
+    ['/ex/assay1/sample1']
 
     # List files in the archive
     >>> sorted([file.name for file in demo.list_files()])
-    ['demo1.cram', 'demo2.cram']
+    ['demo1.cram', 'reference.fa']
 
     """
 
@@ -155,7 +155,7 @@ class MODO:
 
     def add_element(
         self,
-        element: model.DataEntity | model.Sample | model.Assay,
+        element: model.DataEntity | model.Sample | model.Assay | model.MODO,
         data_file: Optional[Path] = None,
         part_of: Optional[str] = None,
     ):
@@ -171,7 +171,12 @@ class MODO:
 
         # Link element to parent element
         if part_of is None:
-            parent_path = next(self.archive.groups())[0]
+            try:
+                parent_path = next(self.archive.groups())[0]
+            # Empty iterator when initiating a MODO object
+            # Then the root group is MODO's id
+            except StopIteration:
+                parent_path = "/"
         else:
             parent_path = part_of
 
