@@ -174,6 +174,10 @@ class MODO:
             parent_path = next(self.archive.groups())[0]
         else:
             parent_path = part_of
+
+        element_path = parent_path + "/" + element.id
+
+        if part_of is not None:
             parent_type = getattr(
                 model,
                 self.metadata[parent_path]["@type"],
@@ -187,7 +191,7 @@ class MODO:
             # has_part is multivalued
             if has_prop not in self.archive[part_of].attrs:
                 self.archive[part_of].attrs[has_prop] = []
-            self.archive[part_of].attrs[has_prop] += [element.id]
+            self.archive[part_of].attrs[has_prop] += [element_path]
 
         # Add element to metadata
         parent_group = self.archive[parent_path]

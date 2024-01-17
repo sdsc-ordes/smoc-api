@@ -1,8 +1,7 @@
 {
     "@type": "MODO",
-    "has_assay": [
-        "demo-assay"
-    ],
-    "creation_date": "2024-01-03T00:00:00",
-    "last_update_date": "2024-01-04T00:00:00"
+    "creation_date": "2024-01-17T00:00:00",
+    "description": "Example modo for tests",
+    "last_update_date": "2024-01-17T00:00:00",
+    "name": "Example"
 }
