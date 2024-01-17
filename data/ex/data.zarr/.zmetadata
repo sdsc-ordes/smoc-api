@@ -1,0 +1,68 @@
+{
+    "metadata": {
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "ex/.zattrs": {
+            "@type": "MODO",
+            "creation_date": "2024-01-17T00:00:00",
+            "description": "Example modo for tests",
+            "last_update_date": "2024-01-17T00:00:00",
+            "name": "Example"
+        },
+        "ex/.zgroup": {
+            "zarr_format": 2
+        },
+        "ex/assay1/.zattrs": {
+            "@type": "Assay",
+            "description": "Example assay for tests",
+            "has_data": [
+                "ex/assay1/demo1"
+            ],
+            "has_sample": [
+                "ex/assay1/sample1"
+            ],
+            "name": "Assay 1",
+            "omics_type": [
+                "GENOMICS"
+            ]
+        },
+        "ex/assay1/.zgroup": {
+            "zarr_format": 2
+        },
+        "ex/assay1/demo1/.zattrs": {
+            "@type": "DataEntity",
+            "data_format": "CRAM",
+            "data_path": "demo1.cram",
+            "description": "Demo CRAM file for tests.",
+            "has_reference": [
+                "ex/assay1/demo1/reference1"
+            ],
+            "name": "Demo 1"
+        },
+        "ex/assay1/demo1/.zgroup": {
+            "zarr_format": 2
+        },
+        "ex/assay1/demo1/reference1/.zattrs": {
+            "@type": "ReferenceGenome",
+            "data_path": "reference.fa",
+            "name": "reference 1"
+        },
+        "ex/assay1/demo1/reference1/.zgroup": {
+            "zarr_format": 2
+        },
+        "ex/assay1/sample1/.zattrs": {
+            "@type": "Sample",
+            "collector": [
+                "Foo university"
+            ],
+            "description": "A dummy sample for tests.",
+            "name": "Sample 1",
+            "sex": "Male"
+        },
+        "ex/assay1/sample1/.zgroup": {
+            "zarr_format": 2
+        }
+    },
+    "zarr_consolidated_format": 1
+}
