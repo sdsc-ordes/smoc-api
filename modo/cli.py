@@ -168,7 +168,7 @@ def add(
         typer.Option(
             "--parent", "-p", help="Parent object in the zarr archive."
         ),
-    ] = "/",
+    ] = None,
     meta: Annotated[
         Optional[str],
         typer.Option(

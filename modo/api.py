@@ -171,7 +171,7 @@ class MODO:
 
         # Link element to parent element
         if part_of is None:
-            parent_path = "/"
+            parent_path = next(self.archive.groups())[0]
         else:
             parent_path = part_of
             parent_type = getattr(
