@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from typing import Mapping, Any
+from typing import Mapping, List
 from linkml_runtime.loaders import (
     json_loader,
     yaml_loader,
@@ -9,6 +9,7 @@ from linkml_runtime.loaders import (
 )
 import smoc_schema.datamodel as model
 from .api import MODO
+from .helpers import class_from_name
 
 ext2loader = {
     "json": json_loader,
@@ -43,24 +44,33 @@ def parse_multiple_instances(path: Path) -> Mapping:
     return loader.load_as_dict(str(path))
 
 
-def modo_add_element_from_dict(
-    modo: MODO, obj_dict: Mapping, element_type: str
+def add_element_from_dict(
+    modo: MODO,
+    obj_dict: Mapping,
+    arg_keys: List[str] = ["part_of", "data_file"],
 ):
     """Add element to modo from dict"""
-    part_of = obj_dict.get("part_of")
-    data_file = obj_dict.get("data_file")
-    for key in ["part_of", "data_file"]:
-        drop = obj_dict.pop(key, None)
-    element = yaml_loader.load(obj_dict, getattr(model, element_type))
-    modo.add_element(element, data_file=data_file, part_of=part_of)
+    args = {arg: obj_dict.pop(arg, None) for arg in arg_keys}
+    element_type = obj_dict.pop("@type")
+    element = yaml_loader.load(obj_dict, class_from_name(element_type))
+    modo.add_element(element, **args)
 
 
 def build_modo_from_file(path: Path) -> MODO:
     """build a modo from a yaml or json file"""
     model_dict = parse_multiple_instances(path)
-    if "MODO" not in model_dict.keys():
-        raise ValueError("Input file must contain MODO + specifications")
-    modo = MODO(**model_dict.pop("MODO"))
-    for element_type, obj_dict in model_dict.items():
-        modo_add_element_from_dict(modo, obj_dict, element_type)
+    try:
+        # expects one modo per yaml file. Should we add a check for this?
+        modo_name = [
+            key
+            for key, value in model_dict.items()
+            if "MODO" in value.get("@type")
+        ][0]
+    except IndexError:
+        print("Input file must contain element of @type MODO")
+    drop = model_dict[modo_name].pop("@type")
+    modo = MODO(**model_dict.pop(modo_name))
+    for name, obj_dict in model_dict.items():
+        obj_dict["name"] = name
+        add_element_from_dict(modo, obj_dict)
     return modo
