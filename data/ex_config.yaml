@@ -1,8 +1,8 @@
 # A modo with multiple elements. Example GIAB.
 
-ex2:
+ex:
   "@type": MODO
-  path: data/ex2
+  path: data/ex
   description: "Example modo for tests"
   creation_date: "2024-01-17T00:00:00"
   last_update_date: "2024-01-17T00:00:00"
@@ -13,7 +13,7 @@ Assay 1:
   description: Example assay for tests
   has_sample:
   omics_type: GENOMICS
-  part_of: ex2
+  part_of: ex
 
 Demo 1:
   "@type": DataEntity
@@ -22,13 +22,13 @@ Demo 1:
   data_format: CRAM
   data_path: demo1.cram
   data_file: data/ex/demo1.cram
-  part_of: ex2/assay1
+  part_of: ex/assay1
 
 Reference 1:
   "@type": ReferenceGenome
   id: reference1
   data_path: reference.fa
-  part_of: ex2/assay1/demo1
+  part_of: ex/assay1/demo1
   data_file: data/ex/reference.fa
 
 Sample 1:
@@ -37,4 +37,4 @@ Sample 1:
   description: A dummy sample for tests.
   collector: Foo university
   sex: Male
-  part_of: ex2/assay1
+  part_of: ex/assay1
