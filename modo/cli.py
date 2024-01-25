@@ -25,7 +25,7 @@ from .introspection import (
     get_slot_range,
     load_schema,
 )
-from .io import parse_instances, build_modo_from_file
+from .io import build_modo_from_file
 from .storage import add_metadata_group, init_zarr
 
 
