@@ -45,9 +45,11 @@ def parse_multiple_instances(path: Path) -> List:
     loader = get_loader(path)
     if not loader:
         raise ValueError(f"Unsupported file format: {path}")
-    element_list = loader.load_as_dict(str(path))
+    elems = loader.load_as_dict(str(path))
+    if not isinstance(elems, list):
+        elems = [elems]
     instances = []
-    for elem in element_list:
+    for elem in elems:
         elem_type = elem.pop("@type")
         target_class = class_from_name(elem_type)
         instances.append(target_class(**elem))
