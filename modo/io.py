@@ -32,7 +32,7 @@ def get_loader(path: Path):
     return None
 
 
-def parse_instances(path: Path, target_class):
+def parse_instance(path: Path, target_class):
     """Load a model of target_class from a file."""
     loader = get_loader(path)
     if not loader:
@@ -46,10 +46,12 @@ def parse_multiple_instances(path: Path) -> List:
     if not loader:
         raise ValueError(f"Unsupported file format: {path}")
     element_list = loader.load_as_dict(str(path))
-    return [
-        yaml_loader.load(element, class_from_name(element.pop("@type")))
-        for element in element_list
-    ]
+    instances = []
+    for elem in element_list:
+        elem_type = elem.pop("@type")
+        target_class = class_from_name(elem_type)
+        instances.append(target_class(**elem))
+    return instances
 
 
 def build_modo_from_file(path: Path, object_directory: Path) -> MODO:
