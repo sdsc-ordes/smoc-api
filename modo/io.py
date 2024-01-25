@@ -7,9 +7,13 @@ from linkml_runtime.loaders import (
     csv_loader,
     rdf_loader,
 )
+from linkml_runtime.dumpers import json_dumper
 import smoc_schema.datamodel as model
 from .api import MODO
 from .helpers import class_from_name
+from .storage import add_metadata_group, init_zarr
+import json
+
 
 ext2loader = {
     "json": json_loader,
@@ -36,41 +40,35 @@ def parse_instances(path: Path, target_class):
     return loader.load(str(path), target_class)
 
 
-def parse_multiple_instances(path: Path) -> Mapping:
-    """Load multiple objects from a file."""
+def parse_multiple_instances(path: Path) -> List:
+    """Load one or more model from file. Model types must be specified as @type"""
     loader = get_loader(path)
     if not loader:
         raise ValueError(f"Unsupported file format: {path}")
-    return loader.load_as_dict(str(path))
+    element_list = loader.load_as_dict(str(path))
+    return [
+        yaml_loader.load(element, class_from_name(element.pop("@type")))
+        for element in element_list
+    ]
 
 
-def add_element_from_dict(
-    modo: MODO,
-    obj_dict: Mapping,
-    arg_keys: List[str] = ["part_of", "data_file"],
-):
-    """Add element to modo from dict"""
-    args = {arg: obj_dict.pop(arg, None) for arg in arg_keys}
-    element_type = obj_dict.pop("@type")
-    element = yaml_loader.load(obj_dict, class_from_name(element_type))
-    modo.add_element(element, **args)
-
-
-def build_modo_from_file(path: Path) -> MODO:
+def build_modo_from_file(path: Path, object_directory: Path) -> MODO:
     """build a modo from a yaml or json file"""
-    model_dict = parse_multiple_instances(path)
-    try:
-        # expects one modo per yaml file. Should we add a check for this?
-        modo_name = [
-            key
-            for key, value in model_dict.items()
-            if "MODO" in value.get("@type")
-        ][0]
-    except IndexError:
-        print("Input file must contain element of @type MODO")
-    drop = model_dict[modo_name].pop("@type")
-    modo = MODO(**model_dict.pop(modo_name))
-    for name, obj_dict in model_dict.items():
-        obj_dict["name"] = name
-        add_element_from_dict(modo, obj_dict)
+    instances = parse_multiple_instances(path)
+    modo_inst = [
+        instance for instance in instances if isinstance(instance, model.MODO)
+    ]
+    if len(modo_inst) != 1:
+        raise ValueError(
+            f"There must be exactly 1 MODO in the input file. Found {len(modo_inst)}"
+        )
+    # Dump object to zarr metadata
+    group = init_zarr(object_directory)
+    attrs = json.loads(json_dumper.dumps(modo_inst[0]))
+    add_metadata_group(group, attrs)
+    # ToDo: Make sure object_directory and specified id align
+    modo = MODO(object_directory)
+    for instance in instances:
+        if not isinstance(instance, model.MODO):
+            modo.add_element(instance)
     return modo

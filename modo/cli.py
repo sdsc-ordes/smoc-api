@@ -124,7 +124,7 @@ def create(
     if from_file and meta:
         raise ValueError("Only one of --from-file or --data can be used.")
     elif from_file:
-        modo = build_modo_from_file(from_file)
+        modo = build_modo_from_file(from_file, object_directory)
         return
     elif meta:
         obj = json_loader.loads(meta, target_class=model.MODO)
