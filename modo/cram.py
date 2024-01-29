@@ -12,7 +12,19 @@ def slice(cram_path: AlignmentFile, coords: str) -> AlignmentFile:
     >>> slice("data/ex1/demo1.cram", "chr1:100-200")
     """
     # https://htsget.readthedocs.io/en/stable/index.html
-    ...
+    
+    # split up coordinate string "chr:start-end" into its three elements
+    coords = coords.replace("-", ":")
+    loc, start, stop = coords.split(":")
+    start = int(start)
+    stop = int(stop)
+    
+    cramfile = AlignmentFile(cram_path,"rc")
+    iter = cramfile.fetch(loc, start, stop)
+    for x in iter:
+        print(str(x))
+    
+
 
 
 def extract_metadata(AlignmentHeader) -> Graph:
