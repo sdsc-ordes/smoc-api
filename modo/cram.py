@@ -19,10 +19,12 @@ def slice(cram_path: AlignmentFile, coords: str) -> AlignmentFile:
     start = int(start)
     stop = int(stop)
     
-    cramfile = AlignmentFile(cram_path,"rc")
+    cramfile = AlignmentFile(cram_path,"rc")  # need to add pointer to 
+                                              # reference file from metadata
     iter = cramfile.fetch(loc, start, stop)
     for x in iter:
-        print(str(x))
+        print(str(x))   # for the time being, just reads and prints out 
+                        # the reads in the requested slice
     
 
 
