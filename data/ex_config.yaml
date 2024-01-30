@@ -1,6 +1,6 @@
 # A modo with multiple elements. Example GIAB.
 
-- id: ex1
+- id: ex
   "@type": MODO
   description: "Example modo for tests"
   creation_date: "2024-01-17T00:00:00"
