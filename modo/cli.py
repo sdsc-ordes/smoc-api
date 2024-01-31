@@ -25,7 +25,7 @@ from .introspection import (
     get_slot_range,
     load_schema,
 )
-from .io import parse_instances
+from .io import build_modo_from_file
 from .storage import add_metadata_group, init_zarr
 
 
@@ -124,7 +124,8 @@ def create(
     if from_file and meta:
         raise ValueError("Only one of --from-file or --data can be used.")
     elif from_file:
-        obj = parse_instances(from_file, target_class=model.MODO)
+        modo = build_modo_from_file(from_file, object_directory)
+        return
     elif meta:
         obj = json_loader.loads(meta, target_class=model.MODO)
     else:
