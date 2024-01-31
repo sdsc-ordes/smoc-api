@@ -58,7 +58,7 @@ def parse_multiple_instances(path: Path) -> List:
 
 def build_modo_from_file(path: Path, object_directory: Path) -> MODO:
     """build a modo from a yaml or json file"""
-    instances = parse_multiple_instances(path)
+    instances = parse_multiple_instances(Path(path))
     modo_inst = [
         instance for instance in instances if isinstance(instance, model.MODO)
     ]
@@ -67,10 +67,9 @@ def build_modo_from_file(path: Path, object_directory: Path) -> MODO:
             f"There must be exactly 1 MODO in the input file. Found {len(modo_inst)}"
         )
     # Dump object to zarr metadata
-    group = init_zarr(object_directory)
+    group = init_zarr(Path(object_directory))
     attrs = json.loads(json_dumper.dumps(modo_inst[0]))
     add_metadata_group(group, attrs)
-    # ToDo: Make sure object_directory and specified id align
     modo = MODO(object_directory)
     for instance in instances:
         if not isinstance(instance, model.MODO):
