@@ -5,13 +5,14 @@ from rdflib import Graph
 
 
 def slice(cram_path: AlignmentFile, coords: str) -> AlignmentFile:
-    """Return a slice of the CRAM File.
+    """Return a slice of the CRAM File as an iterator object.
 
     Examples
     --------
-    >>> slice("data/ex1/demo1.cram", "chr1:100-200")
+    >>> x = slice("data/ex1/demo1.cram", "chr1:100-200")
+    >>> for read in x:
+        print(read)
     """
-    # https://htsget.readthedocs.io/en/stable/index.html
     
     # split up coordinate string "chr:start-end" into its three elements
     coords = coords.replace("-", ":")
@@ -21,11 +22,10 @@ def slice(cram_path: AlignmentFile, coords: str) -> AlignmentFile:
     
     cramfile = AlignmentFile(cram_path,"rc")  # need to add pointer to 
                                               # reference file from metadata
-    iter = cramfile.fetch(loc, start, stop)
-    for x in iter:
-        print(str(x))   # for the time being, just reads and prints out 
-                        # the reads in the requested slice
     
+    iter = cramfile.fetch(loc, start, stop)
+    
+    return iter
 
 
 
