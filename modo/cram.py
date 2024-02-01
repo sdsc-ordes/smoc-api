@@ -7,11 +7,11 @@ from rdflib import Graph
 def slice(cram_path: AlignmentFile, coords: str) -> AlignmentFile:
     """Return a slice of the CRAM File as an iterator object.
 
-    Examples
-    --------
+    Usage:
+    -----
     >>> x = slice("data/ex1/demo1.cram", "chr1:100-200")
     >>> for read in x:
-        print(read)
+            print(read)
     """
     
     # split up coordinate string "chr:start-end" into its three elements
