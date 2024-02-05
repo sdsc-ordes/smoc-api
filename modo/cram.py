@@ -4,7 +4,18 @@ from pysam import AlignmentFile, AlignmentHeader
 from rdflib import Graph
 
 
-def slice(cram_path: AlignmentFile, coords: str) -> AlignmentFile:
+def slice(omics_type: str, data_path: str, coords: str):
+    "Returns a slice of the requested region for the requested omics type"
+    
+    
+    if omics_type == 'Genomics':
+        return slice_cram(data_path, coords)
+    elif omics_type in ["Proteomics", "Metabolomics"]:
+        return slice_array()
+                        
+                        
+
+def slice_cram(cram_path: AlignmentFile, coords: str): # -> AlignmentFile:
     """Return a slice of the CRAM File as an iterator object.
 
     Usage:
@@ -27,6 +38,8 @@ def slice(cram_path: AlignmentFile, coords: str) -> AlignmentFile:
     
     return iter
 
+def slice_array():
+    return None
 
 
 def extract_metadata(AlignmentHeader) -> Graph:
