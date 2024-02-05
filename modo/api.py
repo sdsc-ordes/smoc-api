@@ -7,7 +7,7 @@ import yaml
 
 from linkml_runtime.dumpers import json_dumper
 import rdflib
-from smoc_schema.datamodel import Assay, DataEntity, Sample, Study
+import smoc_schema.datamodel as model
 import zarr
 
 from .introspection import get_haspart_property
@@ -28,11 +28,11 @@ class MODO:
 
     # List identifiers of samples in the archive
     >>> demo.list_samples()
-    ['/ex/demo-assay/demo1/bac1']
+    ['/ex/assay1/sample1']
 
     # List files in the archive
     >>> sorted([file.name for file in demo.list_files()])
-    ['demo1.cram', 'demo2.cram']
+    ['demo1.cram', 'reference.fa']
 
     """
 
@@ -42,8 +42,8 @@ class MODO:
         id_: Optional[str] = None,
         name: Optional[str] = None,
         description: Optional[str] = None,
-        start_date: date = date.today(),
-        completion_date: Optional[date] = None,
+        creation_date: date = date.today(),
+        last_update_date: date = date.today(),
     ):
         self.path: Path = Path(path)
         self.archive = init_zarr(self.path)
@@ -55,12 +55,10 @@ class MODO:
             if id_ is None:
                 self.id_ = self.path.name
             self.add_element(
-                Study(
+                model.MODO(
                     self.id_,
-                    start_date=str(start_date),
-                    completion_date=str(completion_date)
-                    if completion_date
-                    else None,
+                    creation_date=str(creation_date),
+                    last_update_date=str(last_update_date),
                     name=name,
                     description=description,
                 )
@@ -141,8 +139,8 @@ class MODO:
             raise err
 
         # Remove data file
-        if "location" in attrs.keys():
-            data_file = self.path / attrs["location"]
+        if "data_path" in attrs.keys():
+            data_file = self.path / attrs["data_path"]
             if data_file.exists():
                 data_file.unlink()
 
@@ -157,7 +155,7 @@ class MODO:
 
     def add_element(
         self,
-        element: DataEntity | Sample | Assay,
+        element: model.DataEntity | model.Sample | model.Assay | model.MODO,
         data_file: Optional[Path] = None,
         part_of: Optional[str] = None,
     ):
@@ -166,25 +164,42 @@ class MODO:
         If the element is part of another element, the parent metadata
         will be updated."""
 
-        # Copy data file to archive and update location in metadata
+        # Copy data file to archive and update data_path in metadata
         if data_file is not None:
             data_path = Path(data_file)
-            shutil.copy(data_file, self.path / data_path.name)
-            element.location = str(data_path.name)
+            shutil.copy(data_file, self.path / element.data_path)
 
         # Link element to parent element
         if part_of is None:
-            path = "/"
+            try:
+                parent_path = next(self.archive.groups())[0]
+            # Empty iterator when initiating a MODO object
+            # Then the root group is MODO's id
+            except StopIteration:
+                parent_path = "/"
         else:
-            path = part_of
+            parent_path = part_of
+
+        element_path = parent_path + "/" + element.id
+
+        if part_of is not None:
+            parent_type = getattr(
+                model,
+                self.metadata[parent_path]["@type"],
+            )
             has_prop = get_haspart_property(element.__class__.__name__)
+            parent_slots = parent_type.__match_args__
+            if has_prop not in parent_slots:
+                raise ValueError(
+                    f"Cannot make {element.id} part of {part_of}: {parent_type} does not have property {has_prop}"
+                )
             # has_part is multivalued
             if has_prop not in self.archive[part_of].attrs:
                 self.archive[part_of].attrs[has_prop] = []
-            self.archive[part_of].attrs[has_prop] += [element.id]
+            self.archive[part_of].attrs[has_prop] += [element_path]
 
         # Add element to metadata
-        parent_group = self.archive[path]
+        parent_group = self.archive[parent_path]
         attrs = json.loads(json_dumper.dumps(element))
         add_metadata_group(parent_group, attrs)
         zarr.consolidate_metadata(self.archive.store)

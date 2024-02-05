@@ -1,7 +1,7 @@
 from enum import Enum
 from urllib.parse import urlparse
 
-import smoc_schema.datamodel as smoc
+import smoc_schema.datamodel as model
 
 from .introspection import load_schema
 
@@ -10,7 +10,7 @@ def class_from_name(name: str):
     class_names = list(load_schema().all_classes().keys())
     if name not in class_names:
         raise ValueError(f"Unknown class name: {name}")
-    return getattr(smoc, name)
+    return getattr(model, name)
 
 
 class ElementType(str, Enum):
@@ -19,17 +19,20 @@ class ElementType(str, Enum):
     SAMPLE = "sample"
     ASSAY = "assay"
     DATA_ENTITY = "data"
+    REFERENCE_GENOME = "reference"
 
     def get_target_class(
         self,
-    ) -> type[smoc.Sample | smoc.Assay | smoc.DataEntity]:
+    ) -> type:
         """Return the target class for the element type."""
         if self == ElementType.SAMPLE:
-            return smoc.Sample
+            return model.Sample
         elif self == ElementType.ASSAY:
-            return smoc.Assay
+            return model.Assay
         elif self == ElementType.DATA_ENTITY:
-            return smoc.DataEntity
+            return model.DataEntity
+        elif self == ElementType.REFERENCE_GENOME:
+            return model.ReferenceGenome
         else:
             raise ValueError(f"Unknown element type: {self}")
 

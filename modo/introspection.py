@@ -29,19 +29,16 @@ def load_prefixmap() -> Any:
     return SchemaView(SCHEMA_PATH, merge_imports=False).schema.prefixes
 
 
-def get_slots(target_class: str, required_only=False) -> list[str]:
+def get_slots(target_class: type, required_only=False) -> list[str]:
     """Return a list of required slots for a class."""
-    required = []
-    class_slots = load_schema().get_class(target_class).slots
-    if not class_slots:
-        return required
+    slots = []
+    class_slots = target_class.__match_args__
 
-    # NOTE: May need to check inheritance and slot_usage
     for slot_name in class_slots:
         if not required_only or load_schema().get_slot(slot_name).required:
-            required.append(slot_name)
+            slots.append(slot_name)
 
-    return required
+    return slots
 
 
 def instance_to_graph(instance) -> Graph:
@@ -59,18 +56,12 @@ def instance_to_graph(instance) -> Graph:
 
 
 def get_slot_range(slot_name: str) -> str:
-    """Return the range of a slot."""
+    """Return the class-independent range of a slot."""
     return load_schema().get_slot(slot_name).range
 
 
-def get_class_uri(class_name: str) -> str:
-    """Return the URI of a class."""
-    return load_schema().get_class(class_name).uri
-
-
-def get_class(class_name: str):
-    """Return the URI of a class."""
-    return load_schema().get_class(class_name)
+def get_enum_values(enum_name: str) -> Optional[list[str]]:
+    return list(load_schema().get_enum(enum_name).permissible_values.keys())
 
 
 def get_haspart_property(child_class: str) -> Optional[str]:
@@ -88,8 +79,7 @@ def get_haspart_property(child_class: str) -> Optional[str]:
     # find all subproperties of has_part
     prop_names = load_schema().slot_children("has_part")
     for prop_name in prop_names:
-        has_prop = load_schema().get_slot(prop_name)
-        targets = has_prop.range
+        targets = get_slot_range(prop_name)
         if isinstance(targets, str):
             targets = [targets]
         # When considering the slot range,

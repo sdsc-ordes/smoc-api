@@ -28,11 +28,16 @@ def attrs_to_graph(meta: dict, uri_prefix: str) -> rdflib.Graph:
             # Check if slot value should be a URI
             # we need to ensure it is one
             slot_range = get_slot_range(key)
-            if (
-                slot_range
-                and "uri" in slot_range
-                or slot_range in load_schema().all_classes()
-            ):
+            if not slot_range:
+                continue
+            uri_value = any(
+                [
+                    "uri" in slot_range,
+                    slot_range in load_schema().all_classes(),
+                    key == "data_path",
+                ]
+            )
+            if uri_value:
                 # multivalued slots have a list of values
                 if isinstance(value, list):
                     fixed = []

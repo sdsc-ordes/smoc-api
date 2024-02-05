@@ -4,66 +4,63 @@
             "zarr_format": 2
         },
         "ex/.zattrs": {
-            "@type": "Study",
-            "has_assay": [
-                "demo-assay"
-            ],
-            "start_date": "2024-01-03T00:00:00"
+            "@type": "MODO",
+            "creation_date": "2024-01-17T00:00:00",
+            "description": "Example modo for tests",
+            "last_update_date": "2024-01-17T00:00:00",
+            "name": "Example"
         },
         "ex/.zgroup": {
             "zarr_format": 2
         },
-        "ex/demo-assay/.zattrs": {
+        "ex/assay1/.zattrs": {
             "@type": "Assay",
-            "description": "Fake dataset used for tests.",
+            "description": "Example assay for tests",
             "has_data": [
-                "demo1",
-                "demo1",
-                "demo2"
+                "ex/assay1/demo1"
             ],
-            "name": "E. coli dummy WGS",
+            "has_sample": [
+                "ex/assay1/sample1"
+            ],
+            "name": "Assay 1",
             "omics_type": [
                 "GENOMICS"
             ]
         },
-        "ex/demo-assay/.zgroup": {
+        "ex/assay1/.zgroup": {
             "zarr_format": 2
         },
-        "ex/demo-assay/demo1/.zattrs": {
-            "@type": "AlignmentSet",
+        "ex/assay1/demo1/.zattrs": {
+            "@type": "DataEntity",
             "data_format": "CRAM",
-            "description": "E. coli wgs",
-            "has_sample": [
-                "bac1"
+            "data_path": "demo1.cram",
+            "description": "Demo CRAM file for tests.",
+            "has_reference": [
+                "ex/assay1/demo1/reference1"
             ],
-            "location": "demo1.cram",
-            "name": "demo 1"
+            "name": "Demo 1"
         },
-        "ex/demo-assay/demo1/.zgroup": {
+        "ex/assay1/demo1/.zgroup": {
             "zarr_format": 2
         },
-        "ex/demo-assay/demo1/bac1/.zattrs": {
+        "ex/assay1/demo1/reference1/.zattrs": {
+            "@type": "ReferenceGenome",
+            "data_path": "reference.fa",
+            "name": "reference 1"
+        },
+        "ex/assay1/demo1/reference1/.zgroup": {
+            "zarr_format": 2
+        },
+        "ex/assay1/sample1/.zattrs": {
             "@type": "Sample",
             "collector": [
-                "SDSC"
+                "Foo university"
             ],
-            "description": "A bacterial sample",
-            "name": "bac 1",
-            "taxon_id": [
-                562
-            ]
+            "description": "A dummy sample for tests.",
+            "name": "Sample 1",
+            "sex": "Male"
         },
-        "ex/demo-assay/demo1/bac1/.zgroup": {
-            "zarr_format": 2
-        },
-        "ex/demo-assay/demo2/.zattrs": {
-            "@type": "AlignmentSet",
-            "data_format": "CRAM",
-            "description": "E. coli wgs resequencing",
-            "location": "demo2.cram",
-            "name": "demo 2"
-        },
-        "ex/demo-assay/demo2/.zgroup": {
+        "ex/assay1/sample1/.zgroup": {
             "zarr_format": 2
         }
     },

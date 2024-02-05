@@ -2,6 +2,7 @@
 
 # Use typer for CLI
 
+from datetime import date
 from enum import Enum
 import json
 import os
@@ -9,16 +10,22 @@ from pathlib import Path
 from typing import Any, Iterable, Optional
 from typing_extensions import Annotated
 
+import click
 from linkml_runtime.loaders import json_loader
 from linkml_runtime.dumpers import json_dumper, rdflib_dumper
-from smoc_schema.datamodel import Study
+import smoc_schema.datamodel as model
 import typer
 import zarr
 
 from .api import MODO
 from .helpers import ElementType
-from .introspection import get_slots
-from .io import parse_instances
+from .introspection import (
+    get_enum_values,
+    get_slots,
+    get_slot_range,
+    load_schema,
+)
+from .io import build_modo_from_file
 from .storage import add_metadata_group, init_zarr
 
 
@@ -33,13 +40,28 @@ class RdfFormat(str, Enum):
 cli = typer.Typer(add_completion=False)
 
 
-def prompt_for_slot(slot_name: str, prefix: str = ""):
+def prompt_for_slot(slot_name: str, prefix: str = "", optional: bool = False):
     """Prompt for a slot value."""
-    return typer.prompt(f"{prefix}Enter a value for {slot_name}")
+    slot_range = get_slot_range(slot_name)
+    choices, default = None, None
+    if slot_range == "datetime":
+        default = date.today()
+    elif load_schema().get_enum(slot_range):
+        choices = click.Choice(get_enum_values(slot_range))
+    elif optional:
+        default = ""
+
+    output = typer.prompt(
+        f"{prefix}Enter a value for {slot_name}", default=default, type=choices
+    )
+    if output == "":
+        output = None
+
+    return output
 
 
 def prompt_for_slots(
-    target_class: str,
+    target_class: type,
 ) -> dict[str, Any]:
     """Prompt the user to provide values for the slots of input class."""
 
@@ -49,7 +71,10 @@ def prompt_for_slots(
         set(get_slots(target_class, required_only=False)) - required_slots
     )
 
-    entries["id"] = prompt_for_slot("id", prefix="(required) ")
+    # Always require identifiers if possible
+    if "id" in optional_slots:
+        optional_slots.remove("id")
+        required_slots.add("id")
 
     for slot_name in required_slots:
         entries[slot_name] = prompt_for_slot(slot_name, prefix="(required) ")
@@ -58,7 +83,9 @@ def prompt_for_slots(
     if optional_slots:
         for slot_name in optional_slots:
             entries[slot_name] = prompt_for_slot(
-                slot_name, prefix="(optional) "
+                slot_name,
+                prefix="(optional) ",
+                optional=True,
             )
     return entries
 
@@ -97,12 +124,13 @@ def create(
     if from_file and meta:
         raise ValueError("Only one of --from-file or --data can be used.")
     elif from_file:
-        obj = parse_instances(from_file, target_class=Study)
+        modo = build_modo_from_file(from_file, object_directory)
+        return
     elif meta:
-        obj = json_loader.loads(meta, target_class=Study)
+        obj = json_loader.loads(meta, target_class=model.MODO)
     else:
-        filled = prompt_for_slots("Study")
-        obj = Study(**filled)
+        filled = prompt_for_slots(model.MODO)
+        obj = model.MODO(**filled)
 
     # Dump object to zarr metadata
     group = init_zarr(object_directory)
@@ -141,7 +169,7 @@ def add(
         typer.Option(
             "--parent", "-p", help="Parent object in the zarr archive."
         ),
-    ] = "/",
+    ] = None,
     meta: Annotated[
         Optional[str],
         typer.Option(
@@ -181,7 +209,7 @@ def add(
     elif meta:
         obj = json_loader.loads(meta, target_class=target_class)
     else:
-        filled = prompt_for_slots(target_class.__name__)
+        filled = prompt_for_slots(target_class)
         obj = target_class(**filled)
 
     modo = MODO(object_directory)
