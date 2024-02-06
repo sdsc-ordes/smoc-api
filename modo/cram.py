@@ -1,8 +1,9 @@
 """Utilities to interact with genomic intervals in CRAM files."""
 from pathlib import Path
-from pysam import AlignmentFile, AlignmentHeader
+from pysam import AlignmentFile, FastxFile
 from rdflib import Graph
-from Typing import List
+from typing import List, Mapping
+import smoc_schema.datamodel as model
 
 
 def slice(cram_path: AlignmentFile, coords: str) -> AlignmentFile:
@@ -16,30 +17,22 @@ def slice(cram_path: AlignmentFile, coords: str) -> AlignmentFile:
     ...
 
 
-def extract_metadata(cram: AlignmentFile) -> Graph:
+def extract_cram_metadata(cram: AlignmentFile) -> List:
     """Extract metadata from the CRAM file header and
-    convert specific attributes to an RDF graph according
-    to the modo schema."""
-    # metadata related to ReferenceSequences
+    convert specific attributes according to the modo schema."""
     cram_head = cram.header
-    refseq_list: List = []
-    species = set()
+    ref_list: List = []
     for refseq in cram_head.get("SQ"):
-        refseq_dict = {
-            "name": refseq.get("SN"),
-            "sequence_md5": refseq.get("M5"),
-            "source_uri": refseq.get("UR"),
-            "description": refseq.get("DS"),
-        }
-        refseq_list.append(refseq_dict)
-        species.add(refseq.get("SP"))
-    # metadata related to RefrenceGenome
-    source_uri = cram.reference_filename
-    # could use taxonkid (https://bioinf.shenwei.me/taxonkit/usage/#name2taxid)
-    # but maybe to much overhead?
-    species = list(species)
-    # Metadata related to or sample object
-    sample_names = list(set([seq.get("SM") for seq in cram_head.get("RG")]))
+        refseq_mod = model.ReferenceSequence(
+            id=refseq.get("SN"),
+            name=refseq.get("SN"),
+            sequence_md5=refseq.get("M5"),
+            source_uri=refseq.get("UR"),
+            description=refseq.get("DS"),
+        )
+        ref_list.append(refseq_mod)
+    # NOTE: Could also extract species name, sample name, sequencer etc. here
+    return ref_list
 
 
 def validate_cram_files(cram_path: str):

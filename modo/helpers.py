@@ -1,5 +1,6 @@
 from enum import Enum
 from urllib.parse import urlparse
+from typing import Mapping
 
 import smoc_schema.datamodel as model
 
@@ -11,6 +12,12 @@ def class_from_name(name: str):
     if name not in class_names:
         raise ValueError(f"Unknown class name: {name}")
     return getattr(model, name)
+
+
+def dict_to_instance(element: Mapping, id: str):
+    elem_type = element.pop("@type")
+    target_class = class_from_name(elem_type)
+    return target_class(id=id, **element)
 
 
 class ElementType(str, Enum):

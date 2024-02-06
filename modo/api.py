@@ -13,6 +13,8 @@ import zarr
 from .introspection import get_haspart_property
 from .rdf import attrs_to_graph
 from .storage import add_metadata_group, init_zarr, list_zarr_items
+from .file_utils import extract_metadata
+from .helpers import dict_to_instance
 
 
 class MODO:
@@ -203,3 +205,12 @@ class MODO:
         attrs = json.loads(json_dumper.dumps(element))
         add_metadata_group(parent_group, attrs)
         zarr.consolidate_metadata(self.archive.store)
+
+    def extract_metadata(self):
+        """Add metadata and corresponding elements extracted from object associated data to the MODO object"""
+        new_elements = []
+        for id, entity in self.metadata.items():
+            instance = dict_to_instance(entity, id)
+            new_elements += extract_metadata(instance)
+        for ele in new_elements:
+            self.add_element(ele)
