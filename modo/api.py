@@ -209,8 +209,18 @@ class MODO:
     def extract_metadata(self):
         """Add metadata and corresponding elements extracted from object associated data to the MODO object"""
         new_elements = []
-        for id, entity in self.metadata.items():
-            instance = dict_to_instance(entity, id)
-            new_elements += extract_metadata(instance)
+        instances = [
+            dict_to_instance(entity, id)
+            for id, entity in self.metadata.items()
+        ]
+        inst_names = [inst.name for inst in instances]
+        for inst in instances:
+            elements = extract_metadata(inst)
+            new_elements += [
+                ele
+                for ele in elements
+                # NOTE: Need to compare names here as ids differ
+                if ele.name not in inst_names and ele not in new_elements
+            ]
         for ele in new_elements:
             self.add_element(ele)
