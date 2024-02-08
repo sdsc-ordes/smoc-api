@@ -4,14 +4,14 @@ from pysam import AlignmentFile, AlignmentHeader
 from rdflib import Graph
 
 
-def slice(omics_type: str, data_path: str, coords: str):
+def slice(data_type: str, data_path: str, coords: str):
     "Returns a slice of the requested region for the requested omics type"
     
-    
-    if omics_type == 'Genomics':
+    if data_type == 'cram':
         return slice_cram(data_path, coords)
-    elif omics_type in ["Proteomics", "Metabolomics"]:
-        return slice_array()
+    elif data_type == "array":
+        return slice_array()    # To be added after we know what this data 
+                                # looks like 
                         
                         
 
@@ -37,6 +37,9 @@ def slice_cram(cram_path: AlignmentFile, coords: str): # -> AlignmentFile:
     iter = cramfile.fetch(loc, start, stop)
     
     return iter
+
+
+
 
 def slice_array():
     return None
