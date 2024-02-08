@@ -211,7 +211,15 @@ class MODO:
         element_id: str,
         new: model.DataEntity | model.Sample | model.Assay | model.MODO,
     ):
-        """Update element by adding new values from model object"""
+        """Update element metadata in place by adding new values from model object.
+        
+        Parameters
+        -----------------
+        element_id
+            Full id path in the zarr store.
+        new
+            Element containing the enriched metadata.
+        """
         attrs = self.archive[element_id].attrs
         attr_dict = attrs.asdict()
         if not isinstance(new, class_from_name(attr_dict.get("@type"))):
