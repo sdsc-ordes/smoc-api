@@ -226,14 +226,15 @@ class MODO:
             raise ValueError(
                 f"Class {attr_dict['@type']} of {element_id} does not match {new.class_name}."
             )
+        # in the zarr store, empty properties are not stored
+        # in the linkml model, they present as empty lists/None.
         new_items = {
             field: value
             for field, value in new._items()
             if field not in attrs.keys()
             and field != "id"
             and value is not None
-            or isinstance(value, list)
-            and len(value) == 0
+            and  value != []
         }
         attrs.update(**new_items)
 
