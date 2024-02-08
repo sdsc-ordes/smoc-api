@@ -12,6 +12,7 @@ LABEL org.opencontainers.image.licenses=Apache-2.0
 ##################################################
 FROM python as poetry
 
+WORKDIR /app
 # Install poetry
 ENV POETRY_HOME=/opt/poetry
 ENV POETRY_VIRTUALENVS_IN_PROJECT=true
@@ -21,6 +22,7 @@ RUN python -c 'from urllib.request import urlopen; print(urlopen("https://instal
 # Copy necessary files only
 COPY ./modo/ ./modo
 COPY ./pyproject.toml ./pyproject.toml
+COPY ./README.md ./README.md
 COPY ./poetry.lock ./poetry.lock
 RUN apt-get update && \
     apt-get install -y gcc
@@ -41,6 +43,6 @@ RUN useradd -ms /bin/bash modo_user
 USER modo_user
 
 # Test run
-RUN modo --version
+RUN modo --help
 
 CMD ["modo"]
