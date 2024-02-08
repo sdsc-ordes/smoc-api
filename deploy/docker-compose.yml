@@ -1,0 +1,32 @@
+version: '2'
+services:
+
+  minio:
+    image: docker.io/bitnami/minio:2024
+    ports:
+      - '8080:8080'
+      - '8081:8081'
+    volumes:
+      - 'minio_data:/bitnami/minio/data'
+    networks:
+      - modo-network
+
+  htsget:
+    image: ghcr.io/umccr/htsget-rs:dev-latest
+    networks:
+      - modo-network
+
+  modo-server:
+    build: ./modo-server
+    ports:
+      - '80:80'
+      - '9000:9000'
+    networks:
+      - modo-network
+
+volumes:
+  minio_data:
+    driver: local
+
+networks:
+  modo-network
