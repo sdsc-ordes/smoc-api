@@ -45,9 +45,9 @@ def gather_metadata():
 
     for modo in minio.ls(BUCKET):
         store = s3fs.S3Map(root=f"{modo}/data.zarr", s3=minio, check=False)
-        archive = zarr.open_consolidated(
+        archive = zarr.open(
             store=store,
         )
-        meta[modo] = MODO(archive).metadata
+        meta = MODO(path=f"{S3_URL}/{modo}", archive=archive).metadata
 
     return meta
