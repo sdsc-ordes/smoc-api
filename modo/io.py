@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from typing import Mapping, List
+from typing import Any, Mapping, List
 from linkml_runtime.loaders import (
     json_loader,
     yaml_loader,

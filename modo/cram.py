@@ -1,6 +1,6 @@
 """Utilities to interact with genomic intervals in CRAM files."""
 import re
-from typing import Any, Iterator
+from typing import Iterator
 
 import smoc_schema.datamodel as model
 from pysam import (
