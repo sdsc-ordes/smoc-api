@@ -15,18 +15,27 @@ from rdflib import Graph
 # is being sliced (e.g., if it is a CRAM file, it will call slice_cram())
 
 
-def slice(data_name: str, data_path: str, coords: str):
-    "Returns a slice of the requested region for the requested omics type"
+def parse_region(region: str) -> tuple[str, int, int]:
+    """Parses an input UCSC-format region string into
+    (chrom, start, end).
 
-    # get the data type (e.g., CRAM, array) of the requested data
-    # data_type =    # Cyril, please add in the logic to get the data type
-    # data_path =    # and the data_path from the metadata
+    Examples
+    --------
+    >>> parse_region('chr1:10-320')
+    ('chr1', 10, 320)
+    >>> parse_region('chr-1ba:32-0100')
+    ('chr-1ba', 32, 100)
+    """
 
-    if data_type == "cram":
-        return slice_cram(data_path, coords)
-    elif data_type == "array":
-        return slice_array(data_path, coords)  # To be added after we know
-        # what this data looks like
+    if not re.match(r"[^:]+:[0-9]+-[0-9]+", region):
+        raise ValueError(
+            f"Invalid region format: {region}. Expected chr:start-end"
+        )
+
+    chrom, coords = region.split(":")
+    start, end = coords.split("-")
+
+    return (chrom, int(start), int(end))
 
 
 def slice_cram(cram_path: AlignmentFile, coords: str):  # -> AlignmentFile:
