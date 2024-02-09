@@ -44,3 +44,26 @@ def is_uri(text: str):
         return all([result.scheme, result.netloc])
     except AttributeError:
         return False
+
+
+def parse_region(region: str) -> tuple[str, int, int]:
+    """Parses an input UCSC-format region string into
+    (chrom, start, end).
+
+    Examples
+    --------
+    >>> parse_region('chr1:10-320')
+    ('chr1', 10, 320)
+    >>> parse_region('chr-1ba:32-0100')
+    ('chr-1ba', 32, 100)
+    """
+
+    if not re.match(r"[^:]+:[0-9]+-[0-9]+", region):
+        raise ValueError(
+            f"Invalid region format: {region}. Expected chr:start-end"
+        )
+
+    chrom, coords = region.split(":")
+    start, end = coords.split("-")
+
+    return (chrom, int(start), int(end))

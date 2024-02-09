@@ -75,3 +75,21 @@ def build_modo_from_file(path: Path, object_directory: Path) -> MODO:
         if not isinstance(instance, model.MODO):
             modo.add_element(instance)
     return modo
+
+
+def slice(data: model.DataEntity, region: str) -> Any:
+    """Returns a slice of the input data for the requested region.
+
+    Parameters
+    ----------
+    data
+        A data object in any supported format.
+    region
+        The region string in UCSC format (i.e. chr:start-end).
+    """
+
+    match data.data_format:
+        case "CRAM":
+            return slice_cram(data.data_path, coords)
+        case _:
+            raise ValueError(f"Unsupported data format: {data.data_format}")
