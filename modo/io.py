@@ -1,6 +1,7 @@
 from pathlib import Path
 import re
 from typing import Any, Mapping, List
+
 from linkml_runtime.loaders import (
     json_loader,
     yaml_loader,
@@ -10,6 +11,7 @@ from linkml_runtime.loaders import (
 from linkml_runtime.dumpers import json_dumper
 import smoc_schema.datamodel as model
 from .api import MODO
+from .cram import slice_cram
 from .helpers import class_from_name
 from .storage import add_metadata_group, init_zarr
 import json
@@ -88,8 +90,8 @@ def slice(data: model.DataEntity, region: str) -> Any:
         The region string in UCSC format (i.e. chr:start-end).
     """
 
-    match data.data_format:
+    match str(data.data_format):
         case "CRAM":
-            return slice_cram(data.data_path, coords)
+            return slice_cram(data.data_path, region)
         case _:
             raise ValueError(f"Unsupported data format: {data.data_format}")

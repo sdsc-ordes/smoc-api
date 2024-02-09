@@ -1,4 +1,5 @@
 from enum import Enum
+import re
 from urllib.parse import urlparse
 
 import smoc_schema.datamodel as model
