@@ -1,14 +1,22 @@
+import os
 from typing import Union
 
 from fastapi import FastAPI
+import modo
 from modo.api import MODO
 import rdflib
 
 
-S3_BUCKET = "s3://foo/bar"
-
+S3 = os.environ["S3_ENDPOINT"]
 
 app = FastAPI()
+
+
+@app.get("/")
+def index():
+    return {
+        "S3 endpoint": f"{S3}",
+    }
 
 
 def gather_metadata() -> rdflib.Graph:
@@ -17,11 +25,6 @@ def gather_metadata() -> rdflib.Graph:
     # Instantiate MODO()
     # Retrieve rdflib.Graph
     # Graph union
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
 
 
 @app.get("/items/{item_id}")
