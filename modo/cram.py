@@ -1,6 +1,13 @@
 """Utilities to interact with genomic intervals in CRAM files."""
-from pathlib import Path
-from pysam import AlignmentFile, AlignmentHeader
+import re
+from typing import Any, Iterator
+
+import smoc_schema.datamodel as model
+from pysam import (
+    AlignedSegment,
+    AlignmentFile,
+    AlignmentHeader,
+)
 from rdflib import Graph
 
 # MODO.slice(data: str, coords: str) will call slice(), which in turn will
