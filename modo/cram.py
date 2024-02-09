@@ -3,19 +3,26 @@ from pathlib import Path
 from pysam import AlignmentFile, AlignmentHeader
 from rdflib import Graph
 
+# MODO.slice(data: str, coords: str) will call slice(), which in turn will
+# call the right slicing function depending on the data format/type that
+# is being sliced (e.g., if it is a CRAM file, it will call slice_cram())
 
-def slice(data_type: str, data_path: str, coords: str):
+
+def slice(data_name: str, data_path: str, coords: str):
     "Returns a slice of the requested region for the requested omics type"
-    
-    if data_type == 'cram':
+
+    # get the data type (e.g., CRAM, array) of the requested data
+    # data_type =    # Cyril, please add in the logic to get the data type
+    # data_path =    # and the data_path from the metadata
+
+    if data_type == "cram":
         return slice_cram(data_path, coords)
     elif data_type == "array":
-        return slice_array()    # To be added after we know what this data 
-                                # looks like 
-                        
-                        
+        return slice_array(data_path, coords)  # To be added after we know
+        # what this data looks like
 
-def slice_cram(cram_path: AlignmentFile, coords: str): # -> AlignmentFile:
+
+def slice_cram(cram_path: AlignmentFile, coords: str):  # -> AlignmentFile:
     """Return a slice of the CRAM File as an iterator object.
 
     Usage:
@@ -24,25 +31,23 @@ def slice_cram(cram_path: AlignmentFile, coords: str): # -> AlignmentFile:
     >>> for read in x:
             print(read)
     """
-    
+
     # split up coordinate string "chr:start-end" into its three elements
     coords = coords.replace("-", ":")
     loc, start, stop = coords.split(":")
     start = int(start)
     stop = int(stop)
-    
-    cramfile = AlignmentFile(cram_path,"rc")  # need to add pointer to 
-                                              # reference file from metadata
-    
+
+    cramfile = AlignmentFile(cram_path, "rc")  # need to add pointer to
+    # reference file from metadata
+
     iter = cramfile.fetch(loc, start, stop)
-    
+
     return iter
 
 
-
-
-def slice_array():
-    return None
+def slice_array():  # to be defined after we get more knowledge of how the
+    return None  # data looks like
 
 
 def extract_metadata(AlignmentHeader) -> Graph:
