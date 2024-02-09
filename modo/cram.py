@@ -38,32 +38,33 @@ def parse_region(region: str) -> tuple[str, int, int]:
     return (chrom, int(start), int(end))
 
 
-def slice_cram(cram_path: AlignmentFile, coords: str):  # -> AlignmentFile:
-    """Return a slice of the CRAM File as an iterator object.
+def slice(data: model.DataEntity, region: str) -> Any:
+    """Returns a slice of the input data for the requested region.
 
-    Usage:
-    -----
-    >>> x = slice("data/ex1/demo1.cram", "chr1:100-200")
-    >>> for read in x:
-            print(read)
+    Parameters
+    ----------
+    data
+        A data object in any supported format.
+    region
+        The region string in UCSC format (i.e. chr:start-end).
     """
 
-    # split up coordinate string "chr:start-end" into its three elements
-    coords = coords.replace("-", ":")
-    loc, start, stop = coords.split(":")
-    start = int(start)
-    stop = int(stop)
+    match data.data_format:
+        case "CRAM":
+            return slice_cram(data.data_path, coords)
+        case _:
+            raise ValueError(f"Unsupported data format: {data.data_format}")
 
-    cramfile = AlignmentFile(cram_path, "rc")  # need to add pointer to
-    # reference file from metadata
 
-    iter = cramfile.fetch(loc, start, stop)
+def slice_cram(path: str, region: str) -> Iterator[AlignedSegment]:
+    """Return an iterable slice of the CRAM file."""
+
+    chrom, start, stop = parse_region(region)
+    cramfile = AlignmentFile(path, "rc")
+
+    iter = cramfile.fetch(chrom, start, stop)
 
     return iter
-
-
-def slice_array():  # to be defined after we get more knowledge of how the
-    return None  # data looks like
 
 
 def extract_metadata(AlignmentHeader) -> Graph:
