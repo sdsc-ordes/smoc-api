@@ -38,20 +38,16 @@ def list_modos() -> list[str]:
     return [f"{S3_URL}/{modo}" for modo in modos]
 
 
-def gather_metadata() -> rdflib.Graph:
+@app.get("/meta")
+def gather_metadata():
     """Generate metadata KG from all MODOs."""
     meta = {}
 
     for modo in minio.ls(BUCKET):
         store = s3fs.S3Map(root=f"{modo}/data.zarr", s3=minio, check=False)
-        meta[modo] = zarr.open_consolidated(
+        archive = zarr.open_consolidated(
             store=store,
-        ).attrs
+        )
+        meta[modo] = MODO(archive).metadata
 
     return meta
-
-
-@app.get("/slice")
-def slice_cram(file: str, region: str):
-    """Forward request to htsget."""
-    ...

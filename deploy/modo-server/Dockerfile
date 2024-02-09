@@ -7,7 +7,8 @@ USER root
 
 RUN pip install \
   fastapi \
-  uvicorn
+  uvicorn \
+  s3fs
 
 USER modo_user
 
