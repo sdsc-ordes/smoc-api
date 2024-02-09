@@ -32,7 +32,7 @@ RUN poetry install --no-interaction --no-ansi -vvv
 
 
 ##################################################
-# SMOC server setup
+# SMOC setup
 ##################################################
 FROM python as runtime
 ENV PATH="/app/.venv/bin:$PATH"
