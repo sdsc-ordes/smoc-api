@@ -1,20 +1,27 @@
 """Utilities to interact with genomic intervals in CRAM files."""
 from pathlib import Path
-from pysam import AlignmentFile, FastxFile
+from typing import Iterator, List
+
+from pysam import (
+    AlignedSegment,
+    AlignmentFile,
+    AlignmentHeader,
+)
 from rdflib import Graph
-from typing import List, Mapping
 import smoc_schema.datamodel as model
 
+from .helpers import parse_region
 
-def slice(cram_path: AlignmentFile, coords: str) -> AlignmentFile:
-    """Return a slice of the CRAM File.
 
-    Examples
-    --------
-    >>> slice("data/ex1/demo1.cram", "chr1:100-200")
-    """
-    # https://htsget.readthedocs.io/en/stable/index.html
-    ...
+def slice_cram(path: str, region: str) -> Iterator[AlignedSegment]:
+    """Return an iterable slice of the CRAM file."""
+
+    chrom, start, stop = parse_region(region)
+    cramfile = AlignmentFile(path, "rc")
+
+    iter = cramfile.fetch(chrom, start, stop)
+
+    return iter
 
 
 def extract_cram_metadata(cram: AlignmentFile) -> List:
