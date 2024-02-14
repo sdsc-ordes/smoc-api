@@ -16,7 +16,7 @@ def extract_metadata(instance) -> List:
     match str(instance.data_format):
         case "CRAM":
             reference = (
-                instance.has_reference
+                instance.has_reference[0]
                 if len(instance.has_reference) == 1
                 else None
             )
