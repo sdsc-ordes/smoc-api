@@ -1,7 +1,7 @@
 from enum import Enum
 import re
 from urllib.parse import urlparse
-from typing import Mapping
+from typing import Mapping, Any
 
 import smoc_schema.datamodel as model
 
@@ -15,10 +15,12 @@ def class_from_name(name: str):
     return getattr(model, name)
 
 
-def dict_to_instance(element: Mapping, id: str):
-    elem_type = element.pop("@type")
+def dict_to_instance(element: Mapping[str, Any]) -> Any:
+    elem_type = element.get("@type")
     target_class = class_from_name(elem_type)
-    return target_class(id=id, **element)
+    return target_class(
+        **{k: v for k, v in element.items() if k not in "@type"}
+    )
 
 
 class ElementType(str, Enum):

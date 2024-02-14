@@ -52,8 +52,7 @@ def parse_multiple_instances(path: Path) -> List:
         elems = [elems]
     instances = []
     for elem in elems:
-        id = elem.pop("id")
-        instances.append(dict_to_instance(elem, id))
+        instances.append(dict_to_instance(elem))
     return instances
 
 

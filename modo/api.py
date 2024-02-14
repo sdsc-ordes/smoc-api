@@ -13,7 +13,7 @@ import zarr
 from .introspection import get_haspart_property
 from .rdf import attrs_to_graph
 from .storage import add_metadata_group, init_zarr, list_zarr_items
-from .file_utils import extract_metadata
+from .file_utils import extract_metadata, extraction_formats
 from .helpers import dict_to_instance, class_from_name
 
 
@@ -242,8 +242,10 @@ class MODO:
         """Add metadata and corresponding elements extracted from object associated data to the MODO object"""
         new_elements = []
         instances = [
-            dict_to_instance(entity, id)
+            dict_to_instance(entity | {"id": id})
             for id, entity in self.metadata.items()
+            if entity.get("@type") == "DataEntity"
+            and entity.get("data_format") in extraction_formats
         ]
         inst_names = {inst.name: inst.id for inst in instances}
         for inst in instances:

@@ -57,4 +57,4 @@ def validate_cram_files(cram_path: str):
 
 def create_sequence_id(name: str, sequence_md5: str) -> str:
     """Helper function to create a unique id from a sequence name and md5 hash"""
-    return name + "_", sequence_md5[:6]
+    return name + "_" + sequence_md5[:6]
