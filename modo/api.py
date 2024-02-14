@@ -212,7 +212,7 @@ class MODO:
         new: model.DataEntity | model.Sample | model.Assay | model.MODO,
     ):
         """Update element metadata in place by adding new values from model object.
-        
+
         Parameters
         -----------------
         element_id
@@ -234,11 +234,11 @@ class MODO:
             if field not in attrs.keys()
             and field != "id"
             and value is not None
-            and  value != []
+            and value != []
         }
         attrs.update(**new_items)
 
-    def extract_metadata(self):
+    def enrich_metadata(self):
         """Add metadata and corresponding elements extracted from object associated data to the MODO object"""
         new_elements = []
         instances = [

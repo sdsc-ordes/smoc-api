@@ -31,7 +31,7 @@ def extract_cram_metadata(cram: AlignmentFile) -> List:
     ref_list: List = []
     for refseq in cram_head.get("SQ"):
         refseq_mod = model.ReferenceSequence(
-            id=refseq.get("SN"),
+            id=create_sequence_id(refseq.get("SN"), refseq.get("M5")),
             name=refseq.get("SN"),
             sequence_md5=refseq.get("M5"),
             source_uri=refseq.get("UR"),
@@ -53,3 +53,8 @@ def validate_cram_files(cram_path: str):
 
 
 # TODO: Add functions to edit CRAM files (liftover)
+
+
+def create_sequence_id(name: str, sequence_md5: str) -> str:
+    """Helper function to create a unique id from a sequence name and md5 hash"""
+    return name + "_", sequence_md5[:6]
