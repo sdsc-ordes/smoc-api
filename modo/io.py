@@ -11,8 +11,8 @@ from linkml_runtime.loaders import (
 from linkml_runtime.dumpers import json_dumper
 import smoc_schema.datamodel as model
 from .api import MODO
+from .helpers import dict_to_instance, class_from_name
 from .cram import slice_cram
-from .helpers import class_from_name
 from .storage import add_metadata_group, init_zarr
 import json
 
@@ -52,9 +52,7 @@ def parse_multiple_instances(path: Path) -> List:
         elems = [elems]
     instances = []
     for elem in elems:
-        elem_type = elem.pop("@type")
-        target_class = class_from_name(elem_type)
-        instances.append(target_class(**elem))
+        instances.append(dict_to_instance(elem))
     return instances
 
 

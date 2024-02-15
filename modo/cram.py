@@ -1,13 +1,14 @@
 """Utilities to interact with genomic intervals in CRAM files."""
-from typing import Iterator
+from pathlib import Path
+from typing import Iterator, List
 
-import smoc_schema.datamodel as model
 from pysam import (
     AlignedSegment,
     AlignmentFile,
     AlignmentHeader,
 )
 from rdflib import Graph
+import smoc_schema.datamodel as model
 
 from .helpers import parse_region
 
@@ -23,12 +24,22 @@ def slice_cram(path: str, region: str) -> Iterator[AlignedSegment]:
     return iter
 
 
-def extract_metadata(AlignmentHeader) -> Graph:
+def extract_cram_metadata(cram: AlignmentFile) -> List:
     """Extract metadata from the CRAM file header and
-    convert specific attributes to an RDF graph according
-    to the modo schema."""
-    # NOTE: Not a priority
-    ...
+    convert specific attributes according to the modo schema."""
+    cram_head = cram.header
+    ref_list: List = []
+    for refseq in cram_head.get("SQ"):
+        refseq_mod = model.ReferenceSequence(
+            id=create_sequence_id(refseq.get("SN"), refseq.get("M5")),
+            name=refseq.get("SN"),
+            sequence_md5=refseq.get("M5"),
+            source_uri=refseq.get("UR"),
+            description=refseq.get("DS"),
+        )
+        ref_list.append(refseq_mod)
+    # NOTE: Could also extract species name, sample name, sequencer etc. here
+    return ref_list
 
 
 def validate_cram_files(cram_path: str):
@@ -42,3 +53,8 @@ def validate_cram_files(cram_path: str):
 
 
 # TODO: Add functions to edit CRAM files (liftover)
+
+
+def create_sequence_id(name: str, sequence_md5: str) -> str:
+    """Helper function to create a unique id from a sequence name and md5 hash"""
+    return name + "_" + sequence_md5[:6]
