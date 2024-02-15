@@ -10,7 +10,7 @@ This directory contains the necessary files to deploy a multi-omics digital obje
 The modo-server is meant to provide remote access to the MODOs. Currently, it can:
 
 * [x] list available MODO
-* [x] return their metadataThe
+* [x] return their metadata
 * [ ] stream CRAM slices CRAM using htsget
 * [ ] expose a MODO directly as a client-accessible S3 bucket / folder
 * [ ] manage authentication and access control
