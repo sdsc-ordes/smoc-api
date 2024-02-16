@@ -16,7 +16,7 @@ services:
       - '9000:9000' # api
       - '9001:9001' # console
     volumes:
-      - /data/s3:/bitnami/minio/data
+      - minio-data:/bitnami/minio/data
     networks:
       - modo-network
     environment:
@@ -35,6 +35,8 @@ services:
       - S3_ENDPOINT=minio:9000
       - MINIO_SERVER_ACCESS_KEY=user
       - MINIO_SERVER_SECRET_KEY=pass
+    volumes:
+      - minio-data:/data/s3
 
   modo-server:
     build: ./modo-server
