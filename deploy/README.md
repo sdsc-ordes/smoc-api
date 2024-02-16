@@ -21,21 +21,19 @@ The MODOs are stored in an s3 (minio) bucket, and an htsget server is deployed a
 ```mermaid
 
 %%{init: {'theme': 'default'}}%%
-flowchart TB
-  Vdatas3{{/data/s3}} x-. /bitnami/minio/data .-x minio
-  htsget --> minio
-  modoserver[modo-server] --> minio
-  modoserver --> htsget
+flowchart LR
+subgraph " "
+  Vminiodata([minio-data]) x-. /bitnami/minio/data .-x minio
+  Vminiodata x-. /data/s3 .-x htsget
   minio -.- modonetwork[/modo-network/]
   htsget -.- modonetwork
-  modoserver -.- modonetwork
-  modoclient[modo-client] --> modoserver
+  modoserver[modo-server] -.- modonetwork
 
   classDef volumes fill:#fdfae4,stroke:#867a22
-  class Vdatas3 volumes
+  class Vminiodata,Vminiodata volumes
   classDef nets fill:#fbfff7,stroke:#8bc34a
   class modonetwork nets
-
+end
 ```
 
 ## Setup
@@ -48,7 +46,6 @@ flowchart TB
 1. Start the server
 ```sh
 cd deploy
-mkdir -p /data/s3 # Directory used to persist S3 data
 docker compose up --build
 ```
 2. Upload MODO(s) to the default bucket from the minio console (default is http://localhost:9001)
