@@ -6,9 +6,9 @@ COPY ./server.py /app
 USER root
 
 RUN pip install \
-  fastapi \
-  uvicorn \
-  s3fs
+  "fastapi ~= 0.109.2" \
+  "uvicorn ~= 0.27.0.post1" \
+  "s3fs == 2024.2.0"
 
 USER modo_user
 
