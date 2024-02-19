@@ -41,6 +41,7 @@ class MODO:
     def __init__(
         self,
         path: Path,
+        archive: Optional[zarr.Group] = None,
         id_: Optional[str] = None,
         name: Optional[str] = None,
         description: Optional[str] = None,
@@ -48,7 +49,10 @@ class MODO:
         last_update_date: date = date.today(),
     ):
         self.path: Path = Path(path)
-        self.archive = init_zarr(self.path)
+        if archive is None:
+            self.archive = init_zarr(self.path)
+        else:
+            self.archive = archive
         # Opened existing object
         try:
             self.id_ = next(self.archive.groups())[0]

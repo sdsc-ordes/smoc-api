@@ -1,3 +1,7 @@
+REGISTRY="ghcr.io/sdsc-ordes"
+IMAGE_NAME="smoc-api"
+VERSION :=$(shell grep -E '^version += +' pyproject.toml | sed -E 's/.*= +//')
+
 .PHONY: install
 install: ## Install with the poetry and add pre-commit hooks
 	@echo "🚀 Installing packages with poetry"
@@ -10,6 +14,13 @@ check: ## Run code quality tools.
 	@poetry lock --check
 	@echo "🚀 Linting code: Running pre-commit"
 	@poetry run pre-commit run -a
+
+.PHONY: docker-build
+docker-build: ## Build the smoc-api client Docker image
+	@echo "🐋 Building docker image"
+	@docker build \
+		--build-arg="VERSION_BUILD=$(VERSION)" \
+		-t $(REGISTRY)/$(IMAGE_NAME):$(VERSION) .
 
 .PHONY: test
 test: ## Test the code with pytest
