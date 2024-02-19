@@ -1,0 +1,85 @@
+{
+    "metadata": {
+        ".zattrs": {
+            "@type": "MODO",
+            "creation_date": "2024-02-19T00:00:00",
+            "description": "Dummy modo for tests.",
+            "has_assay": [
+                "assay1"
+            ],
+            "id": "ex",
+            "last_update_date": "2024-02-19T00:00:00",
+            "name": "Example MODO",
+            "source_uri": "http://example.org/ex"
+        },
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "assay/.zgroup": {
+            "zarr_format": 2
+        },
+        "assay/assay1/.zattrs": {
+            "@type": "Assay",
+            "description": "Dummy assay for tests.",
+            "has_data": [
+                "demo1"
+            ],
+            "has_sample": [
+                "sample1"
+            ],
+            "name": "Assay 1",
+            "omics_type": [
+                "GENOMICS"
+            ]
+        },
+        "assay/assay1/.zgroup": {
+            "zarr_format": 2
+        },
+        "data/.zgroup": {
+            "zarr_format": 2
+        },
+        "data/demo1/.zattrs": {
+            "@type": "DataEntity",
+            "data_format": "CRAM",
+            "data_path": "demo1.cram",
+            "description": "Dummy data for tests",
+            "has_reference": [
+                "reference1"
+            ],
+            "has_sample": [
+                "sample1"
+            ],
+            "name": "Demo 1"
+        },
+        "data/demo1/.zgroup": {
+            "zarr_format": 2
+        },
+        "reference/.zgroup": {
+            "zarr_format": 2
+        },
+        "reference/reference1/.zattrs": {
+            "@type": "ReferenceGenome",
+            "data_path": "reference1.fa",
+            "description": "Dummy reference for tests",
+            "name": "Reference 1"
+        },
+        "reference/reference1/.zgroup": {
+            "zarr_format": 2
+        },
+        "sample/.zgroup": {
+            "zarr_format": 2
+        },
+        "sample/sample1/.zattrs": {
+            "@type": "Sample",
+            "cell_type": "astrocyte",
+            "description": "Dummy sample for tests",
+            "name": "Sample 1",
+            "sex": "Male",
+            "source_material": "brain tissue"
+        },
+        "sample/sample1/.zgroup": {
+            "zarr_format": 2
+        }
+    },
+    "zarr_consolidated_format": 1
+}
