@@ -46,6 +46,20 @@ class ElementType(str, Enum):
         else:
             raise ValueError(f"Unknown element type: {self}")
 
+    @classmethod
+    def from_object(cls, obj):
+        """Return the element type from an object."""
+        if isinstance(obj, model.Sample):
+            return ElementType.SAMPLE
+        elif isinstance(obj, model.Assay):
+            return ElementType.ASSAY
+        elif isinstance(obj, model.DataEntity):
+            return ElementType.DATA_ENTITY
+        elif isinstance(obj, model.ReferenceGenome):
+            return ElementType.REFERENCE_GENOME
+        else:
+            raise ValueError(f"Unknown object type: {type(obj)}")
+
 
 def is_uri(text: str):
     """Checks if input is a valid URI."""
