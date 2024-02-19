@@ -14,7 +14,7 @@ from .introspection import get_haspart_property
 from .rdf import attrs_to_graph
 from .storage import add_metadata_group, init_zarr, list_zarr_items
 from .file_utils import extract_metadata, extraction_formats
-from .helpers import dict_to_instance, class_from_name
+from .helpers import class_from_name, dict_to_instance, ElementType
 
 
 class MODO:
@@ -49,26 +49,33 @@ class MODO:
         last_update_date: date = date.today(),
     ):
         self.path: Path = Path(path)
-        if archive is None:
-            self.archive = init_zarr(self.path)
-        else:
+        # User provided archive
+        if archive is not None:
             self.archive = archive
+        # Opening existing object
+        elif (self.path / "data.zarr").exists():
+            self.archive = zarr.open(str(self.path / "data.zarr"))
+        # Creating from scratch
+        else:
+            self.archive = init_zarr(self.path)
         # Opened existing object
         try:
-            self.id_ = next(self.archive.groups())[0]
+            next(self.archive.groups())[0]
         # Creating from scratch
         except StopIteration:
             if id_ is None:
                 self.id_ = self.path.name
-            self.add_element(
-                model.MODO(
-                    self.id_,
-                    creation_date=str(creation_date),
-                    last_update_date=str(last_update_date),
-                    name=name,
-                    description=description,
-                )
-            )
+                fields = {
+                    "@type": "MODO",
+                    "id": self.id_,
+                    "creation_date": str(creation_date),
+                    "last_update_date": str(last_update_date),
+                    "name": name,
+                    "description": description,
+                }
+                for key, val in fields.items():
+                    self.archive["/"].attrs[key] = val
+            zarr.consolidate_metadata(self.archive.store)
 
     @property
     def metadata(self) -> dict:
