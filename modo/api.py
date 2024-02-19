@@ -30,11 +30,11 @@ class MODO:
 
     # List identifiers of samples in the archive
     >>> demo.list_samples()
-    ['/ex/assay1/sample1']
+    ['sample1']
 
     # List files in the archive
     >>> sorted([file.name for file in demo.list_files()])
-    ['demo1.cram', 'reference.fa']
+    ['demo1.cram', 'reference1.fa']
 
     """
 
@@ -137,7 +137,7 @@ class MODO:
         for row in res:
             for val in row:
                 samples.append(
-                    str(val).removeprefix(f"file://{self.path.name}")
+                    str(val).removeprefix(f"file://{self.path.name}/")
                 )
         return samples
 
