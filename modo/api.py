@@ -92,8 +92,9 @@ class MODO:
 
         # Get flat dictionary with all attrs, easier to search
         group_attrs = dict()
-        for name, value in list_zarr_items(root):
-            group_attrs[name] = dict(value.attrs)
+        for subgroup in root.groups():
+            for name, value in list_zarr_items(subgroup[1]):
+                group_attrs[name] = dict(value.attrs)
         return group_attrs
 
     def knowledge_graph(
