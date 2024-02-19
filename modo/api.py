@@ -2,7 +2,7 @@ from datetime import date
 import json
 from pathlib import Path
 import shutil
-from typing import Generator, Optional
+from typing import Generator, List, Optional
 import yaml
 
 from linkml_runtime.dumpers import json_dumper
@@ -47,6 +47,8 @@ class MODO:
         description: Optional[str] = None,
         creation_date: date = date.today(),
         last_update_date: date = date.today(),
+        has_assay: List = [],
+        source_uri: Optional[str] = None,
     ):
         self.path: Path = Path(path)
         # User provided archive
@@ -72,6 +74,8 @@ class MODO:
                     "last_update_date": str(last_update_date),
                     "name": name,
                     "description": description,
+                    "has_assay": has_assay,
+                    "source_uri": source_uri,
                 }
                 for key, val in fields.items():
                     self.archive["/"].attrs[key] = val

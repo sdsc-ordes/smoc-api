@@ -66,11 +66,10 @@ def build_modo_from_file(path: Path, object_directory: Path) -> MODO:
         raise ValueError(
             f"There must be exactly 1 MODO in the input file. Found {len(modo_inst)}"
         )
-    # Dump object to zarr metadata
-    group = init_zarr(Path(object_directory))
-    attrs = json.loads(json_dumper.dumps(modo_inst[0]))
-    add_metadata_group(group, attrs)
-    modo = MODO(object_directory)
+    # TODO: Could we rename id_ to id?
+    modo_dict = modo_inst[0]._as_dict
+    modo_dict["id_"] = modo_dict.pop("id")
+    modo = MODO(path=object_directory, **modo_dict)
     for instance in instances:
         if not isinstance(instance, model.MODO):
             modo.add_element(instance)
