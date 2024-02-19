@@ -135,7 +135,6 @@ def create(
     # Dump object to zarr metadata
     group = init_zarr(object_directory)
     attrs = json.loads(json_dumper.dumps(obj))
-    add_metadata_group(group, attrs)
 
 
 @cli.command()
