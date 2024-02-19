@@ -132,9 +132,9 @@ def create(
         filled = prompt_for_slots(model.MODO)
         obj = model.MODO(**filled)
 
+    attrs = obj.__dict__
     # Dump object to zarr metadata
-    group = init_zarr(object_directory)
-    attrs = json.loads(json_dumper.dumps(obj))
+    MODO(path=object_directory, **attrs)
 
 
 @cli.command()

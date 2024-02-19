@@ -42,7 +42,7 @@ class MODO:
         self,
         path: Path,
         archive: Optional[zarr.Group] = None,
-        id_: Optional[str] = None,
+        id: Optional[str] = None,
         name: Optional[str] = None,
         description: Optional[str] = None,
         creation_date: date = date.today(),
@@ -60,24 +60,19 @@ class MODO:
         # Creating from scratch
         else:
             self.archive = init_zarr(self.path)
-        # Opened existing object
-        try:
-            next(self.archive.groups())[0]
-        # Creating from scratch
-        except StopIteration:
-            if id_ is None:
-                self.id_ = self.path.name
-                fields = {
-                    "@type": "MODO",
-                    "id": self.id_,
-                    "creation_date": str(creation_date),
-                    "last_update_date": str(last_update_date),
-                    "name": name,
-                    "description": description,
-                    "has_assay": has_assay,
-                    "source_uri": source_uri,
-                }
-                for key, val in fields.items():
+            self.id = id or self.path.name
+            fields = {
+                "@type": "MODO",
+                "id": self.id,
+                "creation_date": str(creation_date),
+                "last_update_date": str(last_update_date),
+                "name": name,
+                "description": description,
+                "has_assay": has_assay,
+                "source_uri": source_uri,
+            }
+            for key, val in fields.items():
+                if val:
                     self.archive["/"].attrs[key] = val
             zarr.consolidate_metadata(self.archive.store)
 
