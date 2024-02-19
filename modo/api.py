@@ -87,6 +87,9 @@ class MODO:
 
         # Get flat dictionary with all attrs, easier to search
         group_attrs = dict()
+        # Document object itself
+        root_id = root["/"].attrs["id"]
+        group_attrs[root_id] = dict(root["/"].attrs)
         for subgroup in root.groups():
             for name, value in list_zarr_items(subgroup[1]):
                 group_attrs[name] = dict(value.attrs)
