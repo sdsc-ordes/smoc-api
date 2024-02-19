@@ -168,38 +168,42 @@ class MODO:
 
     def add_element(
         self,
-        element: model.DataEntity | model.Sample | model.Assay | model.MODO,
+        element: model.DataEntity | model.Sample | model.Assay,
         data_file: Optional[Path] = None,
         part_of: Optional[str] = None,
     ):
         """Add an element to the archive.
         If a data file is provided, it will be added to the archive.
         If the element is part of another element, the parent metadata
-        will be updated."""
+        will be updated.
+
+        Parameters
+        ----------
+        element
+            Element to add to the archive.
+        data_file
+            File to associate with the element.
+        part_of
+            Id of the parent element. It must be scoped to the type.
+            For example "sample/foo".
+        """
 
         # Copy data file to archive and update data_path in metadata
         if data_file is not None:
             data_path = Path(data_file)
             shutil.copy(data_file, self.path / element.data_path)
 
-        # Link element to parent element
-        if part_of is None:
-            try:
-                parent_path = next(self.archive.groups())[0]
-            # Empty iterator when initiating a MODO object
-            # Then the root group is MODO's id
-            except StopIteration:
-                parent_path = "/"
-        else:
-            parent_path = part_of
-
-        element_path = parent_path + "/" + element.id
+        # Inferred from type inferred from type
+        type_name = ElementType.from_object(element).value
+        type_group = self.archive[type_name]
+        element_path = f"{type_name} / {element.id}"
 
         if part_of is not None:
             parent_type = getattr(
                 model,
-                self.metadata[parent_path]["@type"],
+                self.metadata[part_of]["@type"],
             )
+            partof_group = self.archive[part_of]
             has_prop = get_haspart_property(element.__class__.__name__)
             parent_slots = parent_type.__match_args__
             if has_prop not in parent_slots:
@@ -208,13 +212,12 @@ class MODO:
                 )
             # has_part is multivalued
             if has_prop not in self.archive[part_of].attrs:
-                self.archive[part_of].attrs[has_prop] = []
-            self.archive[part_of].attrs[has_prop] += [element_path]
+                partof_group.attrs[has_prop] = []
+            partof_group.attrs[has_prop] += [element_path]
 
         # Add element to metadata
-        parent_group = self.archive[parent_path]
         attrs = json.loads(json_dumper.dumps(element))
-        add_metadata_group(parent_group, attrs)
+        add_metadata_group(type_group, attrs)
         zarr.consolidate_metadata(self.archive.store)
 
     def update_element(
