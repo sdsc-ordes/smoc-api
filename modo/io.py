@@ -68,7 +68,6 @@ def build_modo_from_file(path: Path, object_directory: Path) -> MODO:
         )
     # TODO: Could we rename id_ to id?
     modo_dict = modo_inst[0]._as_dict
-    modo_dict["id_"] = modo_dict.pop("id")
     modo = MODO(path=object_directory, **modo_dict)
     for instance in instances:
         if not isinstance(instance, model.MODO):
