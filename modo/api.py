@@ -30,7 +30,7 @@ class MODO:
 
     # List identifiers of samples in the archive
     >>> demo.list_samples()
-    ['sample1']
+    ['/sample/sample1']
 
     # List files in the archive
     >>> sorted([file.name for file in demo.list_files()])
