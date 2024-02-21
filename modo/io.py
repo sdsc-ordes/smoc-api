@@ -59,6 +59,13 @@ def parse_multiple_instances(path: Path) -> List:
 def build_modo_from_file(path: Path, object_directory: Path) -> MODO:
     """build a modo from a yaml or json file"""
     instances = parse_multiple_instances(Path(path))
+    # check for unique ids and fail early
+    ids = [inst.id for inst in instances]
+    if len(ids) > len(set(ids)):
+        dup = {x for x in ids if ids.count(x) > 1}
+        raise ValueError(
+            f"Please specify a unique ID. Element(s) with ID(s) {dup} already exist."
+        )
     modo_inst = [
         instance for instance in instances if isinstance(instance, model.MODO)
     ]
