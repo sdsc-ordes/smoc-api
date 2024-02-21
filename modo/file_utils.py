@@ -1,7 +1,7 @@
 """Utilities to manage data files associated with model instances"""
 
 from pysam import AlignmentFile
-from smoc_schema.datamodel import DataEntity
+from modo_schema.datamodel import DataEntity
 from typing import List
 
 from .cram import extract_cram_metadata

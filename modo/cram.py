@@ -8,7 +8,7 @@ from pysam import (
     AlignmentHeader,
 )
 from rdflib import Graph
-import smoc_schema.datamodel as model
+import modo_schema.datamodel as model
 
 from .helpers import parse_region
 

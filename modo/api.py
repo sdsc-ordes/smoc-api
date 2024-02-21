@@ -7,7 +7,7 @@ import yaml
 
 from linkml_runtime.dumpers import json_dumper
 import rdflib
-import smoc_schema.datamodel as model
+import modo_schema.datamodel as model
 import zarr
 
 from .introspection import get_haspart_property
@@ -122,7 +122,7 @@ class MODO:
 
     def list_samples(self):
         """Lists samples in the archive."""
-        res = self.query("SELECT ?s WHERE { ?s a smoc:Sample }")
+        res = self.query("SELECT ?s WHERE { ?s a modos:Sample }")
         samples = []
         for row in res:
             for val in row:

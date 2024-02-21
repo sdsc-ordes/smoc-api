@@ -13,7 +13,7 @@ from typing_extensions import Annotated
 import click
 from linkml_runtime.loaders import json_loader
 from linkml_runtime.dumpers import json_dumper, rdflib_dumper
-import smoc_schema.datamodel as model
+import modo_schema.datamodel as model
 import typer
 import zarr
 

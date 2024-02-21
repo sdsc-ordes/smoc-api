@@ -9,7 +9,7 @@ from linkml_runtime.loaders import (
     rdf_loader,
 )
 from linkml_runtime.dumpers import json_dumper
-import smoc_schema.datamodel as model
+import modo_schema.datamodel as model
 from .api import MODO
 from .helpers import dict_to_instance, class_from_name
 from .cram import slice_cram

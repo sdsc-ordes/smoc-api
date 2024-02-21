@@ -1,4 +1,4 @@
-"""Introspection utilities for the SMOC schema.
+"""Introspection utilities for the MODO schema.
 
 This module provides utilities for accessing the schema structure
 and for converting instances to different representations.
@@ -12,9 +12,9 @@ from linkml_runtime.utils.schemaview import SchemaView
 from rdflib import Graph
 from rdflib.term import URIRef
 
-import smoc_schema.schema as schema
+import modo_schema.schema as schema
 
-SCHEMA_PATH = Path(schema.__path__[0]) / "smoc_schema.yaml"
+SCHEMA_PATH = Path(schema.__path__[0]) / "modo_schema.yaml"
 
 
 @lru_cache(1)

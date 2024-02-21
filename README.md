@@ -1,6 +1,6 @@
-# SMOC-PoC
+# MODO-API
 
-Initial system for creating and serving multi-omics digital objects.
+Initial API system for using and serving Multi-Omics Digital Objects (MODO).
 
 ## Context
 
@@ -13,43 +13,18 @@ Provide a digital object and system to process, store and serve multi-omics data
 
 ### Architecture
 
-The digital object is composed of multiple files:
-* CRAM files for alignment data, Zarr
-* Zarr for array data
-* RDF for metadata (either separate, or embedded in the array file).
+The digital object is composed of a folder with:
+* Genomic data files (CRAM, FASTA)
+* A zarr archive for metadata and array-based database
 
-The basic structure is as follows:
-
-```mermaid
-
-flowchart LR;
-
-subgraph smoc[SMOC server]
-    OBJ[Digital object metadata]
-    CRAMG[Genomics CRAM]
-    CRAMT[Transcriptomics CRAM]
-    MATP[Proteomics matrix]
-    MATM[Metabolomics matrix]
-end;
-subgraph UI[User interface]
-    CAT[Catalogue]
-    INS[Inspector]
-end;
-
-    OBJ -.-> CRAMG;
-    OBJ -.-> CRAMT;
-    OBJ -.-> MATP;
-    OBJ -.-> MATM;
-    OBJ -->|list objects| CAT
-    OBJ -->|display metadata| INS
-```
+The metadata links the different files using the [modo-schema](https://sdsc-ordes.github.io/modo-schema).
 
 ## Installation
 
 The development version of the library can be installed from github using pip:
 
 ```sh
-pip install git+https://github.com/sdsc-ordes/smoc-poc.git@main#egg=modo
+pip install git+https://github.com/sdsc-ordes/modo-api.git@main#egg=modo
 ```
 
 ## Usage
@@ -64,14 +39,13 @@ ex.list_files()
 ex.list_samples()
 ```
 
-Creating digital objects via the API is not yet supported.
 
 ## Development
 
 The development environment can be set up as follows:
 
 ```sh
-git clone https://github.com/sdsc-orders/smoc-poc && cd smoc-poc
+git clone https://github.com/sdsc-ordes/modo-api && cd modo-api
 make install
 ```
 
@@ -81,15 +55,15 @@ The tests can be run with `make test`, it will execute pytest with the doctest m
 
 ## Implementation details
 
-* To allow horizontal traversal of digital objects in the database (e.g. for listing), the metadata would need to be exported in a central database/knowledge-graph on the server side.
+* To allow faster horizontal traversal of digital objects in the catalogue (e.g. for listing), the metadata should be exported in a central database/knowledge-graph on the server side.
 * Metadata can be either embedded in the array file, or stored in a separate file
 * Each digital object needs a unique identifier
 * The paths of individual files in the digital object must be referenced in a consistent way.
   + Absolute paths are a no-go (machine/system dependent)
   + Relative paths in the digital object could work, but need to be OS-independent
- 
+
 
 ## Status and limitations
 
-* Focusing on data retrieval, object creation not yet implemented
+* Focusing on data retrieval, remote object creation not yet implemented
 * The htsget protocol supports streaming CRAM files, but it is currently only implemented for BAM in major genome browsers (igv.js, jbrowse)
