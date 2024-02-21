@@ -3,7 +3,7 @@ import re
 from urllib.parse import urlparse
 from typing import Mapping, Any
 
-import smoc_schema.datamodel as model
+import modo_schema.datamodel as model
 
 from .introspection import load_schema
 

@@ -1,5 +1,5 @@
 REGISTRY="ghcr.io/sdsc-ordes"
-IMAGE_NAME="smoc-api"
+IMAGE_NAME="modo-api"
 VERSION :=$(shell grep -E '^version += +' pyproject.toml | sed -E 's/.*= +//')
 
 .PHONY: install
@@ -16,7 +16,7 @@ check: ## Run code quality tools.
 	@poetry run pre-commit run -a
 
 .PHONY: docker-build
-docker-build: ## Build the smoc-api client Docker image
+docker-build: ## Build the modo-api client Docker image
 	@echo "🐋 Building docker image"
 	@docker build \
 		--build-arg="VERSION_BUILD=$(VERSION)" \

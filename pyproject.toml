@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "modo"
 version = "0.1.0"
-description = "SMOC Multi-Omics Digital Object PoC"
+description = "SMOC Multi-Omics Digital Object API"
 authors = ["SDSC-ORDES"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -13,7 +13,7 @@ rdflib = "^6.3"
 zarr = "^2.16.1"
 calamus = "^0.4.2"
 pysam = "^0.22.0"
-smoc_schema = { git = "https://github.com/sdsc-ordes/smoc-schema.git", branch = "main" }
+modo_schema = { git = "https://github.com/sdsc-ordes/modo-schema.git", branch = "main" }
 typer = "^0.9.0"
 
 [tool.poetry.group.dev.dependencies]

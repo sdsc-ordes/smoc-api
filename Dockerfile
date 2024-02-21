@@ -30,7 +30,7 @@ RUN poetry install --no-interaction --no-ansi -vvv
 
 
 ##################################################
-# SMOC setup
+# MODO setup
 ##################################################
 FROM python as runtime
 ARG VERSION_BUILD
@@ -42,8 +42,8 @@ RUN useradd -ms /bin/bash modo_user
 USER modo_user
 
 # metadata labels
-LABEL org.opencontainers.image.source=https://github.com/sdsc-ordes/smoc-api
-LABEL org.opencontainers.image.description="Serve multi-omics digital objejcts"
+LABEL org.opencontainers.image.source=https://github.com/sdsc-ordes/modo-api
+LABEL org.opencontainers.image.description="Serve multi-omics digital objects"
 LABEL org.opencontainers.image.licenses=Apache-2.0
 LABEL org.opencontainers.image.version ${VERSION_BUILD}
 
