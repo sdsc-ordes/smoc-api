@@ -14,7 +14,7 @@ from .api import MODO
 from .helpers import dict_to_instance, class_from_name
 from .cram import slice_cram
 from .storage import add_metadata_group, init_zarr
-import json
+import os
 
 
 ext2loader = {
@@ -77,7 +77,15 @@ def build_modo_from_file(path: Path, object_directory: Path) -> MODO:
     modo = MODO(path=object_directory, **modo_dict)
     for instance in instances:
         if not isinstance(instance, model.MODO):
-            modo.add_element(instance)
+            if (
+                isinstance(instance, model.DataEntity)
+                and not modo.path in Path(instance.data_path).parents
+            ):
+                data_file = instance.data_path
+                instance.data_path = Path(data_file).name
+                modo.add_element(instance, data_file=data_file)
+            else:
+                modo.add_element(instance)
     return modo
 
 
