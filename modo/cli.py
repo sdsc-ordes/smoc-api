@@ -91,9 +91,8 @@ def prompt_for_slots(
         entries[slot_name] = prompt_for_slot(slot_name, prefix="(required) ")
         if entries[slot_name] is None:
             raise ValueError(f"Missing required slot: {slot_name}")
-        if (
-            whitelist is not None
-            and entries[slot_name] in whitelist[slot_name]
+        if whitelist is not None and entries.get(slot_name) in whitelist.get(
+            slot_name, []
         ):
             print(
                 f"Invalid value: {slot_name} must differ from {whitelist[slot_name]}."
