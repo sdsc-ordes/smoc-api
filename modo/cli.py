@@ -7,7 +7,7 @@ from enum import Enum
 import json
 import os
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any, List, Mapping, Optional
 from typing_extensions import Annotated
 
 import click
@@ -62,8 +62,19 @@ def prompt_for_slot(slot_name: str, prefix: str = "", optional: bool = False):
 
 def prompt_for_slots(
     target_class: type,
+    whitelist: Optional[Mapping[str, List]] = None,
+    # add dict with whitelist
 ) -> dict[str, Any]:
-    """Prompt the user to provide values for the slots of input class."""
+    """Prompt the user to provide values for the slots of input class.
+    values of required fields can be whitelisted to repeat the prompt.
+
+    Parameters
+        ----------
+        target_class
+            Class to build
+        whitelist
+            Mapping with the name of a slot as key  and list of invalid entries as values.
+    """
 
     entries = {}
     required_slots = set(get_slots(target_class, required_only=True))
@@ -80,6 +91,17 @@ def prompt_for_slots(
         entries[slot_name] = prompt_for_slot(slot_name, prefix="(required) ")
         if entries[slot_name] is None:
             raise ValueError(f"Missing required slot: {slot_name}")
+        if (
+            whitelist is not None
+            and entries[slot_name] in whitelist[slot_name]
+        ):
+            print(
+                f"Invalid value: {slot_name} must differ from {whitelist[slot_name]}."
+            )
+            entries[slot_name] = prompt_for_slot(
+                slot_name, prefix="(required) "
+            )
+
     if optional_slots:
         for slot_name in optional_slots:
             entries[slot_name] = prompt_for_slot(
@@ -199,6 +221,7 @@ def add(
     metadata will be updated."""
 
     typer.echo(f"Updating {object_directory}.", err=True)
+    modo = MODO(object_directory)
     target_class = element_type.get_target_class()
 
     if from_file and meta:
@@ -208,10 +231,10 @@ def add(
     elif meta:
         obj = json_loader.loads(meta, target_class=target_class)
     else:
-        filled = prompt_for_slots(target_class)
+        whitelist = {"id": [Path(id).name for id in modo.metadata.keys()]}
+        filled = prompt_for_slots(target_class, whitelist)
         obj = target_class(**filled)
 
-    modo = MODO(object_directory)
     modo.add_element(obj, data_file=data_file, part_of=parent)
 
 
