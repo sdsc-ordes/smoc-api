@@ -41,6 +41,7 @@ def gather_metadata():
         archive = zarr.open(
             store=store,
         )
-        meta = MODO(path=f"{S3_LOCAL_URL}/{modo}", archive=archive).metadata
+        # TODO: Fix id_ to id once restructure/herarchy is accepted!
+        meta.update(MODO(path=f"{S3_LOCAL_URL}/{modo}", archive=archive).metadata)
 
     return meta
