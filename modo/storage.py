@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
-from typing import Any
+from pydantic import HttpUrl
+import requests
+from typing import Any, List, Optional
 
 from linkml_runtime.loaders import json_loader
 import zarr
@@ -48,3 +50,14 @@ def list_zarr_items(group: zarr.Group) -> list[zarr.Group | zarr.Array]:
 
     group.visititems(list_all)
     return found
+
+
+## Functions related to server storage handling
+
+
+def list_server_items(server_url: HttpUrl) -> List[HttpUrl]:
+    requests.get(url=server_url + "/list").json()
+
+
+def get_metadata_from_server(server_url: HttpUrl, id: Optional[str] = None):
+    requests.get(url=server_url + "/meta").json()
