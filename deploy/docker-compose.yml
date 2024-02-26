@@ -10,6 +10,17 @@ networks:
 
 services:
 
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx/default.conf
+    ports:
+      - "3000:3000"
+      - "3003:3003"
+      - "9999:9999"
+    networks:
+        - modo-network
+
   minio:
     image: docker.io/bitnami/minio:2024
     ports:
