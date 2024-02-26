@@ -11,6 +11,11 @@ import os
 
 from fastapi import FastAPI
 from modo.api import MODO
+<<<<<<< HEAD
+=======
+import rdflib
+import re
+>>>>>>> d2468b5 (feat: Add get?query to modo server)
 import s3fs
 import zarr
 
@@ -45,3 +50,19 @@ def gather_metadata():
         meta.update(MODO(path=f"{S3_LOCAL_URL}/{modo}", archive=archive).metadata)
 
     return meta
+
+
+@app.get("/get")
+def get_s3_path(query: str, exact_match: bool = False):
+    """Receive the S3 path of all modos matching the query"""
+    modos = minio.ls(BUCKET)
+    if not exact_match:
+        res = [modo for modo in modos if query in modo]
+    else:
+        # NOTE: Is there a better/more roboust way than regexpr?
+        res = [
+            modo
+            for modo in modos
+            if re.search("/" + query + r"$", modo) is not None
+        ]
+    return [f"{S3_URL}/{modo}" for modo in res]
