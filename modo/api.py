@@ -272,7 +272,7 @@ class MODO:
         ]
         inst_names = {inst.name: inst.id for inst in instances}
         for inst in instances:
-            elements = extract_metadata(inst)
+            elements = extract_metadata(inst, self.path)
             for ele in elements:
                 # NOTE: Need to compare names here as ids differ
                 if (
