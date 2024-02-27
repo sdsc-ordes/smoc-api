@@ -10,13 +10,13 @@ from .cram import extract_cram_metadata
 extraction_formats = ["CRAM"]
 
 
-def extract_metadata(instance, modo_path: Path) -> List:
+def extract_metadata(instance, base_path: Path) -> List:
     """Extract metadata from files associated to a model instance"""
     if not isinstance(instance, DataEntity):
         raise ValueError(f"{instance} is not a DataEntity, cannot extract")
     match str(instance.data_format):
         case "CRAM":
-            cramfile = AlignmentFile(modo_path / instance.data_path, mode="rc")
+            cramfile = AlignmentFile(base_path / instance.data_path, mode="rc")
             return extract_cram_metadata(cramfile)
         case _:
             raise ValueError(

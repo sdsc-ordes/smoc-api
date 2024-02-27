@@ -25,7 +25,7 @@ from .introspection import (
     get_slot_range,
     load_schema,
 )
-from .io import build_modo_from_file
+from .io import build_modo_from_file, parse_instance
 from .storage import add_metadata_group, init_zarr
 
 
@@ -62,17 +62,17 @@ def prompt_for_slot(slot_name: str, prefix: str = "", optional: bool = False):
 
 def prompt_for_slots(
     target_class: type,
-    whitelist: Optional[Mapping[str, List]] = None,
-    # add dict with whitelist
+    exclude: Optional[Mapping[str, List]] = None,
+    # add dict with exclude
 ) -> dict[str, Any]:
     """Prompt the user to provide values for the slots of input class.
-    values of required fields can be whitelisted to repeat the prompt.
+    values of required fields can be excluded to repeat the prompt.
 
     Parameters
         ----------
         target_class
             Class to build
-        whitelist
+        exclude
             Mapping with the name of a slot as key  and list of invalid entries as values.
     """
 
@@ -91,11 +91,9 @@ def prompt_for_slots(
         entries[slot_name] = prompt_for_slot(slot_name, prefix="(required) ")
         if entries[slot_name] is None:
             raise ValueError(f"Missing required slot: {slot_name}")
-        if whitelist is not None and entries.get(slot_name) in whitelist.get(
-            slot_name, []
-        ):
+        if exclude and entries.get(slot_name) in exclude.get(slot_name, []):
             print(
-                f"Invalid value: {slot_name} must differ from {whitelist[slot_name]}."
+                f"Invalid value: {slot_name} must differ from {exclude[slot_name]}."
             )
             entries[slot_name] = prompt_for_slot(
                 slot_name, prefix="(required) "
@@ -226,12 +224,12 @@ def add(
     if from_file and meta:
         raise ValueError("Only one of --from-file or --meta can be used.")
     elif from_file:
-        obj = parse_instances(from_file, target_class=target_class)
+        obj = parse_instance(from_file, target_class=target_class)
     elif meta:
         obj = json_loader.loads(meta, target_class=target_class)
     else:
-        whitelist = {"id": [Path(id).name for id in modo.metadata.keys()]}
-        filled = prompt_for_slots(target_class, whitelist)
+        exclude = {"id": [Path(id).name for id in modo.metadata.keys()]}
+        filled = prompt_for_slots(target_class, exclude)
         obj = target_class(**filled)
 
     modo.add_element(obj, data_file=data_file, part_of=parent)

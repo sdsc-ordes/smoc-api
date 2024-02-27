@@ -91,9 +91,9 @@ class MODO:
         root_id = root["/"].attrs["id"]
         group_attrs[root_id] = dict(root["/"].attrs)
         for subgroup in root.groups():
-            type = subgroup[0]
+            group_type = subgroup[0]
             for name, value in list_zarr_items(subgroup[1]):
-                group_attrs[f"/{type}/{name}"] = dict(value.attrs)
+                group_attrs[f"/{group_type}/{name}"] = dict(value.attrs)
         return group_attrs
 
     def knowledge_graph(
