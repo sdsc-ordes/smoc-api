@@ -14,7 +14,13 @@ from .introspection import get_haspart_property
 from .rdf import attrs_to_graph
 from .storage import add_metadata_group, init_zarr, list_zarr_items
 from .file_utils import extract_metadata, extraction_formats
-from .helpers import class_from_name, dict_to_instance, ElementType
+from .helpers import (
+    class_from_name,
+    dict_to_instance,
+    ElementType,
+    set_part_of_relationship,
+    UserElementType,
+)
 
 
 class MODO:
@@ -172,7 +178,10 @@ class MODO:
 
     def add_element(
         self,
-        element: model.DataEntity | model.Sample | model.Assay,
+        element: model.DataEntity
+        | model.Sample
+        | model.Assay
+        | model.ReferenceGenome,
         data_file: Optional[Path] = None,
         part_of: Optional[str] = None,
     ):
@@ -203,26 +212,49 @@ class MODO:
             shutil.copy(data_file, self.path / element.data_path)
 
         # Inferred from type inferred from type
+        type_name = UserElementType.from_object(element).value
+        type_group = self.archive[type_name]
+        element_path = f"{type_name} / {element.id}"
+
+        if part_of is not None:
+            partof_group = self.archive[part_of]
+            set_part_of_relationship(element, element_path, partof_group)
+
+        # Add element to metadata
+        attrs = json.loads(json_dumper.dumps(element))
+        add_metadata_group(type_group, attrs)
+        zarr.consolidate_metadata(self.archive.store)
+
+    def _add_any_element(
+        self,
+        element: model.DataEntity
+        | model.Sample
+        | model.Assay
+        | model.ReferenceSequence
+        | model.ReferenceGenome,
+        data_file: Optional[Path] = None,
+        part_of: Optional[str] = None,
+    ):
+        """Add an element of any type to the archive."""
+        # Check that ID does not exist in modo
+        if element.id in [Path(id).name for id in self.metadata.keys()]:
+            raise ValueError(
+                f"Please specify a unique ID. Element with ID {element.id} already exist."
+            )
+
+        # Copy data file to archive and update data_path in metadata
+        if data_file is not None:
+            data_path = Path(data_file)
+            shutil.copy(data_file, self.path / element.data_path)
+
+        # Inferred from type inferred from type
         type_name = ElementType.from_object(element).value
         type_group = self.archive[type_name]
         element_path = f"{type_name} / {element.id}"
 
         if part_of is not None:
-            parent_type = getattr(
-                model,
-                self.metadata[part_of]["@type"],
-            )
             partof_group = self.archive[part_of]
-            has_prop = get_haspart_property(element.__class__.__name__)
-            parent_slots = parent_type.__match_args__
-            if has_prop not in parent_slots:
-                raise ValueError(
-                    f"Cannot make {element.id} part of {part_of}: {parent_type} does not have property {has_prop}"
-                )
-            # has_part is multivalued
-            if has_prop not in self.archive[part_of].attrs:
-                partof_group.attrs[has_prop] = []
-            partof_group.attrs[has_prop] += [element_path]
+            set_part_of_relationship(element, element_path, partof_group)
 
         # Add element to metadata
         attrs = json.loads(json_dumper.dumps(element))

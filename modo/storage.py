@@ -5,7 +5,7 @@ from typing import Any
 from linkml_runtime.loaders import json_loader
 import zarr
 
-from .helpers import ElementType
+from .helpers import ElementType, UserElementType
 
 
 # Initialize object's directory given the metadata graph
@@ -15,7 +15,7 @@ def init_zarr(root_directory: Path) -> zarr.Group:
     store = zarr.DirectoryStore(str(root_directory / "data.zarr"))
     data = zarr.group(store=store)
 
-    elem_types = [t.value for t in ElementType]
+    elem_types = [t.value for t in UserElementType]
     for elem_type in elem_types:
         data.create_group(elem_type)
 
@@ -37,15 +37,6 @@ def add_metadata_group(parent_group: zarr.Group, metadata: dict) -> None:
 def add_data(group: zarr.Group, data) -> None:
     """Add a numpy array to an existing zarr group."""
     group.create_dataset("data", data=data)
-
-
-def attrs_to_instance(group: zarr.Group, id: str) -> Any:
-    """Convert zarr group attributes to an instanced element.""" ""
-    meta = dict(group.attrs)
-    meta["id"] = id
-    target_class = ElementType(meta["@type"].lower()).get_target_class()
-
-    return json_loader.loads(json.dumps(meta), target_class=target_class)
 
 
 def list_zarr_items(group: zarr.Group) -> list[zarr.Group | zarr.Array]:

@@ -18,7 +18,7 @@ import typer
 import zarr
 
 from .api import MODO
-from .helpers import ElementType
+from .helpers import UserElementType
 from .introspection import (
     get_enum_values,
     get_slots,
@@ -176,7 +176,7 @@ def remove(
 def add(
     object_directory: Annotated[Path, typer.Argument(...)],
     element_type: Annotated[
-        ElementType,
+        UserElementType,
         typer.Argument(
             ...,
             help="Type of element to add to the digital object.",
