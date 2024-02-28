@@ -1,7 +1,9 @@
 from enum import Enum
+from pathlib import Path
 import re
+import shutil
+from typing import Any, Mapping, Optional
 from urllib.parse import urlparse
-from typing import Mapping, Any
 import zarr
 
 import modo_schema.datamodel as model
@@ -22,6 +24,14 @@ def dict_to_instance(element: Mapping[str, Any]) -> Any:
     return target_class(
         **{k: v for k, v in element.items() if k not in "@type"}
     )
+
+
+def copy_file_to_archive(
+    data_file: Optional[str], base_path: Path, archive_path: Optional[Path]
+):
+    if data_file is not None:
+        data_path = Path(data_file)
+        shutil.copy(data_path, base_path / archive_path)
 
 
 def set_part_of_relationship(

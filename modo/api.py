@@ -16,6 +16,7 @@ from .storage import add_metadata_group, init_zarr, list_zarr_items
 from .file_utils import extract_metadata, extraction_formats
 from .helpers import (
     class_from_name,
+    copy_file_to_archive,
     dict_to_instance,
     ElementType,
     set_part_of_relationship,
@@ -207,14 +208,12 @@ class MODO:
             )
 
         # Copy data file to archive and update data_path in metadata
-        if data_file is not None:
-            data_path = Path(data_file)
-            shutil.copy(data_file, self.path / element.data_path)
+        copy_file_to_archive(data_file, self.path, element._get("data_path"))
 
         # Inferred from type inferred from type
         type_name = UserElementType.from_object(element).value
         type_group = self.archive[type_name]
-        element_path = f"{type_name} / {element.id}"
+        element_path = f"{type_name}/{element.id}"
 
         if part_of is not None:
             partof_group = self.archive[part_of]
@@ -243,14 +242,12 @@ class MODO:
             )
 
         # Copy data file to archive and update data_path in metadata
-        if data_file is not None:
-            data_path = Path(data_file)
-            shutil.copy(data_file, self.path / element.data_path)
+        copy_file_to_archive(data_file, self.path, element._get("data_path"))
 
         # Inferred from type inferred from type
         type_name = ElementType.from_object(element).value
         type_group = self.archive[type_name]
-        element_path = f"{type_name} / {element.id}"
+        element_path = f"{type_name}/{element.id}"
 
         if part_of is not None:
             partof_group = self.archive[part_of]
@@ -312,7 +309,7 @@ class MODO:
                     and ele not in new_elements
                 ):
                     new_elements.append(ele)
-                    self.add_element(ele)
+                    self._add_any_element(ele)
                 elif ele.name in inst_names.keys():
                     self.update_element(inst_names[ele.name], ele)
                 else:
