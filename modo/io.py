@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from typing import Any, Mapping, List
+from typing import Any, List
 
 from linkml_runtime.loaders import (
     json_loader,
@@ -8,14 +8,11 @@ from linkml_runtime.loaders import (
     csv_loader,
     rdf_loader,
 )
-from linkml_runtime.dumpers import json_dumper
 import modo_schema.datamodel as model
 from .api import MODO
-from .helpers import dict_to_instance, class_from_name
 from .cram import slice_cram
-from .storage import add_metadata_group, init_zarr
-import os
-
+from .helpers import dict_to_instance
+from .introspection import update_haspart_id
 
 ext2loader = {
     "json": json_loader,
@@ -66,6 +63,9 @@ def build_modo_from_file(path: Path, object_directory: Path) -> MODO:
         raise ValueError(
             f"Please specify a unique ID. Element(s) with ID(s) {dup} already exist."
         )
+    # use full id for has_part attributes
+    instances = [update_haspart_id(inst) for inst in instances]
+
     modo_inst = [
         instance for instance in instances if isinstance(instance, model.MODO)
     ]
@@ -77,6 +77,7 @@ def build_modo_from_file(path: Path, object_directory: Path) -> MODO:
     modo = MODO(path=object_directory, **modo_dict)
     for instance in instances:
         if not isinstance(instance, model.MODO):
+            # copy data-path into modo
             if (
                 isinstance(instance, model.DataEntity)
                 and not modo.path in Path(instance.data_path).parents

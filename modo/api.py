@@ -210,7 +210,7 @@ class MODO:
         # Copy data file to archive and update data_path in metadata
         copy_file_to_archive(data_file, self.path, element._get("data_path"))
 
-        # Inferred from type inferred from type
+        # Inferred from type
         type_name = UserElementType.from_object(element).value
         type_group = self.archive[type_name]
         element_path = f"{type_name}/{element.id}"
