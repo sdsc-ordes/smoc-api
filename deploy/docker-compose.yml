@@ -13,7 +13,7 @@ services:
   nginx:
     image: nginx
     volumes:
-      - ./nginx/default.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
       - "3000:3000"
       - "3003:3003"
@@ -43,7 +43,7 @@ services:
     networks:
       - modo-network
     environment:
-      - S3_ENDPOINT=minio:9000
+      - S3_ENDPOINT=http://minio:9000
       - MINIO_SERVER_ACCESS_KEY=user
       - MINIO_SERVER_SECRET_KEY=pass
     volumes:
@@ -56,7 +56,9 @@ services:
     networks:
       - modo-network
     environment:
-      - S3_ENDPOINT=http://minio:9000
+      - S3_URL=http://localhost/s3
+      - S3_URL=http://localhost/s3
       - S3_BUCKET=modo-demo
+      - S3_ENDPOINT=http://minio:9000
       - HTSGET_ENDPOINT=http://htsget:8080
     command: uvicorn --host 0.0.0.0 --port 8000 --reload server:app
