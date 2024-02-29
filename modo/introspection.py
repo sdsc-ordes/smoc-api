@@ -14,8 +14,6 @@ from rdflib.term import URIRef
 
 import modo_schema.schema as schema
 
-from .helpers import ElementType
-
 SCHEMA_PATH = Path(schema.__path__[0]) / "modo_schema.yaml"
 
 
@@ -92,20 +90,3 @@ def get_haspart_property(child_class: str) -> Optional[str]:
         if child_class in all_targets:
             return prop_name
     return None
-
-
-def update_haspart_id(element):
-    """update the id of the has_part property of an element to use the full id including its type"""
-    haspart_names = load_schema().slot_children("has_part")
-    has_part = [
-        has_part
-        for has_part in haspart_names
-        if has_part in vars(element).keys()
-    ]
-    if len(has_part) == 1:
-        type_name = ElementType.from_object(get_slot_range(has_part)).value
-        updated_ids = [
-            f"{type_name}/{id}" for id in getattr(element, has_part)
-        ]
-        setattr(element, has_part, updated_ids)
-    return element

@@ -8,7 +8,7 @@ import zarr
 
 import modo_schema.datamodel as model
 
-from .introspection import get_haspart_property, load_schema
+from .introspection import get_haspart_property, get_slot_range, load_schema
 
 
 def class_from_name(name: str):
@@ -59,6 +59,23 @@ def set_part_of_relationship(
     if has_prop not in partof_group.attrs:
         partof_group.attrs[has_prop] = []
     partof_group.attrs[has_prop] += [element_path]
+
+
+def update_haspart_id(element):
+    """update the id of the has_part property of an element to use the full id including its type"""
+    haspart_names = load_schema().slot_children("has_part")
+    haspart_list = [
+        haspart for haspart in haspart_names if haspart in vars(element).keys()
+    ]
+    if len(haspart_list) > 0:
+        for has_part in haspart_list:
+            haspart_type = get_slot_range(has_part)
+            type_name = ElementType.from_model_name(haspart_type).value
+            updated_ids = [
+                f"{type_name}/{id}" for id in getattr(element, has_part)
+            ]
+            setattr(element, has_part, updated_ids)
+    return element
 
 
 class UserElementType(str, Enum):
@@ -140,6 +157,22 @@ class ElementType(str, Enum):
             return ElementType.REFERENCE_SEQUENCE
         else:
             raise ValueError(f"Unknown object type: {type(obj)}")
+
+    @classmethod
+    def from_model_name(cls, obj):
+        """Return the element type from an object."""
+        if obj == "Sample":
+            return ElementType.SAMPLE
+        elif obj == "Assay":
+            return ElementType.ASSAY
+        elif obj == "DataEntity":
+            return ElementType.DATA_ENTITY
+        elif obj == "ReferenceGenome":
+            return ElementType.REFERENCE_GENOME
+        elif obj == "ReferenceSequence":
+            return ElementType.REFERENCE_SEQUENCE
+        else:
+            raise ValueError(f"Unknown object type: {obj}")
 
 
 def is_uri(text: str):

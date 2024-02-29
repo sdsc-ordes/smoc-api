@@ -11,8 +11,7 @@ from linkml_runtime.loaders import (
 import modo_schema.datamodel as model
 from .api import MODO
 from .cram import slice_cram
-from .helpers import dict_to_instance
-from .introspection import update_haspart_id
+from .helpers import dict_to_instance, update_haspart_id
 
 ext2loader = {
     "json": json_loader,
