@@ -15,7 +15,7 @@ def init_zarr(root_directory: Path) -> zarr.Group:
     store = zarr.DirectoryStore(str(root_directory / "data.zarr"))
     data = zarr.group(store=store)
 
-    elem_types = [t.value for t in UserElementType]
+    elem_types = [t.value for t in ElementType]
     for elem_type in elem_types:
         data.create_group(elem_type)
 

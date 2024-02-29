@@ -61,7 +61,13 @@ def set_part_of_relationship(
     partof_group.attrs[has_prop] += [element_path]
 
 
-def update_haspart_id(element):
+def update_haspart_id(
+    element: model.DataEntity
+    | model.Sample
+    | model.Assay
+    | model.ReferenceGenome
+    | model.MODO,
+):
     """update the id of the has_part property of an element to use the full id including its type"""
     haspart_names = load_schema().slot_children("has_part")
     haspart_list = [
@@ -123,7 +129,7 @@ class ElementType(str, Enum):
     ASSAY = "assay"
     DATA_ENTITY = "data"
     REFERENCE_GENOME = "reference"
-    REFERENCE_SEQUENCE = "reference"
+    REFERENCE_SEQUENCE = "sequence"
 
     def get_target_class(
         self,
