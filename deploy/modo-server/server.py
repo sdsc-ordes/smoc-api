@@ -15,23 +15,12 @@ import s3fs
 import zarr
 
 
-S3_PUBLIC_URL = os.environ["S3_PUBLIC_URL"]
 S3_LOCAL_URL = os.environ["S3_LOCAL_URL"]
 BUCKET = os.environ["S3_BUCKET"]
-HTSGET_PUBLIC_URL = os.environ["HTSGET_PUBLIC_URL"]
 HTSGET_LOCAL_URL = os.environ["HTSGET_LOCAL_URL"]
 
 app = FastAPI()
 minio = s3fs.S3FileSystem(anon=True, endpoint_url=S3_LOCAL_URL)
-
-
-@app.get("/")
-def index():
-    return {
-        "Message": "Welcome to the modo server",
-        "Catalog bucket": f"{S3_PUBLIC_URL}/{BUCKET}",
-        "htsget": HTSGET_PUBLIC_URL,
-    }
 
 
 @app.get("/list")
@@ -39,7 +28,7 @@ def list_modos() -> list[str]:
     """List MODO entries in bucket."""
     modos = minio.ls(BUCKET)
     # NOTE: modo contains bucket name
-    return [f"{S3_PUBLIC_URL}/{modo}" for modo in modos]
+    return [modo for modo in modos]
 
 
 @app.get("/meta")
