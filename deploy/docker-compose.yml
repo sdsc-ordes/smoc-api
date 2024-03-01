@@ -13,7 +13,7 @@ services:
   nginx:
     image: nginx:1.23
     volumes:
-      - ./nginx/default.conf:/etc/nginx/templates/default.conf.template:ro
+      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
 
     environment:
       - S3_PUBLIC_URL=${S3_PUBLIC_URL:-http://localhost/s3}
