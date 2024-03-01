@@ -16,16 +16,14 @@ services:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
       - "80:80"
-      - "3003:3003"
-      - "9999:9999"
     networks:
         - modo-network
 
   minio:
     image: docker.io/bitnami/minio:2024
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+    expose:
+      - "9000" # api
+      - "9001" # console
     volumes:
       - minio-data:/bitnami/minio/data
     networks:
@@ -37,9 +35,9 @@ services:
 
   htsget:
     image: ghcr.io/umccr/htsget-rs:dev-latest
-    ports:
-      - "8080:8080" # ticket server
-      - "8081:8081" # data block server
+    expose:
+      - "8080" # ticket server
+      - "8081" # data block server
     networks:
       - modo-network
     environment:
@@ -51,8 +49,8 @@ services:
 
   modo-server:
     build: ./modo-server
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     networks:
       - modo-network
     environment:
