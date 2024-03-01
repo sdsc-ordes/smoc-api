@@ -65,3 +65,15 @@ Once the server is started, a client can connect to the following endpoints:
 * `http://localhost:80/s3`: directly access the s3 server
 * `http://localhost:80/list`: list modos on the server
 * `http://localhost:80/meta`: return all metadata on the server
+
+## Configuration
+
+Most parameters can be configured using environment variables.
+The easiest way to change environment variables is to use a `.env`. An example is provided and can be used as follows:
+
+```sh
+mv .example.env .env
+# edit .env as required
+docker compose up --build
+# docker compose automatically reads the .env file
+```
