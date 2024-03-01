@@ -31,7 +31,8 @@ services:
     image: docker.io/bitnami/minio:2024
     expose:
       - "9000" # api
-      - "9001" # console
+    ports:
+      - "9001:9001" # console
     volumes:
       - minio-data:/bitnami/minio/data
     networks:
