@@ -83,7 +83,7 @@ def get_metadata_from_server(
         return meta
 
 
-def get_s3(server_url: HttpUrl, query: str, exact_match: bool = False):
+def get_s3(server_url: HttpUrl, query: str, exact_match: bool = False) -> List:
     return requests.get(
-        url=f"server_url + /get?query={query}&exact_match={exact_match}"
+        url=server_url + f"/get?query={query}&exact_match={exact_match}"
     ).json()
