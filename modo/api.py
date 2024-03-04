@@ -19,7 +19,7 @@ from .helpers import (
     copy_file_to_archive,
     dict_to_instance,
     ElementType,
-    set_part_of_relationship,
+    set_haspart_relationship,
     UserElementType,
 )
 
@@ -217,7 +217,9 @@ class MODO:
 
         if part_of is not None:
             partof_group = self.archive[part_of]
-            set_part_of_relationship(element, element_path, partof_group)
+            set_haspart_relationship(
+                element.__class__.__name__, element_path, partof_group
+            )
 
         # Add element to metadata
         attrs = json.loads(json_dumper.dumps(element))
@@ -251,7 +253,9 @@ class MODO:
 
         if part_of is not None:
             partof_group = self.archive[part_of]
-            set_part_of_relationship(element, element_path, partof_group)
+            set_haspart_relationship(
+                element.__class__.__name__, element_path, partof_group
+            )
 
         # Add element to metadata
         attrs = json.loads(json_dumper.dumps(element))

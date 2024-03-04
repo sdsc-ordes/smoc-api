@@ -34,31 +34,27 @@ def copy_file_to_archive(
         shutil.copy(data_path, base_path / archive_path)
 
 
-def set_part_of_relationship(
-    element: model.DataEntity
-    | model.Sample
-    | model.Assay
-    | model.ReferenceGenome
-    | model.ReferenceSequence,
-    element_path: str,
-    partof_group: zarr.hierarchy.Group,
+def set_haspart_relationship(
+    child_class: str,
+    child_path: str,
+    parent_group: zarr.hierarchy.Group,
 ):
     """Add element to the hasPart attribute of a parent zarr group"""
     parent_type = getattr(
         model,
-        partof_group.attrs.get("@type"),
+        parent_group.attrs.get("@type"),
     )
 
-    has_prop = get_haspart_property(element.__class__.__name__)
+    has_prop = get_haspart_property(child_class)
     parent_slots = parent_type.__match_args__
     if has_prop not in parent_slots:
         raise ValueError(
-            f"Cannot make {element.id} part of {partof_group.name}: {parent_type} does not have property {has_prop}"
+            f"Cannot make {child_path} part of {parent_group.name}: {parent_type} does not have property {has_prop}"
         )
     # has_part is multivalued
-    if has_prop not in partof_group.attrs:
-        partof_group.attrs[has_prop] = []
-    partof_group.attrs[has_prop] += [element_path]
+    if has_prop not in parent_group.attrs:
+        parent_group.attrs[has_prop] = []
+    parent_group.attrs[has_prop] += [child_path]
 
 
 def update_haspart_id(
