@@ -1,4 +1,4 @@
-version: '2'
+version: '3.9'
 
 volumes:
   minio-data:
@@ -10,42 +10,60 @@ networks:
 
 services:
 
+  nginx:
+    image: nginx:1.23
+    volumes:
+      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+
+    environment:
+      - S3_PUBLIC_URL=${S3_PUBLIC_URL:-http://localhost/s3}
+      - S3_LOCAL_URL=${S3_lOCAL_URL:-http://minio:9000}
+      - HTSGET_PUBLIC_URL=${HTSGET_PUBLIC_URL:-http://localhost/htsget}
+      - HTSGET_LOCAL_URL=${HTSGET_LOCAL_URL:-http://htsget:8080}
+      - MODO_LOCAL_URL=${MODO_LOCAL_URL:-http://modo-server:8000}
+
+    ports:
+      - "80:80"
+    networks:
+        - modo-network
+
   minio:
     image: docker.io/bitnami/minio:2024
+    expose:
+      - "9000" # api
     ports:
-      - '9000:9000' # api
-      - '9001:9001' # console
+      - "9001:9001" # console
     volumes:
       - minio-data:/bitnami/minio/data
     networks:
       - modo-network
     environment:
-      - MINIO_ROOT_USER=minio
-      - MINIO_ROOT_PASSWORD=miniosecret
-      - MINIO_DEFAULT_BUCKETS=modo-demo:public
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minio}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-miniosecret}
+      - MINIO_DEFAULT_BUCKETS=${MINIO_DEFAULT_BUCKET:-modo-demo:public}
 
   htsget:
     image: ghcr.io/umccr/htsget-rs:dev-latest
-    ports:
-      - '8080:8080' # ticket server
-      - '8081:8081' # data block server
+    expose:
+      - "8080" # ticket server
+      - "8081" # data block server
     networks:
       - modo-network
     environment:
-      - S3_ENDPOINT=minio:9000
-      - MINIO_SERVER_ACCESS_KEY=user
-      - MINIO_SERVER_SECRET_KEY=pass
+      - S3_LOCAL_URL=${S3_LOCAL_URL:-http://minio:9000}
+      - MINIO_SERVER_ACCESS_KEY=${MINIO_SERVER_ACCESS_KEY:-user}
+      - MINIO_SERVER_SECRET_KEY=${MINIO_SERVER_SECRET_KEY:-pass}
     volumes:
       - minio-data:/data/s3
 
   modo-server:
     build: ./modo-server
-    ports:
-      - '8000:8000'
+    expose:
+      - "8000"
     networks:
       - modo-network
     environment:
-      - S3_ENDPOINT=http://minio:9000
-      - S3_BUCKET=modo-demo
-      - HTSGET_ENDPOINT=http://htsget:8080
+      - S3_LOCAL_URL=${S3_LOCAL_URL:-http://minio:9000}
+      - HTSGET_LOCAL_URL=${HTSGET_LOCAL_URL:-http://htsget:8080}
+      - S3_BUCKET=${S3_BUCKET:-modo-demo}
     command: uvicorn --host 0.0.0.0 --port 8000 --reload server:app

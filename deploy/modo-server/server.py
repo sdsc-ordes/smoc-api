@@ -8,30 +8,19 @@ available modos, as well as their metadata.
 """
 
 import os
-from typing import Union
 
 from fastapi import FastAPI
 from modo.api import MODO
-import rdflib
 import s3fs
 import zarr
 
 
-S3_URL = os.environ["S3_ENDPOINT"]
+S3_LOCAL_URL = os.environ["S3_LOCAL_URL"]
 BUCKET = os.environ["S3_BUCKET"]
-HTSGET = os.environ["HTSGET_ENDPOINT"]
+HTSGET_LOCAL_URL = os.environ["HTSGET_LOCAL_URL"]
 
 app = FastAPI()
-minio = s3fs.S3FileSystem(anon=True, endpoint_url=S3_URL)
-
-
-@app.get("/")
-def index():
-    return {
-        "Message": "Welcome to the modo server",
-        "Catalog bucket": f"{S3_URL}/{BUCKET}",
-        "htsget": HTSGET,
-    }
+minio = s3fs.S3FileSystem(anon=True, endpoint_url=S3_LOCAL_URL)
 
 
 @app.get("/list")
@@ -39,7 +28,7 @@ def list_modos() -> list[str]:
     """List MODO entries in bucket."""
     modos = minio.ls(BUCKET)
     # NOTE: modo contains bucket name
-    return [f"{S3_URL}/{modo}" for modo in modos]
+    return [modo for modo in modos]
 
 
 @app.get("/meta")
@@ -52,6 +41,6 @@ def gather_metadata():
         archive = zarr.open(
             store=store,
         )
-        meta = MODO(path=f"{S3_URL}/{modo}", archive=archive).metadata
+        meta = MODO(path=f"{S3_LOCAL_URL}/{modo}", archive=archive).metadata
 
     return meta
