@@ -1,0 +1,8 @@
+{
+    "@type": "Sample",
+    "cell_type": "astrocyte",
+    "description": "Dummy sample for tests",
+    "name": "Sample 1",
+    "sex": "Male",
+    "source_material": "brain tissue"
+}

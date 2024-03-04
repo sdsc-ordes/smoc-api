@@ -19,13 +19,13 @@
   name: Demo 1
   description: Demo CRAM file for tests.
   data_format: CRAM
-  data_path: demo1.cram
+  data_path: data/ex/demo1.cram
   has_reference: reference1
 
 - id: reference1
   "@type": ReferenceGenome
   name: Reference 1
-  data_path: reference.fa
+  data_path: data/ex/reference.fa
 
 - id: sample1
   "@type": Sample

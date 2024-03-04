@@ -2,7 +2,7 @@ from datetime import date
 import json
 from pathlib import Path
 import shutil
-from typing import Generator, Optional
+from typing import Generator, List, Optional
 import yaml
 
 from linkml_runtime.dumpers import json_dumper
@@ -14,7 +14,14 @@ from .introspection import get_haspart_property
 from .rdf import attrs_to_graph
 from .storage import add_metadata_group, init_zarr, list_zarr_items
 from .file_utils import extract_metadata, extraction_formats
-from .helpers import dict_to_instance, class_from_name
+from .helpers import (
+    class_from_name,
+    copy_file_to_archive,
+    dict_to_instance,
+    ElementType,
+    set_haspart_relationship,
+    UserElementType,
+)
 
 
 class MODO:
@@ -30,11 +37,11 @@ class MODO:
 
     # List identifiers of samples in the archive
     >>> demo.list_samples()
-    ['/ex/assay1/sample1']
+    ['/sample/sample1']
 
     # List files in the archive
     >>> sorted([file.name for file in demo.list_files()])
-    ['demo1.cram', 'reference.fa']
+    ['demo1.cram', 'reference1.fa']
 
     """
 
@@ -42,33 +49,39 @@ class MODO:
         self,
         path: Path,
         archive: Optional[zarr.Group] = None,
-        id_: Optional[str] = None,
+        id: Optional[str] = None,
         name: Optional[str] = None,
         description: Optional[str] = None,
         creation_date: date = date.today(),
         last_update_date: date = date.today(),
+        has_assay: List = [],
+        source_uri: Optional[str] = None,
     ):
         self.path: Path = Path(path)
-        if archive is None:
-            self.archive = init_zarr(self.path)
-        else:
+        # User provided archive
+        if archive is not None:
             self.archive = archive
-        # Opened existing object
-        try:
-            self.id_ = next(self.archive.groups())[0]
+        # Opening existing object
+        elif (self.path / "data.zarr").exists():
+            self.archive = zarr.open(str(self.path / "data.zarr"))
         # Creating from scratch
-        except StopIteration:
-            if id_ is None:
-                self.id_ = self.path.name
-            self.add_element(
-                model.MODO(
-                    self.id_,
-                    creation_date=str(creation_date),
-                    last_update_date=str(last_update_date),
-                    name=name,
-                    description=description,
-                )
-            )
+        else:
+            self.archive = init_zarr(self.path)
+            self.id = id or self.path.name
+            fields = {
+                "@type": "MODO",
+                "id": self.id,
+                "creation_date": str(creation_date),
+                "last_update_date": str(last_update_date),
+                "name": name,
+                "description": description,
+                "has_assay": has_assay,
+                "source_uri": source_uri,
+            }
+            for key, val in fields.items():
+                if val:
+                    self.archive["/"].attrs[key] = val
+            zarr.consolidate_metadata(self.archive.store)
 
     @property
     def metadata(self) -> dict:
@@ -81,8 +94,13 @@ class MODO:
 
         # Get flat dictionary with all attrs, easier to search
         group_attrs = dict()
-        for name, value in list_zarr_items(root):
-            group_attrs[name] = dict(value.attrs)
+        # Document object itself
+        root_id = root["/"].attrs["id"]
+        group_attrs[root_id] = dict(root["/"].attrs)
+        for subgroup in root.groups():
+            group_type = subgroup[0]
+            for name, value in list_zarr_items(subgroup[1]):
+                group_attrs[f"/{group_type}/{name}"] = dict(value.attrs)
         return group_attrs
 
     def knowledge_graph(
@@ -127,7 +145,7 @@ class MODO:
         for row in res:
             for val in row:
                 samples.append(
-                    str(val).removeprefix(f"file://{self.path.name}")
+                    str(val).removeprefix(f"file://{self.path.name}/")
                 )
         return samples
 
@@ -161,53 +179,87 @@ class MODO:
 
     def add_element(
         self,
-        element: model.DataEntity | model.Sample | model.Assay | model.MODO,
+        element: model.DataEntity
+        | model.Sample
+        | model.Assay
+        | model.ReferenceGenome,
         data_file: Optional[Path] = None,
         part_of: Optional[str] = None,
     ):
         """Add an element to the archive.
         If a data file is provided, it will be added to the archive.
         If the element is part of another element, the parent metadata
-        will be updated."""
+        will be updated.
+
+        Parameters
+        ----------
+        element
+            Element to add to the archive.
+        data_file
+            File to associate with the element.
+        part_of
+            Id of the parent element. It must be scoped to the type.
+            For example "sample/foo".
+        """
+        # Check that ID does not exist in modo
+        if element.id in [Path(id).name for id in self.metadata.keys()]:
+            raise ValueError(
+                f"Please specify a unique ID. Element with ID {element.id} already exist."
+            )
 
         # Copy data file to archive and update data_path in metadata
-        if data_file is not None:
-            data_path = Path(data_file)
-            shutil.copy(data_file, self.path / element.data_path)
+        copy_file_to_archive(data_file, self.path, element._get("data_path"))
 
-        # Link element to parent element
-        if part_of is None:
-            try:
-                parent_path = next(self.archive.groups())[0]
-            # Empty iterator when initiating a MODO object
-            # Then the root group is MODO's id
-            except StopIteration:
-                parent_path = "/"
-        else:
-            parent_path = part_of
-
-        element_path = parent_path + "/" + element.id
+        # Inferred from type
+        type_name = UserElementType.from_object(element).value
+        type_group = self.archive[type_name]
+        element_path = f"{type_name}/{element.id}"
 
         if part_of is not None:
-            parent_type = getattr(
-                model,
-                self.metadata[parent_path]["@type"],
+            partof_group = self.archive[part_of]
+            set_haspart_relationship(
+                element.__class__.__name__, element_path, partof_group
             )
-            has_prop = get_haspart_property(element.__class__.__name__)
-            parent_slots = parent_type.__match_args__
-            if has_prop not in parent_slots:
-                raise ValueError(
-                    f"Cannot make {element.id} part of {part_of}: {parent_type} does not have property {has_prop}"
-                )
-            # has_part is multivalued
-            if has_prop not in self.archive[part_of].attrs:
-                self.archive[part_of].attrs[has_prop] = []
-            self.archive[part_of].attrs[has_prop] += [element_path]
 
         # Add element to metadata
-        parent_group = self.archive[parent_path]
         attrs = json.loads(json_dumper.dumps(element))
-        add_metadata_group(parent_group, attrs)
+        add_metadata_group(type_group, attrs)
+        zarr.consolidate_metadata(self.archive.store)
+
+    def _add_any_element(
+        self,
+        element: model.DataEntity
+        | model.Sample
+        | model.Assay
+        | model.ReferenceSequence
+        | model.ReferenceGenome,
+        data_file: Optional[Path] = None,
+        part_of: Optional[str] = None,
+    ):
+        """Add an element of any type to the archive."""
+        # Check that ID does not exist in modo
+        if element.id in [Path(id).name for id in self.metadata.keys()]:
+            raise ValueError(
+                f"Please specify a unique ID. Element with ID {element.id} already exist."
+            )
+
+        # Copy data file to archive and update data_path in metadata
+        copy_file_to_archive(data_file, self.path, element._get("data_path"))
+
+        # Inferred from type inferred from type
+        type_name = ElementType.from_object(element).value
+        type_group = self.archive[type_name]
+        element_path = f"{type_name}/{element.id}"
+
+        if part_of is not None:
+            partof_group = self.archive[part_of]
+            set_haspart_relationship(
+                element.__class__.__name__, element_path, partof_group
+            )
+
+        # Add element to metadata
+        attrs = json.loads(json_dumper.dumps(element))
+        add_metadata_group(type_group, attrs)
         zarr.consolidate_metadata(self.archive.store)
 
     def update_element(
@@ -253,7 +305,7 @@ class MODO:
         ]
         inst_names = {inst.name: inst.id for inst in instances}
         for inst in instances:
-            elements = extract_metadata(inst)
+            elements = extract_metadata(inst, self.path)
             for ele in elements:
                 # NOTE: Need to compare names here as ids differ
                 if (
@@ -261,7 +313,7 @@ class MODO:
                     and ele not in new_elements
                 ):
                     new_elements.append(ele)
-                    self.add_element(ele)
+                    self._add_any_element(ele)
                 elif ele.name in inst_names.keys():
                     self.update_element(inst_names[ele.name], ele)
                 else:
