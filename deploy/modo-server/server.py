@@ -11,11 +11,8 @@ import os
 
 from fastapi import FastAPI
 from modo.api import MODO
-<<<<<<< HEAD
-=======
 import rdflib
 import re
->>>>>>> d2468b5 (feat: Add get?query to modo server)
 import s3fs
 import zarr
 
@@ -46,8 +43,9 @@ def gather_metadata():
         archive = zarr.open(
             store=store,
         )
-        # TODO: Fix id_ to id once restructure/herarchy is accepted!
-        meta.update(MODO(path=f"{S3_LOCAL_URL}/{modo}", archive=archive).metadata)
+        meta.update(
+            MODO(path=f"{S3_LOCAL_URL}/{modo}", archive=archive).metadata
+        )
 
     return meta
 
@@ -65,4 +63,4 @@ def get_s3_path(query: str, exact_match: bool = False):
             for modo in modos
             if re.search("/" + query + r"$", modo) is not None
         ]
-    return [f"{S3_URL}/{modo}" for modo in res]
+    return [f"{S3_LOCAL_URL}/{modo}" for modo in res]
