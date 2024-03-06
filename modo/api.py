@@ -34,7 +34,7 @@ class MODO:
 
     # List files in the archive
     >>> sorted([file.name for file in demo.list_files()])
-    ['demo1.cram', 'reference.fa']
+    ['demo1.cram', 'reference.fa', 'reference.fa.fai']
 
     """
 
