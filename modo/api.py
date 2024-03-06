@@ -2,7 +2,7 @@ from datetime import date
 import json
 from pathlib import Path
 import shutil
-from typing import Generator, List, Optional
+from typing import Generator, List, Optional, Union
 import yaml
 
 from linkml_runtime.dumpers import json_dumper
@@ -19,7 +19,9 @@ from .helpers import (
     copy_file_to_archive,
     dict_to_instance,
     ElementType,
+    is_uri,
     set_haspart_relationship,
+    split_s3_url,
     UserElementType,
 )
 
@@ -47,7 +49,7 @@ class MODO:
 
     def __init__(
         self,
-        path: Path,
+        path: Union[Path, str],
         archive: Optional[zarr.Group] = None,
         id: Optional[str] = None,
         name: Optional[str] = None,
@@ -57,7 +59,15 @@ class MODO:
         has_assay: List = [],
         source_uri: Optional[str] = None,
     ):
-        self.path: Path = Path(path)
+        if is_uri(path):
+            s3_endpoint, modo_path = split_s3_url(path)
+            archive = zarr.open_group(
+                f"s3://{modo_path}/data.zarr",
+                storage_options={"anon": True, "endpoint_url": s3_endpoint},
+            )
+        else:
+            self.path = Path(path)
+
         # User provided archive
         if archive is not None:
             self.archive = archive

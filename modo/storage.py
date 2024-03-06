@@ -1,13 +1,8 @@
-import json
 from pathlib import Path
-from pydantic import HttpUrl
-import requests
-from typing import Any, List, Mapping, Optional
-
-from linkml_runtime.loaders import json_loader
 import zarr
 
-from .helpers import ElementType, UserElementType
+
+from .helpers import ElementType
 
 
 # Initialize object's directory given the metadata graph
@@ -50,40 +45,3 @@ def list_zarr_items(group: zarr.Group) -> list[zarr.Group | zarr.Array]:
 
     group.visititems(list_all)
     return found
-
-
-## Functions related to server storage handling
-
-
-def list_server_items(server_url: HttpUrl) -> List[HttpUrl]:
-    return requests.get(url=server_url + "/list").json()
-
-
-def get_metadata_from_server(
-    server_url: HttpUrl, id: Optional[str] = None
-) -> Mapping:
-    """Function to access metadata from one specific or all modos on a remote server
-
-    Parameters
-    ----------
-    server_url
-        Url to the remote modo server
-    id
-        id of the modo to retrieve metadata from. Will return all if not specified (default).S
-    """
-    meta = requests.get(url=server_url + "/meta").json()
-    if id is not None:
-        try:
-            return meta[id]
-        except KeyError as e:
-            raise ValueError(
-                f"Could not find metadata for modo with id: {id}"
-            ) from e
-    else:
-        return meta
-
-
-def get_s3(server_url: HttpUrl, query: str, exact_match: bool = False) -> List:
-    return requests.get(
-        url=server_url + f"/get?query={query}&exact_match={exact_match}"
-    ).json()

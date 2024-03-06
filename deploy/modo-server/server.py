@@ -18,6 +18,7 @@ import zarr
 
 
 S3_LOCAL_URL = os.environ["S3_LOCAL_URL"]
+S3_PUBLIC_URL = os.environ["S3_PUBLIC_URL"]
 BUCKET = os.environ["S3_BUCKET"]
 HTSGET_LOCAL_URL = os.environ["HTSGET_LOCAL_URL"]
 
@@ -63,4 +64,4 @@ def get_s3_path(query: str, exact_match: bool = False):
             for modo in modos
             if re.search("/" + query + r"$", modo) is not None
         ]
-    return [f"{S3_LOCAL_URL}/{modo}" for modo in res]
+    return [f"{S3_PUBLIC_URL}/{modo}" for modo in res]

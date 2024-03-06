@@ -64,6 +64,7 @@ services:
       - modo-network
     environment:
       - S3_LOCAL_URL=${S3_LOCAL_URL:-http://minio:9000}
+      - S3_PUBLIC_URL=${S3_PUBLIC_URL:-http://localhost/s3}
       - HTSGET_LOCAL_URL=${HTSGET_LOCAL_URL:-http://htsget:8080}
       - S3_BUCKET=${S3_BUCKET:-modo-demo}
     command: uvicorn --host 0.0.0.0 --port 8000 --reload server:app
