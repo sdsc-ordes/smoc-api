@@ -7,7 +7,7 @@ from enum import Enum
 import json
 import os
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any, List, Mapping, Optional
 from typing_extensions import Annotated
 
 import click
@@ -18,14 +18,14 @@ import typer
 import zarr
 
 from .api import MODO
-from .helpers import ElementType
+from .helpers import UserElementType
 from .introspection import (
     get_enum_values,
     get_slots,
     get_slot_range,
     load_schema,
 )
-from .io import build_modo_from_file
+from .io import build_modo_from_file, parse_instance
 from .storage import add_metadata_group, init_zarr
 
 
@@ -62,8 +62,19 @@ def prompt_for_slot(slot_name: str, prefix: str = "", optional: bool = False):
 
 def prompt_for_slots(
     target_class: type,
+    exclude: Optional[Mapping[str, List]] = None,
+    # add dict with exclude
 ) -> dict[str, Any]:
-    """Prompt the user to provide values for the slots of input class."""
+    """Prompt the user to provide values for the slots of input class.
+    values of required fields can be excluded to repeat the prompt.
+
+    Parameters
+        ----------
+        target_class
+            Class to build
+        exclude
+            Mapping with the name of a slot as key  and list of invalid entries as values.
+    """
 
     entries = {}
     required_slots = set(get_slots(target_class, required_only=True))
@@ -80,6 +91,14 @@ def prompt_for_slots(
         entries[slot_name] = prompt_for_slot(slot_name, prefix="(required) ")
         if entries[slot_name] is None:
             raise ValueError(f"Missing required slot: {slot_name}")
+        if exclude and entries.get(slot_name) in exclude.get(slot_name, []):
+            print(
+                f"Invalid value: {slot_name} must differ from {exclude[slot_name]}."
+            )
+            entries[slot_name] = prompt_for_slot(
+                slot_name, prefix="(required) "
+            )
+
     if optional_slots:
         for slot_name in optional_slots:
             entries[slot_name] = prompt_for_slot(
@@ -132,10 +151,9 @@ def create(
         filled = prompt_for_slots(model.MODO)
         obj = model.MODO(**filled)
 
+    attrs = obj.__dict__
     # Dump object to zarr metadata
-    group = init_zarr(object_directory)
-    attrs = json.loads(json_dumper.dumps(obj))
-    add_metadata_group(group, attrs)
+    MODO(path=object_directory, **attrs)
 
 
 @cli.command()
@@ -158,7 +176,7 @@ def remove(
 def add(
     object_directory: Annotated[Path, typer.Argument(...)],
     element_type: Annotated[
-        ElementType,
+        UserElementType,
         typer.Argument(
             ...,
             help="Type of element to add to the digital object.",
@@ -200,19 +218,20 @@ def add(
     metadata will be updated."""
 
     typer.echo(f"Updating {object_directory}.", err=True)
+    modo = MODO(object_directory)
     target_class = element_type.get_target_class()
 
     if from_file and meta:
         raise ValueError("Only one of --from-file or --meta can be used.")
     elif from_file:
-        obj = parse_instances(from_file, target_class=target_class)
+        obj = parse_instance(from_file, target_class=target_class)
     elif meta:
         obj = json_loader.loads(meta, target_class=target_class)
     else:
-        filled = prompt_for_slots(target_class)
+        exclude = {"id": [Path(id).name for id in modo.metadata.keys()]}
+        filled = prompt_for_slots(target_class, exclude)
         obj = target_class(**filled)
 
-    modo = MODO(object_directory)
     modo.add_element(obj, data_file=data_file, part_of=parent)
 
 

@@ -1,11 +1,11 @@
 {
     "@type": "Assay",
-    "description": "Example assay for tests",
+    "description": "Dummy assay for tests.",
     "has_data": [
-        "ex/assay1/demo1"
+        "demo1"
     ],
     "has_sample": [
-        "ex/assay1/sample1"
+        "sample1"
     ],
     "name": "Assay 1",
     "omics_type": [

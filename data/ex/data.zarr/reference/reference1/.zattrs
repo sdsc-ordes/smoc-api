@@ -1,0 +1,6 @@
+{
+    "@type": "ReferenceGenome",
+    "data_path": "reference1.fa",
+    "description": "Dummy reference for tests",
+    "name": "Reference 1"
+}

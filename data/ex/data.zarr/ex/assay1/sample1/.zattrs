@@ -1,9 +1,0 @@
-{
-    "@type": "Sample",
-    "collector": [
-        "Foo university"
-    ],
-    "description": "A dummy sample for tests.",
-    "name": "Sample 1",
-    "sex": "Male"
-}
