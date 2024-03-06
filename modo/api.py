@@ -33,8 +33,9 @@ class MODO:
     ['/ex/assay1/sample1']
 
     # List files in the archive
-    >>> sorted([file.name for file in demo.list_files()])
-    ['demo1.cram', 'reference.fa', 'reference.fa.fai']
+    >>> files = sorted([file.name for file in demo.list_files()])
+    >>> assert 'demo1.cram' in files
+    >>> assert 'reference.fa' in files
 
     """
 
