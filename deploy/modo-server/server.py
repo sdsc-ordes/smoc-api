@@ -11,7 +11,6 @@ import os
 
 from fastapi import FastAPI
 from modo.api import MODO
-import rdflib
 import re
 import s3fs
 import zarr
