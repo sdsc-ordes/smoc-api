@@ -186,15 +186,6 @@ def is_uri(text: str):
         return False
 
 
-def split_s3_url(s3_url: str) -> tuple[str, str]:
-    """split s3_url into endpoint_url and file location including bucket name."""
-    parsed_url = urlparse(s3_url)
-    path_parts = parsed_url.path.partition("s3")
-    file_location = path_parts[2].lstrip("/")
-    s3_endpoint = f"{parsed_url.scheme}://{parsed_url.netloc}{path_parts[0]}{path_parts[1]}"
-    return s3_endpoint, file_location
-
-
 def parse_region(region: str) -> tuple[str, int, int]:
     """Parses an input UCSC-format region string into
     (chrom, start, end).

@@ -6,14 +6,12 @@ The role of this server is to provide a list of
 available modos, as well as their metadata.
 
 """
-
+import difflib
 import os
+import s3fs
 
 from fastapi import FastAPI
 from modo.api import MODO
-import re
-import s3fs
-import zarr
 
 
 S3_LOCAL_URL = os.environ["S3_LOCAL_URL"]
@@ -39,13 +37,7 @@ def gather_metadata():
     meta = {}
 
     for modo in minio.ls(BUCKET):
-        store = s3fs.S3Map(root=f"{modo}/data.zarr", s3=minio, check=False)
-        archive = zarr.open(
-            store=store,
-        )
-        meta.update(
-            MODO(path=f"{S3_LOCAL_URL}/{modo}", archive=archive).metadata
-        )
+        meta.update(MODO(path=modo, s3_endpoint=S3_LOCAL_URL).metadata)
 
     return meta
 
@@ -54,13 +46,25 @@ def gather_metadata():
 def get_s3_path(query: str, exact_match: bool = False):
     """Receive the S3 path of all modos matching the query"""
     modos = minio.ls(BUCKET)
-    if not exact_match:
-        res = [modo for modo in modos if query in modo]
+    if exact_match:
+        res = [
+            modo for modo in modos if query in modo.replace(BUCKET + "/", "")
+        ]
     else:
-        # NOTE: Is there a better/more roboust way than regexpr?
         res = [
             modo
             for modo in modos
-            if re.search("/" + query + r"$", modo) is not None
+            if difflib.SequenceMatcher(
+                None, query, modo.replace(BUCKET + "/", "")
+            ).quick_ratio()
+            >= 0.7
         ]
-    return [f"{S3_PUBLIC_URL}/{modo}" for modo in res]
+    return [
+        {
+            f"{S3_PUBLIC_URL}/{modo}": {
+                "s3_endpoint": S3_PUBLIC_URL,
+                "modo_path": modo,
+            }
+        }
+        for modo in res
+    ]

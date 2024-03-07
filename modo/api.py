@@ -19,9 +19,7 @@ from .helpers import (
     copy_file_to_archive,
     dict_to_instance,
     ElementType,
-    is_uri,
     set_haspart_relationship,
-    split_s3_url,
     UserElementType,
 )
 
@@ -50,7 +48,7 @@ class MODO:
     def __init__(
         self,
         path: Union[Path, str],
-        archive: Optional[zarr.Group] = None,
+        s3_endpoint: Optional[str] = None,
         id: Optional[str] = None,
         name: Optional[str] = None,
         description: Optional[str] = None,
@@ -59,18 +57,12 @@ class MODO:
         has_assay: List = [],
         source_uri: Optional[str] = None,
     ):
-        if is_uri(path):
-            s3_endpoint, modo_path = split_s3_url(path)
-            archive = zarr.open_group(
-                f"s3://{modo_path}/data.zarr",
+        self.path = Path(path)
+        if s3_endpoint:
+            self.archive = zarr.open_group(
+                f"s3://{path}/data.zarr",
                 storage_options={"anon": True, "endpoint_url": s3_endpoint},
             )
-        else:
-            self.path = Path(path)
-
-        # User provided archive
-        if archive is not None:
-            self.archive = archive
         # Opening existing object
         elif (self.path / "data.zarr").exists():
             self.archive = zarr.open(str(self.path / "data.zarr"))

@@ -2,15 +2,15 @@
 
 from pydantic import HttpUrl
 import requests
-from typing import List, Mapping, Optional
+from typing import Mapping, Optional
 
 
-def list_remote_items(remote_url: HttpUrl) -> List[HttpUrl]:
+def list_remote_items(remote_url: HttpUrl) -> list[HttpUrl]:
     return requests.get(url=remote_url + "/list").json()
 
 
 def get_metadata_from_remote(
-    remote_url: HttpUrl, id: Optional[str] = None
+    remote_url: HttpUrl, modo_id: Optional[str] = None
 ) -> Mapping:
     """Function to access metadata from one specific or all modos on a remote server
 
@@ -22,12 +22,12 @@ def get_metadata_from_remote(
         id of the modo to retrieve metadata from. Will return all if not specified (default).
     """
     meta = requests.get(url=remote_url + "/meta").json()
-    if id is not None:
+    if modo_id is not None:
         try:
-            return meta[id]
+            return meta[modo_id]
         except KeyError as e:
             raise ValueError(
-                f"Could not find metadata for modo with id: {id}"
+                f"Could not find metadata for modo with id: {modo_id}"
             ) from e
     else:
         return meta
@@ -35,7 +35,7 @@ def get_metadata_from_remote(
 
 def get_s3_path(
     remote_url: HttpUrl, query: str, exact_match: bool = False
-) -> List:
+) -> list:
     """Request public S3 path of a specific modo or all modos matching the query string
     Parameters
     ----------
