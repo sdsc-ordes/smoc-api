@@ -47,9 +47,7 @@ def get_s3_path(query: str, exact_match: bool = False):
     """Receive the S3 path of all modos matching the query"""
     modos = minio.ls(BUCKET)
     if exact_match:
-        res = [
-            modo for modo in modos if query in modo.removeprefix(BUCKET)
-        ]
+        res = [modo for modo in modos if query in modo.removeprefix(BUCKET)]
     else:
         res = [
             modo
