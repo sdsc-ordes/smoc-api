@@ -54,7 +54,7 @@ def get_s3_path(query: str, exact_match: bool = False):
     paths = [modo.removeprefix(BUCKET) for modo in modos]
 
     if exact_match:
-        res = [modo for (modo, path) in zip(modos, paths) if query in path]
+        res = [modo for (modo, path) in zip(modos, paths) if query == path]
 
     else:
         sims = [str_similarity(query, path) for path in paths]
