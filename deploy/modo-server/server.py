@@ -48,7 +48,7 @@ def get_s3_path(query: str, exact_match: bool = False):
     modos = minio.ls(BUCKET)
     if exact_match:
         res = [
-            modo for modo in modos if query in modo.replace(BUCKET + "/", "")
+            modo for modo in modos if query in modo.removeprefix(BUCKET)
         ]
     else:
         res = [
