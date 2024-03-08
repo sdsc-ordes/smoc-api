@@ -55,7 +55,7 @@ def get_s3_path(query: str, exact_match: bool = False):
             modo
             for modo in modos
             if difflib.SequenceMatcher(
-                None, query, modo.replace(BUCKET + "/", "")
+                None, query, modo.removeprefix(BUCKET)
             ).quick_ratio()
             >= 0.7
         ]
