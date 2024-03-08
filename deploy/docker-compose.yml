@@ -43,7 +43,8 @@ services:
       - MINIO_DEFAULT_BUCKETS=${MINIO_DEFAULT_BUCKET:-modo-demo:public}
 
   htsget:
-    image: ghcr.io/umccr/htsget-rs:dev-latest
+    #image: ghcr.io/umccr/htsget-rs:dev-latest
+    build: ./htsget
     expose:
       - "8080" # ticket server
       - "8081" # data block server
@@ -53,8 +54,8 @@ services:
       - S3_LOCAL_URL=${S3_LOCAL_URL:-http://minio:9000}
       - MINIO_SERVER_ACCESS_KEY=${MINIO_SERVER_ACCESS_KEY:-user}
       - MINIO_SERVER_SECRET_KEY=${MINIO_SERVER_SECRET_KEY:-pass}
-    volumes:
-      - minio-data:/data/s3
+    #volumes:
+    #  - minio-data:/data/s3
 
   modo-server:
     build: ./modo-server
