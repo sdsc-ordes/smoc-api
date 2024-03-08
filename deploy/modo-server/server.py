@@ -42,21 +42,25 @@ def gather_metadata():
     return meta
 
 
+def str_similarity(s1: str, s2: str) -> float:
+    """Computes a similarity metric between two strings between 0 and 1."""
+    return difflib.SequenceMatcher(None, s1, s2).quick_ratio()
+
+
 @app.get("/get")
 def get_s3_path(query: str, exact_match: bool = False):
     """Receive the S3 path of all modos matching the query"""
     modos = minio.ls(BUCKET)
+    paths = [modo.removeprefix(BUCKET) for modo in modos]
+
     if exact_match:
-        res = [modo for modo in modos if query in modo.removeprefix(BUCKET)]
+        res = [modo for (modo, path) in zip(modos, paths) if query in path]
+
     else:
-        res = [
-            modo
-            for modo in modos
-            if difflib.SequenceMatcher(
-                None, query, modo.removeprefix(BUCKET)
-            ).quick_ratio()
-            >= 0.7
-        ]
+        sims = [str_similarity(query, path) for path in paths]
+        pairs = filter(lambda p: p[1] > 0.7, zip(modos, sims))
+        pairs = sorted(pairs, key=lambda p: p[1], reverse=True)
+        res = [p[0] for p in pairs]
     return [
         {
             f"{S3_PUBLIC_URL}/{modo}": {
