@@ -6,16 +6,16 @@ The role of this server is to provide a list of
 available modos, as well as their metadata.
 
 """
-
+import difflib
 import os
+import s3fs
 
 from fastapi import FastAPI
 from modo.api import MODO
-import s3fs
-import zarr
 
 
 S3_LOCAL_URL = os.environ["S3_LOCAL_URL"]
+S3_PUBLIC_URL = os.environ["S3_PUBLIC_URL"]
 BUCKET = os.environ["S3_BUCKET"]
 HTSGET_LOCAL_URL = os.environ["HTSGET_LOCAL_URL"]
 
@@ -37,10 +37,36 @@ def gather_metadata():
     meta = {}
 
     for modo in minio.ls(BUCKET):
-        store = s3fs.S3Map(root=f"{modo}/data.zarr", s3=minio, check=False)
-        archive = zarr.open(
-            store=store,
-        )
-        meta = MODO(path=f"{S3_LOCAL_URL}/{modo}", archive=archive).metadata
+        meta.update(MODO(path=modo, s3_endpoint=S3_LOCAL_URL).metadata)
 
     return meta
+
+
+def str_similarity(s1: str, s2: str) -> float:
+    """Computes a similarity metric between two strings between 0 and 1."""
+    return difflib.SequenceMatcher(None, s1, s2).quick_ratio()
+
+
+@app.get("/get")
+def get_s3_path(query: str, exact_match: bool = False):
+    """Receive the S3 path of all modos matching the query"""
+    modos = minio.ls(BUCKET)
+    paths = [modo.removeprefix(BUCKET) for modo in modos]
+
+    if exact_match:
+        res = [modo for (modo, path) in zip(modos, paths) if query == path]
+
+    else:
+        sims = [str_similarity(query, path) for path in paths]
+        pairs = filter(lambda p: p[1] > 0.7, zip(modos, sims))
+        pairs = sorted(pairs, key=lambda p: p[1], reverse=True)
+        res = [p[0] for p in pairs]
+    return [
+        {
+            f"{S3_PUBLIC_URL}/{modo}": {
+                "s3_endpoint": S3_PUBLIC_URL,
+                "modo_path": modo,
+            }
+        }
+        for modo in res
+    ]

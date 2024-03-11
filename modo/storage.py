@@ -1,11 +1,8 @@
-import json
 from pathlib import Path
-from typing import Any
-
-from linkml_runtime.loaders import json_loader
 import zarr
 
-from .helpers import ElementType, UserElementType
+
+from .helpers import ElementType
 
 
 # Initialize object's directory given the metadata graph
