@@ -4,7 +4,9 @@ on:
   release:
     type: [published]
   push:
-    branches: [main]
+    branches:
+      - main
+      - feat/ci_docker_build
   pull_request:
     paths:
       - 'pyproject.toml'
