@@ -1,16 +1,16 @@
 name: Publish on Github container registry
 
 on:
+  workflow_dispatch:
   release:
     type: [published]
   push:
     branches:
       - main
-      - feat/ci_docker_build
   pull_request:
-    paths:
-      - 'pyproject.toml'
-      - 'Dockerfile'
+    types:
+      - opened
+      - reopened
 
 env:
   REGISTRY: ghcr.io
@@ -52,7 +52,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable=${{ github.event_name == 'push' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'push' || github.event_name == 'pull_request'}}
             type=raw,value=${{ steps.release-version.outputs.version }},enable=${{ github.event_name == 'release' }}
 
       # https://github.com/docker/build-push-action
