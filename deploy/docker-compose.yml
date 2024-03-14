@@ -6,7 +6,11 @@ volumes:
 
 networks:
   modo-network:
-    driver: bridge
+    external: false
+    ipam:
+      config:
+        - subnet: 172.23.0.0/16
+          gateway: 172.23.0.1
 
 services:
 
@@ -25,7 +29,8 @@ services:
     ports:
       - "80:80"
     networks:
-        - modo-network
+      modo-network:
+        ipv4_address: 172.23.0.5
 
   minio:
     image: docker.io/bitnami/minio:2024
@@ -36,16 +41,19 @@ services:
     volumes:
       - minio-data:/bitnami/minio/data
     networks:
-      - modo-network
+      modo-network:
+        ipv4_address: 172.23.0.2
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minio}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-miniosecret}
       - MINIO_DEFAULT_BUCKETS=${MINIO_DEFAULT_BUCKET:-modo-demo:public}
       - MINIO_HTTP_TRACE=/dev/stdout
+      - AWS_ACCESS_KEY_ID=minio
+      - AWS_SECRET_ACCESS_KEY=miniosecret
+      - CDK_DEFAULT_REGION='us-west-1'
 
 
   htsget:
-    #image: ghcr.io/umccr/htsget-rs:dev-latest
     build: ./htsget
     depends_on:
         - minio
@@ -55,14 +63,17 @@ services:
       - "8080" # ticket server
       - "8081" # data block server
     networks:
-      - modo-network
+      modo-network:
+        ipv4_address: 172.23.0.3
     environment:
-      - S3_LOCAL_URL=${S3_LOCAL_URL:-http://minio:9000}
+      - S3_LOCAL_URL=${S3_LOCAL_URL:-http://172.23.0.2:9000}
+      #- S3_LOCAL_URL=${S3_LOCAL_URL:-http://minio:9000}
       - MINIO_SERVER_ACCESS_KEY=${MINIO_SERVER_ACCESS_KEY:-user}
       - MINIO_SERVER_SECRET_KEY=${MINIO_SERVER_SECRET_KEY:-pass}
       - AWS_ACCESS_KEY_ID=minio
       - AWS_SECRET_ACCESS_KEY=miniosecret
-    command: htsget-actix --config /s3_storage.toml
+      - CDK_DEFAULT_REGION='us-west-1'
+    command: htsget-actix --config s3_storage.toml
 
 
   modo-server:
@@ -70,7 +81,8 @@ services:
     expose:
       - "8000"
     networks:
-      - modo-network
+      modo-network:
+        ipv4_address: 172.23.0.4
     environment:
       - S3_LOCAL_URL=${S3_LOCAL_URL:-http://minio:9000}
       - HTSGET_LOCAL_URL=${HTSGET_LOCAL_URL:-http://htsget:8080}

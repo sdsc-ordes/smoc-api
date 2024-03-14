@@ -17,4 +17,5 @@ substitution_string = "$0"
 
 [resolvers.storage]
 bucket = 'modo-demo'
-endpoint = "http://minio:9000"
+endpoint = "http://172.23.0.2:9000"
+#endpoint = "http://minio:9000"

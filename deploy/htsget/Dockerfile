@@ -15,6 +15,8 @@ FROM debian:stable-slim
 
 RUN apt update && apt install -y libc6-dev awscli && rm -rf /var/lib/apt/lists/*
 
+RUN aws configure set region us-west-1
+
 COPY --from=builder /etc/ssl/certs/ /etc/ssl/certs/
 COPY --from=builder /build/target/release/htsget-actix /usr/local/bin/htsget-actix
 
