@@ -67,7 +67,6 @@ services:
         ipv4_address: 172.23.0.3
     environment:
       - S3_LOCAL_URL=${S3_LOCAL_URL:-http://172.23.0.2:9000}
-      #- S3_LOCAL_URL=${S3_LOCAL_URL:-http://minio:9000}
       - MINIO_SERVER_ACCESS_KEY=${MINIO_SERVER_ACCESS_KEY:-user}
       - MINIO_SERVER_SECRET_KEY=${MINIO_SERVER_SECRET_KEY:-pass}
       - AWS_ACCESS_KEY_ID=minio
