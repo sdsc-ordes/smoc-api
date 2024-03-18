@@ -135,7 +135,8 @@ class MODO:
 
     def list_arrays(self):
         """Lists arrays in the archive recursively."""
-        return self.archive.tree()
+        root = zarr.open_consolidated(self.archive.store)
+        return root.tree()
 
     def query(self, query: str):
         """Use SPARQL to query the metadata graph"""
