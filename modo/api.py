@@ -60,7 +60,7 @@ class MODO:
     ):
         self.path = Path(path)
         if s3_endpoint:
-            self.archive = zarr.open_group(
+            self.archive = zarr.open(
                 f"s3://{path}/data.zarr",
                 storage_options={"anon": True, "endpoint_url": s3_endpoint},
             )
@@ -112,7 +112,7 @@ class MODO:
         """Return an RDF graph of the metadata. All identifiers
         are converted to valid URIs if needed."""
         if uri_prefix is None:
-            uri_prefix = f"file://{self.path.name}/"
+            uri_prefix = f"file://{self.path.name}"
         kg = attrs_to_graph(self.metadata, uri_prefix=uri_prefix)
         return kg
 
@@ -164,6 +164,9 @@ class MODO:
             print(f"Element {element_id} not found in the archive.")
             print(f"Available elements are {keys}")
             raise err
+
+        # Remove element group
+        del self.archive[element_id]
 
         # Remove data file
         if "data_path" in attrs.keys():
