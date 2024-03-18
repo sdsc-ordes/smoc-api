@@ -112,7 +112,7 @@ class MODO:
         """Return an RDF graph of the metadata. All identifiers
         are converted to valid URIs if needed."""
         if uri_prefix is None:
-            uri_prefix = f"file://{self.path.name}"
+            uri_prefix = f"file://{self.path.name}/"
         kg = attrs_to_graph(self.metadata, uri_prefix=uri_prefix)
         return kg
 
