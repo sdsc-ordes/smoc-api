@@ -125,13 +125,23 @@ class MODO:
 
     def list_files(self) -> Generator[Path, None, None]:
         """Lists files in the archive recursively (except for the zarr file)."""
-        for path in self.path.glob("*"):
-            if path.name.endswith(".zarr"):
-                continue
-            elif path.is_file():
-                yield path
-            for file in path.rglob("*"):
-                yield file
+        if isinstance(self.archive.store, zarr.storage.FSStore):
+            fs = self.archive.store.fs
+            for path in fs.find(str(self.path)):
+                if Path(path).name.endswith(".zarr") or Path(
+                    path
+                ).name.startswith("."):
+                    continue
+                else:
+                    yield path
+        else:
+            for path in self.path.glob("*"):
+                if path.name.endswith(".zarr"):
+                    continue
+                elif path.is_file():
+                    yield path
+                for file in path.rglob("*"):
+                    yield file
 
     def list_arrays(self):
         """Lists arrays in the archive recursively."""
