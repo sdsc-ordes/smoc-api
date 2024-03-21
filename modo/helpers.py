@@ -35,7 +35,7 @@ def copy_file_to_archive(
     if data_file is not None:
         data_path = Path(data_file)
         if remote_store:
-            remote_store.put(data_path, base_path / archive_path.parent)
+            remote_store.put(data_path, base_path / Path(archive_path).parent)
         else:
             shutil.copy(data_path, base_path / archive_path)
 

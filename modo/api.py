@@ -235,7 +235,9 @@ class MODO:
             if isinstance(self.archive.store, zarr.storage.FSStore)
             else None
         )
-        copy_file_to_archive(data_file, self.path, Path(element.data_path), fs)
+        copy_file_to_archive(
+            data_file, self.path, element._get("data_path"), fs
+        )
 
         # Inferred from type
         type_name = UserElementType.from_object(element).value
@@ -276,7 +278,9 @@ class MODO:
             if isinstance(self.archive.store, zarr.storage.FSStore)
             else None
         )
-        copy_file_to_archive(data_file, self.path, Path(element.data_path), fs)
+        copy_file_to_archive(
+            data_file, self.path, element._get("data_path"), fs
+        )
 
         # Inferred from type inferred from type
         type_name = ElementType.from_object(element).value
