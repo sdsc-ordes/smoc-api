@@ -8,6 +8,7 @@ import yaml
 from linkml_runtime.dumpers import json_dumper
 import rdflib
 import modo_schema.datamodel as model
+import s3fs
 import zarr
 
 from .introspection import get_haspart_property
@@ -60,16 +61,24 @@ class MODO:
     ):
         self.path = Path(path)
         if s3_endpoint:
-            self.archive = zarr.open(
-                f"s3://{path}/data.zarr",
-                storage_options={"anon": True, "endpoint_url": s3_endpoint},
-            )
+            fs = s3fs.S3FileSystem(endpoint_url=s3_endpoint, anon=True)
+            if fs.exists(str(self.path / "data.zarr")):
+                self.archive = zarr.open(
+                    f"s3://{path}/data.zarr",
+                    storage_options={
+                        "anon": True,
+                        "endpoint_url": s3_endpoint,
+                    },
+                )
+                return
+        else:
+            fs = None
         # Opening existing object
-        elif (self.path / "data.zarr").exists():
+        if (self.path / "data.zarr").exists():
             self.archive = zarr.open(str(self.path / "data.zarr"))
         # Creating from scratch
         else:
-            self.archive = init_zarr(self.path)
+            self.archive = init_zarr(self.path, fs)
             self.id = id or self.path.name
             fields = {
                 "@type": "MODO",

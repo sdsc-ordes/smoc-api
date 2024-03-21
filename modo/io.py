@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from typing import Any, List
+from typing import Any, List, Optional
 
 from linkml_runtime.loaders import (
     json_loader,
@@ -53,7 +53,7 @@ def parse_multiple_instances(path: Path) -> List:
 
 
 def build_modo_from_file(
-    path: Path, object_directory: Path, s3_endpoint: str = None
+    path: Path, object_directory: Path, s3_endpoint: Optional[str] = None
 ) -> MODO:
     """build a modo from a yaml or json file"""
     instances = parse_multiple_instances(Path(path))

@@ -1,4 +1,6 @@
 from pathlib import Path
+from s3fs import S3FileSystem
+from typing import Optional
 import zarr
 
 
@@ -6,12 +8,17 @@ from .helpers import ElementType
 
 
 # Initialize object's directory given the metadata graph
-def init_zarr(root_directory: Path) -> zarr.Group:
+def init_zarr(
+    root_directory: Path, fs: Optional[S3FileSystem] = None
+) -> zarr.Group:
     """Initialize object's directory and metadata structure."""
-    root_directory.mkdir(exist_ok=True)
-    store = zarr.DirectoryStore(str(root_directory / "data.zarr"))
+    if fs:
+        fs.mkdirs(root_directory, exist_ok=True)
+        store = zarr.storage.FSStore(str(root_directory / "data.zarr"), fs=fs)
+    else:
+        root_directory.mkdir(exist_ok=True)
+        store = zarr.DirectoryStore(str(root_directory / "data.zarr"))
     data = zarr.group(store=store)
-
     elem_types = [t.value for t in ElementType]
     for elem_type in elem_types:
         data.create_group(elem_type)
