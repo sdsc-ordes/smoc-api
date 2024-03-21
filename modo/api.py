@@ -176,14 +176,18 @@ class MODO:
             print(f"Available elements are {keys}")
             raise err
 
-        # Remove element group
-        del self.archive[element_id]
-
         # Remove data file
         if "data_path" in attrs.keys():
             data_file = self.path / attrs["data_path"]
             if data_file.exists():
                 data_file.unlink()
+            elif isinstance(
+                self.archive.store, zarr.storage.FSStore
+            ) and self.archive.store.fs.exists(data_file):
+                self.archive.store.fs.rm(str(data_file))
+
+        # Remove element group
+        del self.archive[element_id]
 
         # Remove links from other elements
         for elem, attrs in self.metadata.items():
@@ -192,6 +196,7 @@ class MODO:
                     del self.archive[elem].attrs[key]
                 elif isinstance(value, list) and element_id in value:
                     self.archive[elem].attrs[key].remove(element_id)
+
         zarr.consolidate_metadata(self.archive.store)
 
     def add_element(
@@ -225,7 +230,12 @@ class MODO:
             )
 
         # Copy data file to archive and update data_path in metadata
-        copy_file_to_archive(data_file, self.path, element._get("data_path"))
+        fs = (
+            self.archive.store.fs
+            if isinstance(self.archive.store, zarr.storage.FSStore)
+            else None
+        )
+        copy_file_to_archive(data_file, self.path, Path(element.data_path), fs)
 
         # Inferred from type
         type_name = UserElementType.from_object(element).value
@@ -261,7 +271,12 @@ class MODO:
             )
 
         # Copy data file to archive and update data_path in metadata
-        copy_file_to_archive(data_file, self.path, element._get("data_path"))
+        fs = (
+            self.archive.store.fs
+            if isinstance(self.archive.store, zarr.storage.FSStore)
+            else None
+        )
+        copy_file_to_archive(data_file, self.path, Path(element.data_path), fs)
 
         # Inferred from type inferred from type
         type_name = ElementType.from_object(element).value
