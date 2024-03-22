@@ -13,13 +13,15 @@ import modo_schema.datamodel as model
 from .helpers import parse_region
 
 
-def slice_cram(path: str, region: str) -> Iterator[AlignedSegment]:
+def slice_cram(
+    path: str, region: str, ref_path: str
+) -> Iterator[AlignedSegment]:
     """Return an iterable slice of the CRAM file."""
 
-    chrom, start, stop = parse_region(region)
+    chrom, start, end = parse_region(region)
     cramfile = AlignmentFile(path, "rc")
 
-    iter = cramfile.fetch(chrom, start, stop)
+    iter = cramfile.fetch(chrom, start, end)
 
     return iter
 

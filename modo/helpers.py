@@ -196,14 +196,26 @@ def parse_region(region: str) -> tuple[str, int, int]:
     ('chr1', 10, 320)
     >>> parse_region('chr-1ba:32-0100')
     ('chr-1ba', 32, 100)
+    >>> parse_region('chr1:10')
+    ('chr1', 10, None)
+    >>> parse_region('chr1')
+    ('chr1', None, None)
+    >>> parse_region('*')
+    ('*', None, None)
     """
 
-    if not re.match(r"[^:]+:[0-9]+-[0-9]+", region):
+    matches = re.match(r"^([^:]+)(:([0-9]+)?(-[0-9]*)?)?$", region)
+    if matches == None:
         raise ValueError(
             f"Invalid region format: {region}. Expected chr:start-end"
         )
+    else:
+        chrom, _, start, end = matches.groups()
+        if start == None:
+            start = ""
+        if end == None:
+            end = ""
+        else:
+            end = end.replace("-", "")
 
-    chrom, coords = region.split(":")
-    start, end = coords.split("-")
-
-    return (chrom, int(start), int(end))
+    return (chrom, start, end)
