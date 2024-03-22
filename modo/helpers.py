@@ -186,7 +186,7 @@ def is_uri(text: str):
         return False
 
 
-def parse_region(region: str) -> tuple[str, int, int]:
+def parse_region(region: str) -> tuple[str, str, str]:
     """Parses an input UCSC-format region string into
     (chrom, start, end).
 
