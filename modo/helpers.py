@@ -193,15 +193,15 @@ def parse_region(region: str) -> tuple[str, str, str]:
     Examples
     --------
     >>> parse_region('chr1:10-320')
-    ('chr1', 10, 320)
-    >>> parse_region('chr-1ba:32-0100')
-    ('chr-1ba', 32, 100)
+    ('chr1', '10', '320')
+    >>> parse_region('chr-1ba:32-100')
+    ('chr-1ba', '32', '100')
     >>> parse_region('chr1:10')
-    ('chr1', 10, None)
+    ('chr1', '10', '')
     >>> parse_region('chr1')
-    ('chr1', None, None)
+    ('chr1', '', '')
     >>> parse_region('*')
-    ('*', None, None)
+    ('*', '', '')
     """
 
     matches = re.match(r"^([^:]+)(:([0-9]+)?(-[0-9]*)?)?$", region)
