@@ -19,6 +19,14 @@ def slice_cram(
     """Return an iterable slice of the CRAM file."""
 
     chrom, start, end = parse_region(region)
+    if start == "":
+        start = None
+    else:
+        start = int(start)
+    if end == "":
+        end = None
+    else:
+        end = int(end)
     cramfile = AlignmentFile(path, "rc")
 
     iter = cramfile.fetch(chrom, start, end)
