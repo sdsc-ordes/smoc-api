@@ -230,7 +230,7 @@ def format_htsget_command(
     Examples
     --------
     >>> format_htsget_command("http://domain/reads/modo/filename.cram", "chr1:10000-10500", 'fileslice.cram')
-    'htsget http://domain/reads/modo/filename --reference-name=chr1 --start=10000 end=10500 --format=CRAM -O fileslice.cram'
+    'htsget http://domain/reads/modo/filename --reference-name=chr1 --start=10000 --end=10500 --format=CRAM -O fileslice.cram'
     """
 
     file = url.split("/")[-1]
