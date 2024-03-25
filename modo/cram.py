@@ -11,7 +11,6 @@ from rdflib import Graph
 import modo_schema.datamodel as model
 
 import os
-import htsget
 from .helpers import parse_region, htsget_command
 
 
