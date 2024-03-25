@@ -219,3 +219,37 @@ def parse_region(region: str) -> tuple[str, str, str]:
             end = end.replace("-", "")
 
     return (chrom, start, end)
+
+
+def format_htsget_command(
+    url: str, region: str = None, output: str = None
+) -> str:
+    """Takes a URL, a region, and an optional output file name
+    and returns an htsget valid command line request.
+
+    Examples
+    --------
+    >>> format_htsget_command("http://domain/reads/modo/filename.cram", "chr1:10000-10500", 'fileslice.cram')
+    'htsget http://domain/reads/modo/filename --reference-name=chr1 --start=10000 end=10500 --format=CRAM -O fileslice.cram'
+    """
+
+    file = url.split("/")[-1]
+    file_name, file_extension = file.split(".")
+    if region is not None:
+        chrom, start, end = parse_region(region)
+    else:
+        chrom, start, end = "", "", ""
+
+    htsget_cl = url.split(f".{file_extension}")[0]
+
+    if chrom != "":
+        htsget_cl += f" --reference-name={chrom}"
+        if start != "":
+            htsget_cl += f" --start={start}"
+        if end != "":
+            htsget_cl += f" --end={end}"
+    htsget_cl += f" --format={file_extension.upper()}"
+    if output is not None:
+        htsget_cl += f" -O {output}"
+
+    return htsget_cl
