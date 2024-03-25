@@ -10,7 +10,9 @@ from pysam import (
 from rdflib import Graph
 import modo_schema.datamodel as model
 
-from .helpers import parse_region
+import os
+import htsget
+from .helpers import parse_region, htsget_command
 
 
 def slice_cram(
@@ -32,6 +34,15 @@ def slice_cram(
     iter = cramfile.fetch(chrom, start, end)
 
     return iter
+
+
+def stream_cram(url: str, region: str = None, output_filename: str = None):
+    """Stream or write to a local file a slice of a remote CRAM file"""
+
+    htsget_req = htsget_command(url, region, output_filename)
+    os.system(htsget_req)
+
+    return None
 
 
 def extract_cram_metadata(cram: AlignmentFile) -> List:

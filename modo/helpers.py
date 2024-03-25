@@ -222,7 +222,7 @@ def parse_region(region: str) -> tuple[str, str, str]:
 
 
 def filename_from_url(url: str) -> tuple[str, str]:
-    """ "Extract file_name and file_extension from a url
+    """Extract file_name and file_extension from a url
 
     Examples
     --------
