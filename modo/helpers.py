@@ -240,7 +240,7 @@ def format_htsget_command(
     else:
         chrom, start, end = "", "", ""
 
-    htsget_cl = url.split(f".{file_extension}")[0]
+    htsget_cl = f'htsget {url.split(f".{file_extension}")[0]}'
 
     if chrom != "":
         htsget_cl += f" --reference-name={chrom}"
