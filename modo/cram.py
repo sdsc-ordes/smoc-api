@@ -14,9 +14,7 @@ import os
 from .helpers import parse_region, htsget_command
 
 
-def slice_cram(
-    path: str, region: str, ref_path: str
-) -> Iterator[AlignedSegment]:
+def slice_cram(path: str, region: str) -> Iterator[AlignedSegment]:
     """Return an iterable slice of the CRAM file."""
 
     chrom, start, end = parse_region(region)
@@ -35,7 +33,9 @@ def slice_cram(
     return iter
 
 
-def stream_cram(url: str, region: str = None, output_filename: str = None):
+def slice_remote_cram(
+    url: str, region: str = None, output_filename: str = None
+):
     """Stream or write to a local file a slice of a remote CRAM file"""
 
     htsget_req = htsget_command(url, region, output_filename)
