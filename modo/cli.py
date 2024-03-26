@@ -337,3 +337,9 @@ def publish(
             format=output_format
         )
     )
+
+
+# Generate a click group to autogenerate docs via sphinx-click:
+# https://github.com/tiangolo/typer/issues/200#issuecomment-795873331
+
+typer_click_object = typer.main.get_command(cli)

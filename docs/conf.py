@@ -21,6 +21,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.autodoc",
     "sphinx.ext.coverage",
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
@@ -49,15 +50,26 @@ html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
 
 
+html_theme_options = {
+    "github_url": "https://github.com/sdsc-ordes/modo-api",
+    "collapse_navigation": True,
+    "navigation_with_keys": False,
+}
+
+
 # -- Extension configuration -------------------------------------------------
+# Options for myst
+myst_enable_extensions = ["colon_fence"]
+
 
 # Options for autoapi
 autoapi_dirs = ["../modo"]
+autoapi_ignore = ["*cli*"]
+autodoc_typehints = "description"
 
 # Options for intersphinx
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
-    "rdflib": ("https://rdflib.readthedocs.io/en/stable/", None),
-    "calamus": ("https://calamus.readthedocs.io/en/latest/", None),
+    "zarr": ("https://zarr.readthedocs.io/en/stable/", None),
 }
