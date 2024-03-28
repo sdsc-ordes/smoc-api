@@ -22,9 +22,8 @@ from .helpers import (
     ElementType,
     set_haspart_relationship,
     UserElementType,
-    slice_cram,
-    slice_remote_cram,
 )
+from .cram import slice_cram, slice_remote_cram
 
 
 class MODO:
