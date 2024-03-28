@@ -9,6 +9,7 @@ from linkml_runtime.dumpers import json_dumper
 import rdflib
 import modo_schema.datamodel as model
 import zarr
+import re
 
 from .introspection import get_haspart_property
 from .rdf import attrs_to_graph
@@ -21,6 +22,8 @@ from .helpers import (
     ElementType,
     set_haspart_relationship,
     UserElementType,
+    slice_cram,
+    slice_remote_cram,
 )
 
 
@@ -321,3 +324,33 @@ class MODO:
                     self.update_element(inst_names[ele.name], ele)
                 else:
                     continue
+
+    def stream_cram(
+        self, cram_name: str, region: str = None, output: str = None
+    ):
+        """Slices and streams the requested CRAM file, both local and remote,
+        and either outputs a data stream or writes data to local file"""
+
+        # check requested CRAM exists in MODO
+        path = ""
+        filepaths = list(self.list_files())
+        for filepath in filepaths:
+            if cram_name == str(filepath).split("/")[-1]:
+                path = filepath
+                break
+        if path == "":
+            raise ValueError(f"{cram_name} not fount in {self.path}.")
+
+        if self.s3_endpoint:
+            # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
+            url = (
+                re.sub(r"s3$", "", self.s3_endpoint)
+                + "htsget/reads/"
+                + path.split("/", maxsplit=1)
+            )
+            slice_remote_cram(url, region, output)
+        else:
+            # assuming user did not change directory, filepath should be the
+            # relative path to the file.
+            iter = slice_cram(path, region)
+            return iter
