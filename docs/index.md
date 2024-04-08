@@ -111,4 +111,5 @@ intro/background.md
 tutorials/tutorials.md
 autoapi/index
 cli.rst
+changelog-link
 :::
