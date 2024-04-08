@@ -26,10 +26,11 @@ Try it out!
 
 :::
 
+
 :::{grid-item-card} {octicon}`project;2em` Tutorials
 A list of tutorials and how-to user guides.
 
-:::{button-ref} intro/tutorials
+:::{button-ref} tutorials/tutorials
 :ref-type: myst
 :expand:
 :color: dark
@@ -68,6 +69,20 @@ Check the CLI!
 
 :::
 
+:::{grid-item-card} {octicon}`book;2em` Background
+Read more about __multiomics__ data and MODO's features and structure!
+
+:::{button-ref} intro/background
+:ref-type: myst
+:expand:
+:color: dark
+:click-parent:
+
+Learn more about MODO!
+:::
+
+:::
+
 :::{grid-item-card} {octicon}`beaker;2em` Modo-schema
 Check our data model for advanced and custom usage of modo-api.
 
@@ -82,19 +97,6 @@ To the data model!
 
 :::
 
-:::{grid-item-card} {octicon}`mark-github;2em` Github
-Visit __modo-api's__ GitHub repository to follow the latest developments!
-
-:::{button-link} https://github.com/sdsc-ordes/modo-api
-:ref-type: myst
-:expand:
-:color: dark
-:click-parent:
-
-Check the Github repository!
-:::
-
-:::
 ::::
 
 
@@ -105,7 +107,8 @@ Check the Github repository!
 :hidden:
 
 intro/quickstart.md
-intro/tutorials.md
+intro/background.md
+tutorials/tutorials.md
 autoapi/index
 cli.rst
 :::
