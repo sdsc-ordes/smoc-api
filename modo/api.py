@@ -34,6 +34,8 @@ class MODO:
     Examples
     --------
     >>> demo = MODO("data/ex")
+    Load existing MODO from: data/ex
+    NOTE: Additional arguments will be ignored.
 
     # List identifiers of samples in the archive
     >>> demo.list_samples()
@@ -71,7 +73,7 @@ class MODO:
                 )
                 print(
                     f"Load existing MODO from remote path: {path}\n"
-                    "NOTE: additional arguments will be ignored."
+                    "NOTE: Additional arguments will be ignored."
                 )
                 return
         else:
@@ -81,7 +83,7 @@ class MODO:
             self.archive = zarr.open(str(self.path / "data.zarr"))
             print(
                 f"Load existing MODO from: {path}\n"
-                "NOTE: additional arguments will be ignored."
+                "NOTE: Additional arguments will be ignored."
             )
         # Creating from scratch
         else:
