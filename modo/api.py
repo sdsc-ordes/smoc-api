@@ -136,13 +136,14 @@ class MODO:
         """Lists files in the archive recursively (except for the zarr file)."""
         if isinstance(self.archive.store, zarr.storage.FSStore):
             fs = self.archive.store.fs
-            for path in fs.find(str(self.path)):
-                if Path(path).name.endswith(".zarr") or Path(
-                    path
-                ).name.startswith("."):
+            for path in fs.glob(f"{self.path}/*"):
+                if Path(path).name.endswith(".zarr"):
                     continue
-                else:
-                    yield path
+                elif fs.isfile(path):
+                    yield Path(path)
+                elif fs.isdir(path):
+                    for file in fs.find(path):
+                        yield Path(file)
         else:
             for path in self.path.glob("*"):
                 if path.name.endswith(".zarr"):
@@ -150,7 +151,8 @@ class MODO:
                 elif path.is_file():
                     yield path
                 for file in path.rglob("*"):
-                    yield file
+                    if file.is_file():
+                        yield file
 
     def list_arrays(self):
         """Lists arrays in the archive recursively."""
@@ -190,10 +192,16 @@ class MODO:
             data_file = self.path / attrs["data_path"]
             if data_file.exists():
                 data_file.unlink()
+                print(
+                    f"INFO: Permanently deleted {data_file} from filesystem."
+                )
             elif isinstance(
                 self.archive.store, zarr.storage.FSStore
             ) and self.archive.store.fs.exists(data_file):
                 self.archive.store.fs.rm(str(data_file))
+                print(
+                    f"INFO: Permanently deleted {data_file} from remote filesystem."
+                )
 
         # Remove element group
         del self.archive[element_id]
