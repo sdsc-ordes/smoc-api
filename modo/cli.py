@@ -15,6 +15,7 @@ from linkml_runtime.loaders import json_loader
 import modo_schema.datamodel as model
 import s3fs
 import typer
+import zarr
 
 from .api import MODO
 from .helpers import UserElementType
@@ -193,6 +194,15 @@ def remove(
 ):
     """Removes the target element from the digital object, along with its files (if any) and links from other elements"""
     modo = MODO(object_directory, s3_endpoint=s3_endpoint)
+    element = modo.archive.get(element_id)
+    rm_path = element.attrs.get("data_path", [])
+    if isinstance(element, zarr.hierarchy.Group) and len(rm_path) > 0:
+        delete = typer.confirm(
+            f"Removing {element_id} will permanently delete {rm_path}.\n Please confirm that you want to continue?"
+        )
+        if not delete:
+            print(f"Stop removing element {element_id}!")
+            raise typer.Abort()
     modo.remove_element(element_id)
 
 
