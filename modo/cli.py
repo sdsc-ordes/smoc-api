@@ -12,10 +12,9 @@ from typing_extensions import Annotated
 
 import click
 from linkml_runtime.loaders import json_loader
-from linkml_runtime.dumpers import json_dumper, rdflib_dumper
 import modo_schema.datamodel as model
+import s3fs
 import typer
-import zarr
 
 from .api import MODO
 from .helpers import UserElementType
@@ -146,6 +145,13 @@ def create(
     # Initialize object's directory
     if object_directory.exists():
         raise ValueError(f"Directory already exists: {object_directory}")
+
+    if s3_endpoint:
+        fs = s3fs.S3FileSystem(endpoint_url=s3_endpoint, anon=True)
+        if fs.exists(object_directory):
+            raise ValueError(
+                f"Remote directory already exists: {object_directory}"
+            )
 
     # Obtain object's metadata and create object
     if from_file and meta:

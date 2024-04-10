@@ -11,7 +11,6 @@ import modo_schema.datamodel as model
 import s3fs
 import zarr
 
-from .introspection import get_haspart_property
 from .rdf import attrs_to_graph
 from .storage import add_metadata_group, init_zarr, list_zarr_items
 from .file_utils import extract_metadata, extraction_formats
@@ -70,12 +69,20 @@ class MODO:
                         "endpoint_url": s3_endpoint,
                     },
                 )
+                print(
+                    f"Load existing MODO from remote path: {path}\n"
+                    "NOTE: additional arguments will be ignored."
+                )
                 return
         else:
             fs = None
         # Opening existing object
         if (self.path / "data.zarr").exists():
             self.archive = zarr.open(str(self.path / "data.zarr"))
+            print(
+                f"Load existing MODO from: {path}\n"
+                "NOTE: additional arguments will be ignored."
+            )
         # Creating from scratch
         else:
             self.archive = init_zarr(self.path, fs)
