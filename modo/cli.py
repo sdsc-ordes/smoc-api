@@ -12,8 +12,8 @@ from typing_extensions import Annotated
 
 import click
 from linkml_runtime.loaders import json_loader
-from linkml_runtime.dumpers import json_dumper, rdflib_dumper
 import modo_schema.datamodel as model
+import s3fs
 import typer
 import zarr
 
@@ -113,6 +113,14 @@ def prompt_for_slots(
 @cli.command()
 def create(
     object_directory: Annotated[Path, typer.Argument(...)],
+    s3_endpoint: Annotated[
+        Optional[str],
+        typer.Option(
+            "--s3-endpoint",
+            "-s3",
+            help="Create instance at S3 endpoint. Must point to a valid url",
+        ),
+    ] = None,
     from_file: Annotated[
         Optional[Path],
         typer.Option(
@@ -139,11 +147,20 @@ def create(
     if object_directory.exists():
         raise ValueError(f"Directory already exists: {object_directory}")
 
+    if s3_endpoint:
+        fs = s3fs.S3FileSystem(endpoint_url=s3_endpoint, anon=True)
+        if fs.exists(object_directory):
+            raise ValueError(
+                f"Remote directory already exists: {object_directory}"
+            )
+
     # Obtain object's metadata and create object
     if from_file and meta:
         raise ValueError("Only one of --from-file or --data can be used.")
     elif from_file:
-        modo = build_modo_from_file(from_file, object_directory)
+        modo = build_modo_from_file(
+            from_file, object_directory, s3_endpoint=s3_endpoint
+        )
         return
     elif meta:
         obj = json_loader.loads(meta, target_class=model.MODO)
@@ -153,7 +170,7 @@ def create(
 
     attrs = obj.__dict__
     # Dump object to zarr metadata
-    MODO(path=object_directory, **attrs)
+    MODO(path=object_directory, s3_endpoint=s3_endpoint, **attrs)
 
 
 @cli.command()
@@ -166,9 +183,26 @@ def remove(
             help="The identifying path within the digital object. Use modo show to check it.",
         ),
     ],
+    s3_endpoint: Annotated[
+        Optional[str],
+        typer.Option(
+            "--s3-endpoint",
+            "-s3",
+            help="Url to S3 endpoint that stores the digital object.",
+        ),
+    ] = None,
 ):
     """Removes the target element from the digital object, along with its files (if any) and links from other elements"""
-    modo = MODO(object_directory)
+    modo = MODO(object_directory, s3_endpoint=s3_endpoint)
+    element = modo.archive.get(element_id)
+    rm_path = element.attrs.get("data_path", [])
+    if isinstance(element, zarr.hierarchy.Group) and len(rm_path) > 0:
+        delete = typer.confirm(
+            f"Removing {element_id} will permanently delete {rm_path}.\n Please confirm that you want to continue?"
+        )
+        if not delete:
+            print(f"Stop removing element {element_id}!")
+            raise typer.Abort()
     modo.remove_element(element_id)
 
 
@@ -182,6 +216,14 @@ def add(
             help="Type of element to add to the digital object.",
         ),
     ],
+    s3_endpoint: Annotated[
+        Optional[str],
+        typer.Option(
+            "--s3-endpoint",
+            "-s3",
+            help="Url to S3 endpoint that stores the digital object.",
+        ),
+    ] = None,
     parent: Annotated[
         Optional[str],
         typer.Option(
@@ -218,7 +260,7 @@ def add(
     metadata will be updated."""
 
     typer.echo(f"Updating {object_directory}.", err=True)
-    modo = MODO(object_directory)
+    modo = MODO(object_directory, s3_endpoint=s3_endpoint)
     target_class = element_type.get_target_class()
 
     if from_file and meta:
@@ -238,6 +280,14 @@ def add(
 @cli.command()
 def show(
     object_directory: Annotated[Path, typer.Argument(...)],
+    s3_endpoint: Annotated[
+        Optional[str],
+        typer.Option(
+            "--s3-endpoint",
+            "-s3",
+            help="Url to S3 endpoint that stores the digital object.",
+        ),
+    ] = None,
     zarr: Annotated[
         bool,
         typer.Option(
@@ -256,7 +306,9 @@ def show(
     ] = False,
 ):
     """Show the contents of a digital object."""
-    if os.path.exists(object_directory):
+    if s3_endpoint:
+        obj = MODO(object_directory, s3_endpoint=s3_endpoint)
+    elif os.path.exists(object_directory):
         obj = MODO(object_directory)
     else:
         raise ValueError(f"{object_directory} does not exists")
@@ -274,6 +326,14 @@ def publish(
     object_directory: Annotated[Path, typer.Argument(...)],
     output_format: Annotated[RdfFormat, typer.Option(...)] = RdfFormat.TURTLE,
     base_uri: Annotated[Optional[str], typer.Option(...)] = None,
+    s3_endpoint: Annotated[
+        Optional[str],
+        typer.Option(
+            "--s3-endpoint",
+            "-s3",
+            help="Url to S3 endpoint that stores the digital object.",
+        ),
+    ] = None,
 ):
     """Creates a semantic artifact allowing to publish
     a digital object as linked data. This artifact can be
@@ -282,7 +342,7 @@ def publish(
     In the process, JSON metadata is converted to RDF and
     all relative paths are converted to URIs.
     """
-    obj = MODO(object_directory)
+    obj = MODO(object_directory, s3_endpoint=s3_endpoint)
     print(
         obj.knowledge_graph(uri_prefix=base_uri).serialize(
             format=output_format

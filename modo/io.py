@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from typing import Any, List
+from typing import Any, List, Optional
 
 from linkml_runtime.loaders import (
     json_loader,
@@ -52,7 +52,9 @@ def parse_multiple_instances(path: Path) -> List:
     return instances
 
 
-def build_modo_from_file(path: Path, object_directory: Path) -> MODO:
+def build_modo_from_file(
+    path: Path, object_directory: Path, s3_endpoint: Optional[str] = None
+) -> MODO:
     """build a modo from a yaml or json file"""
     instances = parse_multiple_instances(Path(path))
     # check for unique ids and fail early
@@ -73,7 +75,7 @@ def build_modo_from_file(path: Path, object_directory: Path) -> MODO:
             f"There must be exactly 1 MODO in the input file. Found {len(modo_inst)}"
         )
     modo_dict = modo_inst[0]._as_dict
-    modo = MODO(path=object_directory, **modo_dict)
+    modo = MODO(path=object_directory, s3_endpoint=s3_endpoint, **modo_dict)
     for instance in instances:
         if not isinstance(instance, model.MODO):
             # copy data-path into modo
