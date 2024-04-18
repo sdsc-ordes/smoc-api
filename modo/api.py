@@ -218,7 +218,7 @@ class MODO:
                 if value == element_id:
                     del self.archive[elem].attrs[key]
                 elif isinstance(value, list) and element_id in value:
-                    self.archive[elem].attrs[key].remove(element_id)
+                    self.archive[elem].attrs[key] = value.remove(element_id)
 
         zarr.consolidate_metadata(self.archive.store)
 
