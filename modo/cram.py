@@ -10,7 +10,8 @@ from pysam import (
 from rdflib import Graph
 import modo_schema.datamodel as model
 
-import os
+import os, sys, re
+import htsget
 from .helpers import parse_region, htsget_command
 
 
@@ -38,8 +39,33 @@ def slice_remote_cram(
 ):
     """Stream or write to a local file a slice of a remote CRAM file"""
 
-    htsget_req = htsget_command(url, region, output_filename)
-    os.system(htsget_req)
+    url = str(
+        Path(url).with_suffix("")
+    )  # htsget.get needs URL without the file extension
+    reference_name, start, end = parse_region(region)
+    if start == "":
+        start = None
+    else:
+        start = int(start)
+    if end == "":
+        end = None
+    else:
+        end = int(end)
+
+    if output_filename:
+        with open(output_filename, "wb") as output:
+            htsget.get(
+                url, output, reference_name, start, end, data_format="cram"
+            )
+    else:
+        htsget.get(
+            url,
+            sys.stdout.buffer,
+            reference_name,
+            start,
+            end,
+            data_format="cram",
+        )
 
     return None
 
