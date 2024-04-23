@@ -52,6 +52,7 @@ class MODO:
         self,
         path: Union[Path, str],
         s3_endpoint: Optional[str] = None,
+        htsget_endpoint: Optional[str] = None,
         id: Optional[str] = None,
         name: Optional[str] = None,
         description: Optional[str] = None,
@@ -60,6 +61,10 @@ class MODO:
         has_assay: List = [],
         source_uri: Optional[str] = None,
     ):
+        self.s3_endpoint = s3_endpoint
+        if s3_endpoint and not htsget_endpoint:
+            htsget_endpoint = re.sub(r"s3$", "htsget", s3_endpoint)
+        self.htsget_endpoint = htsget_endpoint
         self.path = Path(path)
         if s3_endpoint:
             fs = s3fs.S3FileSystem(endpoint_url=s3_endpoint, anon=True)
