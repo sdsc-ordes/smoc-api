@@ -27,11 +27,17 @@ def dict_to_instance(element: Mapping[str, Any]) -> Any:
 
 
 def copy_file_to_archive(
-    data_file: Optional[str], base_path: Path, archive_path: Optional[Path]
+    data_file: Optional[str],
+    base_path: Path,
+    archive_path: Optional[Path],
+    remote_store: Optional[zarr.storage.FSStore] = None,
 ):
     if data_file is not None:
         data_path = Path(data_file)
-        shutil.copy(data_path, base_path / archive_path)
+        if remote_store:
+            remote_store.put(data_path, base_path / Path(archive_path).parent)
+        else:
+            shutil.copy(data_path, base_path / archive_path)
 
 
 def set_haspart_relationship(
