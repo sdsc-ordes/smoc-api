@@ -12,7 +12,7 @@ import modo_schema.datamodel as model
 
 import os, sys, re
 import htsget
-from .helpers import parse_region, htsget_command
+from .helpers import parse_region
 
 
 def slice_cram(path: str, region: str) -> Iterator[AlignedSegment]:
