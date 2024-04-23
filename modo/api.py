@@ -42,7 +42,9 @@ class MODO:
     ['/sample/sample1']
 
     # List files in the archive
-    >>> files = sorted([file.name for es
+    >>> files = sorted([file.name for file in demo.list_files()])
+    >>> assert 'demo1.cram' in files
+    >>> assert 'reference1.fa' in files
 
     """
 
@@ -50,7 +52,6 @@ class MODO:
         self,
         path: Union[Path, str],
         s3_endpoint: Optional[str] = None,
-        htsget_endpoint: Optional[str] = None,
         id: Optional[str] = None,
         name: Optional[str] = None,
         description: Optional[str] = None,
@@ -59,10 +60,6 @@ class MODO:
         has_assay: List = [],
         source_uri: Optional[str] = None,
     ):
-        self.s3_endpoint = s3_endpoint
-        if s3_endpoint and not htsget_endpoint:
-            htsget_endpoint = re.sub(r"s3$", "htsget", s3_endpoint)
-        self.htsget_endpoint = htsget_endpoint
         self.path = Path(path)
         if s3_endpoint:
             fs = s3fs.S3FileSystem(endpoint_url=s3_endpoint, anon=True)
@@ -77,10 +74,10 @@ class MODO:
                 return
         else:
             fs = None
-            # Opening existing object
+        # Opening existing object
         if (self.path / "data.zarr").exists():
             self.archive = zarr.open(str(self.path / "data.zarr"))
-            # Creating from scratch
+        # Creating from scratch
         else:
             self.archive = init_zarr(self.path, fs)
             self.id = id or self.path.name
@@ -191,7 +188,7 @@ class MODO:
             print(f"Available elements are {keys}")
             raise err
 
-            # Remove data file
+        # Remove data file
         if "data_path" in attrs.keys():
             data_file = self.path / attrs["data_path"]
             if data_file.exists():
@@ -207,7 +204,7 @@ class MODO:
                     f"INFO: Permanently deleted {data_file} from remote filesystem."
                 )
 
-                # Remove element group
+        # Remove element group
         del self.archive[element_id]
 
         # Remove links from other elements
@@ -237,12 +234,12 @@ class MODO:
         Parameters
         ----------
         element
-                Element to add to the archive.
+            Element to add to the archive.
         data_file
-                File to associate with the element.
+            File to associate with the element.
         part_of
-                Id of the parent element. It must be scoped to the type.
-                For example "sample/foo".
+            Id of the parent element. It must be scoped to the type.
+            For example "sample/foo".
         """
         # Check that ID does not exist in modo
         if element.id in [Path(id).name for id in self.metadata.keys()]:
@@ -250,7 +247,7 @@ class MODO:
                 f"Please specify a unique ID. Element with ID {element.id} already exist."
             )
 
-            # Copy data file to archive and update data_path in metadata
+        # Copy data file to archive and update data_path in metadata
         fs = (
             self.archive.store.fs
             if isinstance(self.archive.store, zarr.storage.FSStore)
@@ -293,7 +290,7 @@ class MODO:
                 f"Please specify a unique ID. Element with ID {element.id} already exist."
             )
 
-            # Copy data file to archive and update data_path in metadata
+        # Copy data file to archive and update data_path in metadata
         fs = (
             self.archive.store.fs
             if isinstance(self.archive.store, zarr.storage.FSStore)
@@ -329,9 +326,9 @@ class MODO:
         Parameters
         -----------------
         element_id
-                Full id path in the zarr store.
+            Full id path in the zarr store.
         new
-                Element containing the enriched metadata.
+            Element containing the enriched metadata.
         """
         attrs = self.archive[element_id].attrs
         attr_dict = attrs.asdict()
@@ -377,25 +374,31 @@ class MODO:
                     continue
 
     def stream_cram(
-        self, cram_path: str, region: str = None, output: str = None
+        self, cram_name: str, region: str = None, output: str = None
     ):
         """Slices and streams the requested CRAM file, both local and remote,
         and either outputs a data stream or writes data to local file"""
 
         # check requested CRAM exists in MODO
-        if Path(cram_path) not in self.list_files():
-            raise ValueError(f"{cram_path} not found in {self.path}.")
+        path = ""
+        filepaths = list(self.list_files())
+        for filepath in filepaths:
+            if cram_name == str(filepath).split("/")[-1]:
+                path = filepath
+                break
+        if path == "":
+            raise ValueError(f"{cram_name} not fount in {self.path}.")
 
         if self.s3_endpoint:
+            # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
             url = (
-                self.htsget_endpoint
-                + "/reads/"
-                + str(Path(*Path(cram_path).parts[1:]))
+                re.sub(r"s3$", "", self.s3_endpoint)
+                + "htsget/reads/"
+                + path.split("/", maxsplit=1)
             )
-            # str(Path(*Path(cram_path).parts[1:])) same as path.split("/", maxsplit=1)[1] but cross-platform
             slice_remote_cram(url, region, output)
         else:
             # assuming user did not change directory, filepath should be the
             # relative path to the file.
-            iter = slice_cram(cram_path, region)
+            iter = slice_cram(path, region)
             return iter
