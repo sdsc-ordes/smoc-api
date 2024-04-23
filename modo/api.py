@@ -379,25 +379,31 @@ class MODO:
                     continue
 
     def stream_cram(
-        self, cram_path: str, region: str = None, output: str = None
+        self, cram_name: str, region: str = None, output: str = None
     ):
         """Slices and streams the requested CRAM file, both local and remote,
         and either outputs a data stream or writes data to local file"""
 
         # check requested CRAM exists in MODO
-        if Path(cram_path) not in self.list_files():
-            raise ValueError(f"{cram_path} not found in {self.path}.")
+        path = ""
+        filepaths = list(self.list_files())
+        for filepath in filepaths:
+            if cram_name == str(filepath).split("/")[-1]:
+                path = filepath
+                break
+        if path == "":
+            raise ValueError(f"{cram_name} not fount in {self.path}.")
 
         if self.s3_endpoint:
+            # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
             url = (
-                self.htsget_endpoint
-                + "/reads/"
-                + str(Path(*Path(cram_path).parts[1:]))
+                re.sub(r"s3$", "", self.s3_endpoint)
+                + "htsget/reads/"
+                + path.split("/", maxsplit=1)
             )
-            # str(Path(*Path(cram_path).parts[1:])) same as path.split("/", maxsplit=1)[1] but cross-platform
             slice_remote_cram(url, region, output)
         else:
             # assuming user did not change directory, filepath should be the
             # relative path to the file.
-            iter = slice_cram(cram_path, region)
+            iter = slice_cram(path, region)
             return iter
