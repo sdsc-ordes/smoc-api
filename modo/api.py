@@ -379,7 +379,7 @@ class MODO:
                     continue
 
     def stream_cram(
-        self, cram_name: str, region: str = None, output: str = None
+        self, cram_path: str, region: str = None, output: str = None
     ):
         """Slices and streams the requested CRAM file, both local and remote,
         and either outputs a data stream or writes data to local file"""
