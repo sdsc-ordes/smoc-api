@@ -64,11 +64,11 @@ def slice_remote_cram(
             )
     else:
         htsget.get(
-            url,
-            sys.stdout.buffer,
-            reference_name,
-            start,
-            end,
+            url = url,
+            output = sys.stdout.buffer,
+            reference_name = reference_name,
+            start = start,
+            end = end,
             data_format="cram",
         )
 
