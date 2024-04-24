@@ -54,8 +54,13 @@ def slice_remote_cram(
 
     if output_filename:
         with open(output_filename, "wb") as output:
-            htsget.get(
-                url, output, reference_name, start, end, data_format="cram"
+           htsget.get(
+               url = url, 
+               output = output,
+               reference_name = reference_name, 
+               start = start, 
+               end = end, 
+               data_format="cram"
             )
     else:
         htsget.get(
