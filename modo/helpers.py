@@ -203,7 +203,7 @@ def parse_region(region: str) -> tuple[str, Optional[int], Optional[int]]:
     >>> parse_region('chr-1ba:32-100')
     ('chr-1ba', 32, 100)
     >>> parse_region('chr1:10')
-    ('chr1', None, None)
+    ('chr1', 10, None)
     >>> parse_region('chr1')
     ('chr1', None, None)
     >>> parse_region('*')
