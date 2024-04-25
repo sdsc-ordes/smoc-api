@@ -5,12 +5,11 @@ from typing import Iterator, List
 from pysam import (
     AlignedSegment,
     AlignmentFile,
-    AlignmentHeader,
 )
-from rdflib import Graph
+from urllib.parse import urlparse
 import modo_schema.datamodel as model
 
-import os, sys, re
+import sys
 import htsget
 from .helpers import parse_region
 
@@ -39,9 +38,9 @@ def slice_remote_cram(
 ):
     """Stream or write to a local file a slice of a remote CRAM file"""
 
-    url = str(
-        Path(url).with_suffix("")
-    )  # htsget.get needs URL without the file extension
+    url = urlparse(url)
+    url = url._replace(path=str(Path(url.path).with_suffix("")))
+
     reference_name, start, end = parse_region(region)
     if start == "":
         start = None
@@ -55,15 +54,20 @@ def slice_remote_cram(
     if output_filename:
         with open(output_filename, "wb") as output:
             htsget.get(
-                url, output, reference_name, start, end, data_format="cram"
+                url=url.geturl(),
+                output=output,
+                reference_name=reference_name,
+                start=start,
+                end=end,
+                data_format="cram",
             )
     else:
         htsget.get(
-            url,
-            sys.stdout.buffer,
-            reference_name,
-            start,
-            end,
+            url=url.geturl(),
+            output=sys.stdout.buffer,
+            reference_name=reference_name,
+            start=start,
+            end=end,
             data_format="cram",
         )
 

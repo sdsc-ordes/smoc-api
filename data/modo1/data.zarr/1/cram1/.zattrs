@@ -1,6 +1,0 @@
-{
-    "@type": "DataEntity",
-    "data_format": "CRAM",
-    "data_path": "/home/sternber/Assaf/Work/Multiomics_Object/smoc-api/data/try/GCValidation_WGS_V1_0.NA24143_D4_O2_T2_NGS000000125_NA.mdup.sorted.bam.bqsr.cram",
-    "name": "cram1"
-}
