@@ -1,6 +1,6 @@
 """Utilities to interact with genomic intervals in CRAM files."""
 from pathlib import Path
-from typing import Iterator, List
+from typing import Iterator, List, Optional
 
 from pysam import (
     AlignedSegment,
@@ -14,19 +14,15 @@ import htsget
 from .helpers import parse_region
 
 
-def slice_cram(path: str, region: str) -> Iterator[AlignedSegment]:
+def slice_cram(
+    path: str, region: Optional[str], reference_filename: Optional[str]
+) -> Iterator[AlignedSegment]:
     """Return an iterable slice of the CRAM file."""
-
-    chrom, start, end = parse_region(region)
-    if start == "":
-        start = None
+    if region:
+        chrom, start, end = parse_region(region)
     else:
-        start = int(start)
-    if end == "":
-        end = None
-    else:
-        end = int(end)
-    cramfile = AlignmentFile(path, "rc")
+        chrom, start, end = None, None, None
+    cramfile = AlignmentFile(path, "rc", reference_filename=None)
 
     iter = cramfile.fetch(chrom, start, end)
 
