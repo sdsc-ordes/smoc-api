@@ -192,36 +192,35 @@ def is_uri(text: str):
         return False
 
 
-def parse_region(region: str) -> tuple[str, str, str]:
+def parse_region(region: str) -> tuple[str, Optional[int], Optional[int]]:
     """Parses an input UCSC-format region string into
     (chrom, start, end).
 
     Examples
     --------
     >>> parse_region('chr1:10-320')
-    ('chr1', '10', '320')
+    ('chr1', 10, 32')
     >>> parse_region('chr-1ba:32-100')
-    ('chr-1ba', '32', '100')
+    ('chr-1ba', 32, 100)
     >>> parse_region('chr1:10')
-    ('chr1', '10', '')
+    ('chr1', None, None)
     >>> parse_region('chr1')
-    ('chr1', '', '')
+    ('chr1', None, None)
     >>> parse_region('*')
-    ('*', '', '')
+    ('*', None, None)
     """
 
-    matches = re.match(r"^([^:]+)(:([0-9]+)?(-[0-9]*)?)?$", region)
-    if matches == None:
+    # region = region.strip()
+    matches = re.match(r"^([^:]+)(:([0-9]+)?(-[0-9]*)?)?$", region.strip())
+    if not matches:
         raise ValueError(
-            f"Invalid region format: {region}. Expected chr:start-end"
+            f"Invalid region format: {region}. Expected 'chr:start-end' (start/end optional)"
         )
-    else:
-        chrom, _, start, end = matches.groups()
-        if start == None:
-            start = ""
-        if end == None:
-            end = ""
-        else:
-            end = end.replace("-", "")
+
+    chrom, _, start, end = matches.groups()
+    if start:
+        start = int(start)
+    if end:
+        end = int(end.replace("-", ""))
 
     return (chrom, start, end)
