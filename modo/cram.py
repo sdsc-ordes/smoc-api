@@ -30,22 +30,17 @@ def slice_cram(
 
 
 def slice_remote_cram(
-    url: str, region: str = None, output_filename: str = None
+    url: str, region: Optional[str], output_filename: Optional[str]
 ):
     """Stream or write to a local file a slice of a remote CRAM file"""
 
     url = urlparse(url)
     url = url._replace(path=str(Path(url.path).with_suffix("")))
 
-    reference_name, start, end = parse_region(region)
-    if start == "":
-        start = None
+    if region:
+        reference_name, start, end = parse_region(region)
     else:
-        start = int(start)
-    if end == "":
-        end = None
-    else:
-        end = int(end)
+        chrom, start, end = None, None, None
 
     if output_filename:
         with open(output_filename, "wb") as output:
