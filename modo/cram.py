@@ -44,7 +44,9 @@ def slice_cram(
 
 
 def slice_remote_cram(
-    url: str, region: Optional[str], output_filename: Optional[str]
+    url: str,
+    region: Optional[str] = None,
+    output_filename: Optional[str] = None,
 ):
     """Stream or write to a local file a slice of a remote CRAM file"""
 
