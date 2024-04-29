@@ -11,7 +11,8 @@ import modo_schema.datamodel as model
 
 import sys
 import htsget
-from .helpers import parse_region
+from .helpers import parse_region, bytesio_to_alignment_segments
+from io import BytesIO
 
 
 def slice_cram(
@@ -46,6 +47,7 @@ def slice_cram(
 def slice_remote_cram(
     url: str,
     region: Optional[str] = None,
+    reference_filename: Optional[str] = None,
     output_filename: Optional[str] = None,
 ):
     """Stream or write to a local file a slice of a remote CRAM file"""
@@ -69,16 +71,20 @@ def slice_remote_cram(
                 data_format="cram",
             )
     else:
+        htsget_response_buffer = BytesIO()
         htsget.get(
             url=url.geturl(),
-            output=sys.stdout.buffer,
+            output=htsget_response_buffer,  # sys.stdout.buffer,
             reference_name=reference_name,
             start=start,
             end=end,
             data_format="cram",
         )
-
-    return None
+        htsget_response_buffer.seek(0)
+        cram__iter = bytesio_to_alignment_segments(
+            htsget_response_buffer, reference_filename
+        )
+        return cram__iter
 
 
 def extract_cram_metadata(cram: AlignmentFile) -> List:

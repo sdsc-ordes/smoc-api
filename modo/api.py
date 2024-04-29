@@ -384,8 +384,7 @@ class MODO:
         region: Optional[str] = None,
         reference_filename: Optional[str] = None,
     ):
-        """Slices and streams the requested CRAM file, both local and remote.
-        Outputs a data stream for remote and an iterator for local."""
+        """Slices both local and remote CRAM files returning an iterator."""
 
         # check requested CRAM exists in MODO
         if Path(cram_path) not in self.list_files():
@@ -399,8 +398,9 @@ class MODO:
                 + str(Path(*Path(cram_path).parts[1:]))
             )
             # str(Path(*Path(cram_path).parts[1:])) same as path.split("/", maxsplit=1)[1] but cross-platform
-            slice_remote_cram(url=url, region=region)
-            return
+            cram_iter = slice_remote_cram(
+                url=url, region=region, reference_filename=reference_filename
+            )
         else:
             # assuming user did not change directory, filepath should be the
             # relative path to the file.
@@ -412,7 +412,8 @@ class MODO:
                 region=region,
                 reference_filename=reference_filename,
             )
-            return cram_iter
+
+        return cram_iter
 
     def save_cram(
         self,
