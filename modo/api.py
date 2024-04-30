@@ -438,7 +438,10 @@ class MODO:
             )
             # str(Path(*Path(cram_path).parts[1:])) same as path.split("/", maxsplit=1)[1] but cross-platform
             slice_remote_cram(
-                url=url, region=region, output_filename=output_filename
+                url=url,
+                region=region,
+                output_filename=output_filename,
+                reference_filename=reference_filename,
             )
         else:
             # assuming user did not change directory, filepath should be the
