@@ -10,6 +10,7 @@ import rdflib
 import modo_schema.datamodel as model
 import s3fs
 import zarr
+import re
 
 from .rdf import attrs_to_graph
 from .storage import add_metadata_group, init_zarr, list_zarr_items
@@ -22,6 +23,7 @@ from .helpers import (
     set_haspart_relationship,
     UserElementType,
 )
+from .cram import slice_cram, slice_remote_cram
 
 
 class MODO:
@@ -50,6 +52,7 @@ class MODO:
         self,
         path: Union[Path, str],
         s3_endpoint: Optional[str] = None,
+        htsget_endpoint: Optional[str] = None,
         id: Optional[str] = None,
         name: Optional[str] = None,
         description: Optional[str] = None,
@@ -58,6 +61,10 @@ class MODO:
         has_assay: List = [],
         source_uri: Optional[str] = None,
     ):
+        self.s3_endpoint = s3_endpoint
+        if s3_endpoint and not htsget_endpoint:
+            htsget_endpoint = re.sub(r"s3$", "htsget", s3_endpoint)
+        self.htsget_endpoint = htsget_endpoint
         self.path = Path(path)
         if s3_endpoint:
             fs = s3fs.S3FileSystem(endpoint_url=s3_endpoint, anon=True)
@@ -370,3 +377,80 @@ class MODO:
                     self.update_element(inst_names[ele.name], ele)
                 else:
                     continue
+
+    def stream_cram(
+        self,
+        cram_path: str,
+        region: Optional[str] = None,
+        reference_filename: Optional[str] = None,
+    ):
+        """Slices both local and remote CRAM files returning an iterator."""
+
+        # check requested CRAM exists in MODO
+        if Path(cram_path) not in self.list_files():
+            raise ValueError(f"{cram_path} not found in {self.path}.")
+
+        if self.s3_endpoint:
+            # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
+            url = (
+                self.htsget_endpoint
+                + "/reads/"
+                + str(Path(*Path(cram_path).parts[1:]))
+            )
+            # str(Path(*Path(cram_path).parts[1:])) same as path.split("/", maxsplit=1)[1] but cross-platform
+            cram_iter = slice_remote_cram(
+                url=url, region=region, reference_filename=reference_filename
+            )
+        else:
+            # assuming user did not change directory, filepath should be the
+            # relative path to the file.
+            # for the time being, we do not check the validity of the supplied reference_filename, or
+            # the reference given in the CRAM header (used if refernece not supplied by user).
+
+            cram_iter = slice_cram(
+                path=cram_path,
+                region=region,
+                reference_filename=reference_filename,
+            )
+
+        return cram_iter
+
+    def save_cram(
+        self,
+        cram_path: str,
+        output_filename: str,
+        region: Optional[str] = None,
+        reference_filename: Optional[str] = None,
+    ):
+        """Slices the requested CRAM file, both local and remote, and writes
+        the output to local file"""
+
+        # check requested CRAM exists in MODO
+        if Path(cram_path) not in self.list_files():
+            raise ValueError(f"{cram_path} not found in {self.path}.")
+
+        if self.s3_endpoint:
+            # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
+            url = (
+                self.htsget_endpoint
+                + "/reads/"
+                + str(Path(*Path(cram_path).parts[1:]))
+            )
+            # str(Path(*Path(cram_path).parts[1:])) same as path.split("/", maxsplit=1)[1] but cross-platform
+            slice_remote_cram(
+                url=url,
+                region=region,
+                output_filename=output_filename,
+                reference_filename=reference_filename,
+            )
+        else:
+            # assuming user did not change directory, filepath should be the
+            # relative path to the file.
+            # for the time being, we do not check the validity of the supplied reference_filename, or
+            # the reference given in the CRAM header (used if refernece not supplied by user).
+            slice_cram(
+                path=cram_path,
+                region=region,
+                output_filename=output_filename,
+                reference_filename=reference_filename,
+            )

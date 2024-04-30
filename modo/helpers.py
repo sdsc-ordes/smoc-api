@@ -2,13 +2,20 @@ from enum import Enum
 from pathlib import Path
 import re
 import shutil
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping, Optional, Iterator
 from urllib.parse import urlparse
 import zarr
 
 import modo_schema.datamodel as model
 
 from .introspection import get_haspart_property, get_slot_range, load_schema
+
+from io import BytesIO
+import tempfile
+from pysam import (
+    AlignedSegment,
+    AlignmentFile,
+)
 
 
 def class_from_name(name: str):
@@ -192,7 +199,7 @@ def is_uri(text: str):
         return False
 
 
-def parse_region(region: str) -> tuple[str, int, int]:
+def parse_region(region: str) -> tuple[str, Optional[int], Optional[int]]:
     """Parses an input UCSC-format region string into
     (chrom, start, end).
 
@@ -200,16 +207,47 @@ def parse_region(region: str) -> tuple[str, int, int]:
     --------
     >>> parse_region('chr1:10-320')
     ('chr1', 10, 320)
-    >>> parse_region('chr-1ba:32-0100')
+    >>> parse_region('chr-1ba:32-100')
     ('chr-1ba', 32, 100)
+    >>> parse_region('chr1:10')
+    ('chr1', 10, None)
+    >>> parse_region('chr1')
+    ('chr1', None, None)
+    >>> parse_region('*')
+    ('*', None, None)
     """
 
-    if not re.match(r"[^:]+:[0-9]+-[0-9]+", region):
+    # region = region.strip()
+    matches = re.match(r"^([^:]+)(:([0-9]+)?(-[0-9]*)?)?$", region.strip())
+    if not matches:
         raise ValueError(
-            f"Invalid region format: {region}. Expected chr:start-end"
+            f"Invalid region format: {region}. Expected 'chr:start-end' (start/end optional)"
         )
 
-    chrom, coords = region.split(":")
-    start, end = coords.split("-")
+    chrom, _, start, end = matches.groups()
+    if start:
+        start = int(start)
+    if end:
+        end = int(end.replace("-", ""))
 
-    return (chrom, int(start), int(end))
+    return (chrom, start, end)
+
+
+def bytesio_to_alignment_segments(
+    bytesio_buffer, reference_filename: str
+) -> Iterator[AlignedSegment]:
+    # Create a temporary file to write the bytesio data
+    with tempfile.NamedTemporaryFile() as temp_file:
+        # Write the contents of the BytesIO buffer to the temporary file
+        temp_file.write(bytesio_buffer.getvalue())
+
+        # Seek to the beginning of the temporary file
+        temp_file.seek(0)
+
+        # Open the temporary file as a pysam.AlignmentFile object
+        with AlignmentFile(
+            temp_file.name, "rc", reference_filename=reference_filename
+        ) as alignment_file:
+            # Iterate over the alignments in the file
+            for alignment in alignment_file:
+                yield alignment

@@ -1,27 +1,90 @@
 """Utilities to interact with genomic intervals in CRAM files."""
 from pathlib import Path
-from typing import Iterator, List
+from typing import Iterator, List, Optional
 
 from pysam import (
     AlignedSegment,
     AlignmentFile,
-    AlignmentHeader,
 )
-from rdflib import Graph
+from urllib.parse import urlparse
 import modo_schema.datamodel as model
 
-from .helpers import parse_region
+import sys
+import htsget
+from .helpers import parse_region, bytesio_to_alignment_segments
+from io import BytesIO
 
 
-def slice_cram(path: str, region: str) -> Iterator[AlignedSegment]:
+def slice_cram(
+    path: str,
+    region: Optional[str],
+    reference_filename: Optional[str] = None,
+    output_filename: Optional[str] = None,
+) -> Iterator[AlignedSegment]:
     """Return an iterable slice of the CRAM file."""
+    if region:
+        chrom, start, end = parse_region(region)
+    else:
+        chrom, start, end = None, None, None
 
-    chrom, start, stop = parse_region(region)
-    cramfile = AlignmentFile(path, "rc")
+    cramfile = AlignmentFile(path, "rc", reference_filename=reference_filename)
+    cram_iter = cramfile.fetch(chrom, start, end)
 
-    iter = cramfile.fetch(chrom, start, stop)
+    if output_filename:
+        output = AlignmentFile(
+            output_filename,
+            "wc",
+            template=cramfile,
+            reference_filename=reference_filename,
+        )
+        for read in cram_iter:
+            output.write(read)
+        output.close()
 
-    return iter
+    return cram_iter
+
+
+def slice_remote_cram(
+    url: str,
+    region: Optional[str] = None,
+    reference_filename: Optional[str] = None,
+    output_filename: Optional[str] = None,
+):
+    """Stream or write to a local file a slice of a remote CRAM file"""
+
+    url = urlparse(url)
+    url = url._replace(path=str(Path(url.path).with_suffix("")))
+
+    if region:
+        reference_name, start, end = parse_region(region)
+    else:
+        chrom, start, end = None, None, None
+
+    if output_filename:
+        with open(output_filename, "wb") as output:
+            htsget.get(
+                url=url.geturl(),
+                output=output,
+                reference_name=reference_name,
+                start=start,
+                end=end,
+                data_format="cram",
+            )
+    else:
+        htsget_response_buffer = BytesIO()
+        htsget.get(
+            url=url.geturl(),
+            output=htsget_response_buffer,  # sys.stdout.buffer,
+            reference_name=reference_name,
+            start=start,
+            end=end,
+            data_format="cram",
+        )
+        htsget_response_buffer.seek(0)
+        cram__iter = bytesio_to_alignment_segments(
+            htsget_response_buffer, reference_filename
+        )
+        return cram__iter
 
 
 def extract_cram_metadata(cram: AlignmentFile) -> List:
