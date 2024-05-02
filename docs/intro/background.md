@@ -2,7 +2,7 @@
 
 ## Multiomics - the (full) picture
 
-Molecular mechanisims are highly regulated at various level. Different omic layers (genomics, transcriptomics, proteomics, metabolomics) interact and communicate with each other to establish specific phenotypes. Thus, it can be crucial to explore more than one of these layers to understand phenotypic pattern and their nuances, e.g. in the manifestation of genetic diseases. Recent advances in sequencing technologies enabled the parallel measurment of multiple omic layers from the same sample. Integrated analysis of these __multiomics__ data can help to unravel the underlying molceular mechanisms of regulation and their interactions.
+Molecular mechanisms are highly regulated at various levels. Different omic layers (genomics, transcriptomics, proteomics, metabolomics) interact and communicate with each other to establish specific phenotypes. Thus, it can be crucial to explore several of these layers together to understand phenotypic pattern and their nuances, e.g. in the manifestation of genetic diseases. Recent advances in sequencing technologies enabled the parallel measurement of multiple omic layers from the same sample. Integrated analysis of these __multiomics__ data can help to unravel the underlying molecular mechanisms of regulation and their interactions.
 
 ## MultiOmics Digital Object (MODO)
 
@@ -47,4 +47,4 @@ The `MODO-api` provides a server implementation to facilitate remote storage and
 - a htsget server to provide streaming access over network to CRAM files
 - s3 bucket to allow remote random access
 
-Detailed instructions about how to deployment can be found in the [MODO-api github project -> deploy](https://github.com/sdsc-ordes/modo-api/tree/main/deploy).
+Detailed instructions about how to deploy can be found in the [MODO-api github project -> deploy](https://github.com/sdsc-ordes/modo-api/tree/main/deploy).

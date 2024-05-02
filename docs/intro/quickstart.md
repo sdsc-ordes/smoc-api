@@ -1,6 +1,6 @@
 # Quickstart
 
-MODO can be used as commandline tool or python module.
+MODO can be used as command-line tool or python module.
 
 First install modo using pip or use docker to run modo within a container:
 

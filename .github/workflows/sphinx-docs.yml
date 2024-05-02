@@ -25,11 +25,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install --with doc
+          poetry install --with docs
 
       - name: Sphinx build
         run: |
-          make doc
+          make docs
 
   docs-push:
     runs-on: ubuntu-latest
