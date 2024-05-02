@@ -61,7 +61,7 @@ modo --help
 :::{tab-item} docker
 :sync: docker
 ```{code-block} console
-docker run -e ghcr.io/sdsc-ordes/modo-api:latest --help
+docker run ghcr.io/sdsc-ordes/modo-api:latest --help
 ```
 :::
 

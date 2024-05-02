@@ -32,7 +32,7 @@ modo show "data/ex"
 
 ::::
 
-The objects structure can be visualized by displaying the internal hierachy:
+The objects structure can be visualized by displaying the internal hierarchy:
 
 ::::{tab-set}
 
@@ -71,7 +71,7 @@ modo show --zarr "data/ex"
 ::::
 
 :::{note}
-`MODO` internally uses [zarr's hierachy groups](https://zarr.readthedocs.io/en/stable/api/hierarchy.html). Each subdirectory represents a new hierachy group. Any rray-like data can directly be stored within these hierachy groups, while other file formats are stored separately.
+`MODO` internally uses [zarr's hierarchy groups](https://zarr.readthedocs.io/en/stable/api/hierarchy.html). Each sub-directory represents a new hierarchy group. Any array-like data can directly be stored within these hierarchy groups, while other file formats are stored separately.
 :::
 
 All files part of a `MODO` can be listed:

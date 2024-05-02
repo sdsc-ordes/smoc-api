@@ -1,6 +1,6 @@
 # Handling data arrays with MODO
 
-Any count-like data, e.g protein abundances, RNA counts, metabolomic measurments, etc. can be stored as arrays in the `MODO`.
+Any count-like data, e.g protein abundances, RNA counts, metabolomic measurements, etc. can be stored as arrays in the `MODO`.
 The underlying [zarr](https://zarr.readthedocs.io/en/stable/index.html) supports array creation as well as an interface to NumPy arrays.
 
 
