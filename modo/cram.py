@@ -58,7 +58,7 @@ def slice_remote_cram(
     if region:
         reference_name, start, end = parse_region(region)
     else:
-        chrom, start, end = None, None, None
+        reference_name, start, end = None, None, None
 
     if output_filename:
         with open(output_filename, "wb") as output:
