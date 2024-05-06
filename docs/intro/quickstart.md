@@ -41,7 +41,7 @@ modo create ex
 :::{tab-item} docker
 :sync: docker
 ```{code-block} console
-docker run -e ghcr.io/sdsc-ordes/modo-api:latest create ex
+docker run -itv "${PWD}:/modo" ghcr.io/sdsc-ordes/modo-api:latest modo create modo/ex
 ```
 :::
 
