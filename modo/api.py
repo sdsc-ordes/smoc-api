@@ -69,7 +69,7 @@ class MODO:
         if s3_endpoint:
             fs = s3fs.S3FileSystem(endpoint_url=s3_endpoint, anon=True)
             if fs.exists(str(self.path / "data.zarr")):
-                self.archive = zarr.open(
+                self.archive = zarr.convenience.open(
                     f"s3://{path}/data.zarr",
                     storage_options={
                         "anon": True,
@@ -81,7 +81,7 @@ class MODO:
             fs = None
         # Opening existing object
         if (self.path / "data.zarr").exists():
-            self.archive = zarr.open(str(self.path / "data.zarr"))
+            self.archive = zarr.convenience.open(str(self.path / "data.zarr"))
         # Creating from scratch
         else:
             self.archive = init_zarr(self.path, fs)
@@ -105,9 +105,9 @@ class MODO:
     def metadata(self) -> dict:
         # Auto refresh metadata to match data before reading
         zarr.consolidate_metadata(self.archive.store)
-        root = zarr.open_consolidated(self.archive.store)
+        root = zarr.convenience.open_consolidated(self.archive.store)
 
-        if isinstance(root, zarr.Array):
+        if isinstance(root, zarr.core.Array):
             raise ValueError("Root must be a group. Empty archive?")
 
         # Get flat dictionary with all attrs, easier to search
@@ -162,7 +162,7 @@ class MODO:
 
     def list_arrays(self):
         """Lists arrays in the archive recursively."""
-        root = zarr.open_consolidated(self.archive.store)
+        root = zarr.convenience.open_consolidated(self.archive.store)
         return root.tree()
 
     def query(self, query: str):
