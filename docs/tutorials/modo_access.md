@@ -1,4 +1,4 @@
-# Explore a MODO and access it's data
+# Explore a MODO and access its data
 
 There are multiple ways to use a `MODO` and interact with it's elements.
 

@@ -76,7 +76,7 @@ import modo_schema.datamodel as model
 modo= MODO("data/ex")
 
 # Generate an Array element
-array_element = model.Array(id="rna1", name= "RNA raw counts", description = "RNA counts from multiple timepoints", has_sample="sample/sample1", data_format = "Zarr")
+array_element = model.Array(id="rna1", name= "RNA raw counts", description = "RNA counts from multiple timepoints", has_sample="sample/sample1", data_format = "Zarr", data_path="data/ex/data/rna1")
 
 # Add element to modo
 modo.add_element(element = array_element)
@@ -96,7 +96,8 @@ modo.list_arrays()
 ::::
 
 :::{note}
-Skip this step, if you want to add the count data to an already existing element in `MODO`
+Skip this step, if you want to add the count data to an already existing element in `MODO`.
+A helper function to facilitate adding the metadata element and numpy array in one step will also be added in future releases.
 :::
 
 ## Add array to MODO
@@ -110,7 +111,7 @@ Finally all arrays can be added to the modo element:
 
 modo.archive["data/rna1"].create_dataset("data", data=rna_array)
 modo.archive["data/rna1"].create_dataset("obs", data=obs)
-modo.archive["data/rna1"].create_dataset("var", data=var)
+modo.archive["data/rna1"].create_dataset("var", data=var, object_codec=numcodecs.JSON())
 
 # update zarr metadata
 zarr.consolidate_metadata(modo.archive.store)

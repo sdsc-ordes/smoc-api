@@ -79,7 +79,7 @@ modo show -s3 "http://localhost/s3" modo-demo/ex
 ::::
 
 :::{note}
-__Ops:__ The __bucket name__ and the __S3 endpoint url__ are specified separatly. The __bucket name__ is prepended to the `MODO`'s name in the same way as a local path, while the __S3 endpoint url__ needs to be specified specifically.
+The __bucket name__ and the __S3 endpoint url__ are specified separatly. The __bucket name__ is prepended to the `MODO`'s name in the same way as a local path, while the __S3 endpoint url__ needs to be specified specifically.
 :::
 
 (generate_remote)=
