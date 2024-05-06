@@ -71,7 +71,7 @@ modo show --zarr "data/ex"
 ::::
 
 :::{note}
-`MODO` internally uses [zarr's hierarchy groups](https://zarr.readthedocs.io/en/stable/api/hierarchy.html). Each sub-directory represents a new hierarchy group. Any array-like data can directly be stored within these hierarchy groups, while other file formats are stored separately.
+`MODO` internally uses <a href="https://zarr.readthedocs.io/en/stable/api/hierarchy.html" target="_blank">zarr's hierarchy groups</a>. Each sub-directory represents a new hierarchy group. Any array-like data can directly be stored within these hierarchy groups, while other file formats are stored separately.
 :::
 
 All files part of a `MODO` can be listed:

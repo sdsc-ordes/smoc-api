@@ -1,7 +1,7 @@
 # Handling data arrays with MODO
 
 Any count-like data, e.g protein abundances, RNA counts, metabolomic measurements, etc. can be stored as arrays in the `MODO`.
-The underlying [zarr](https://zarr.readthedocs.io/en/stable/index.html) supports array creation as well as an interface to NumPy arrays.
+The underlying <a href="https://github.com/zarr-developers/zarr-python" target="_blank">zarr</a> supports array creation as well as an interface to NumPy arrays.
 
 
 ## Load data
@@ -9,7 +9,7 @@ The underlying [zarr](https://zarr.readthedocs.io/en/stable/index.html) supports
 (pandas)=
 ### Using panda DataFrames
 
-Count-like data can usually be loaded into [pandas DataFrame](https://pandas.pydata.org/docs/reference/frame.html).
+Count-like data can usually be loaded into <a href="https://pandas.pydata.org/docs/reference/frame.html" target="_blank">pandas DataFrame</a>.
 To keep column names (__observations__) and row names (__variables__) both need to be stored in a separate numpy array first:
 
 ::::{tab-set}

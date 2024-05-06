@@ -1,6 +1,6 @@
 # Working with remote objects
 
-Remote storage can be key to share and collaborate on multiomics data. `MODO` integrates with S3 object storage and [htsget](https://academic.oup.com/bioinformatics/article/35/1/119/5040320) to allow remote storage, access and real-time secure streaming of genomic data.
+Remote storage can be key to share and collaborate on multiomics data. `MODO` integrates with S3 object storage and <a href="https://academic.oup.com/bioinformatics/article/35/1/119/5040320" target="_blank">htsget</a> to allow remote storage, access and real-time secure streaming of genomic data.
 Most of the `MODO-api`'s functionalities work with remotely stored objects in the same way as with local objects. The user only as to specify the `s3_endpoint` of the remote object store.
 
 ## List remotely available MODO's

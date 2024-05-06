@@ -26,7 +26,7 @@ Because of these requirements the `MODO-api` provides the following __key featur
 
 ### Object structure
 
-Internally, `MODO` builds on the [zarr](https://zarr.readthedocs.io/en/stable/index.html) file storage format, that allows storage and access of chunked, compressed, N-dimensional __arrays__ alongside their __metadata__ in __hierachical groups__. All metadata can be consolidated and exported separately for querying or listing purposes. Genomics data are not stored as arrays, but can be added to the `zarr` archive in [CRAM](https://samtools.github.io/hts-specs/CRAMv3.pdf) format. CRAM is a reference-based compression format for alignment files:
+Internally, `MODO` builds on the <a href="https://github.com/zarr-developers/zarr-python" target="_blank">zarr</a> file storage format, that allows storage and access of chunked, compressed, N-dimensional __arrays__ alongside their __metadata__ in __hierachical groups__. All metadata can be consolidated and exported separately for querying or listing purposes. Genomics data are not stored as arrays, but can be added to the `zarr` archive in <a href="https://samtools.github.io/hts-specs/CRAMv3.pdf" target="_blank">CRAM</a> format. CRAM is a reference-based compression format for alignment files:
 
 :::{image} ../img/digital-object.png
    :align: center
@@ -47,4 +47,4 @@ The `MODO-api` provides a server implementation to facilitate remote storage and
 - a htsget server to provide streaming access over network to CRAM files
 - s3 bucket to allow remote random access
 
-Detailed instructions about how to deploy can be found in the [MODO-api github project -> deploy](https://github.com/sdsc-ordes/modo-api/tree/main/deploy).
+Detailed instructions about how to deploy can be found in the <a href="https://github.com/sdsc-ordes/modo-api/tree/main/deploy" target="_blank">MODO-api github project -> deploy</a>.

@@ -1,7 +1,7 @@
 # Create and modify MODO
 
 A `MODO` is a digital object to store, share and access omics data (genomics, transcriptomics, proteomics and metabolomics) and their metadata.
-Each `MODO` consists of a unique id, a creation and an update timestamp and some further optional metadata. Elements such as __data entities__, __samples__, __assays__ and __reference genomes__ can be linked and added to a `MODO`. The full data model can be found at [modo-schema](https://sdsc-ordes.github.io/modo-schema/).
+Each `MODO` consists of a unique id, a creation and an update timestamp and some further optional metadata. Elements such as __data entities__, __samples__, __assays__ and __reference genomes__ can be linked and added to a `MODO`. The full data model can be found at <a href="https://sdsc-ordes.github.io/modo-schema/" target="_blank">modo-schema</a>.
 
 (scratch)=
 ## Generate a MODO from scratch
@@ -9,7 +9,7 @@ Each `MODO` consists of a unique id, a creation and an update timestamp and some
 (Create_scratch)=
 ### Create the object
 
-To create a new `MODO` you only need to specify the `path` where you want to generate the object. This will automatically generate a new [zarr group](https://zarr.readthedocs.io/en/stable/api/hierarchy.html) at the specified `path`. If not specified explicitly the `MODO` id will be set to the `path` name.
+To create a new `MODO` you only need to specify the `path` where you want to generate the object. This will automatically generate a new <a href="https://zarr.readthedocs.io/en/stable/api/hierarchy.html" target="_blank">zarr group</a> at the specified `path`. If not specified explicitly the `MODO` id will be set to the `path` name.
 
 ::::{tab-set}
 
@@ -51,7 +51,7 @@ There are 4 different element types, that can be added:
 - data
 - reference
 
-An element of the type data can be a [DataEntity](https://sdsc-ordes.github.io/modo-schema/DataEntity/) or further spefied as an [AlignmentSet](https://sdsc-ordes.github.io/modo-schema/AlignmentSet/), an [Array](https://sdsc-ordes.github.io/modo-schema/Array/), a [VariantSet](https://sdsc-ordes.github.io/modo-schema/VariantSet/)
+An element of the type data can be a <a href="https://sdsc-ordes.github.io/modo-schema/DataEntity/" target="_blank">DataEntity</a> or further spefied as an <a href="https://sdsc-ordes.github.io/modo-schema/AlignmentSet/" target="_blank">AlignmentSet</a>, an <a href="https://sdsc-ordes.github.io/modo-schema/Array/" target="_blank">Array</a>, a <a href="https://sdsc-ordes.github.io/modo-schema/VariantSet/" target="_blank">VariantSet</a>.
 
 
 ::::{tab-set}
@@ -134,7 +134,7 @@ Alternatively, a MODO and all associated elements can be specified in a `yaml-fi
   sex: Male
 ```
 
-All valid element types, their fields and potential links can be found in the [modo-schema](https://sdsc-ordes.github.io/modo-schema/).
+All valid element types, their fields and potential links can be found in the <a href="https://sdsc-ordes.github.io/modo-schema/" target="_blank">modo-schema</a>.
 
 Using this `example.yaml` a `MODO` and all specified associated elements can be generated in one command:
 
