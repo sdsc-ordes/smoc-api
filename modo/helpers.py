@@ -15,6 +15,8 @@ import tempfile
 from pysam import (
     AlignedSegment,
     AlignmentFile,
+    VariantFile,
+    VariantRecord,
 )
 
 
@@ -233,9 +235,28 @@ def parse_region(region: str) -> tuple[str, Optional[int], Optional[int]]:
     return (chrom, start, end)
 
 
+def get_fileformat(path: str) -> Optional[str]:
+    """Return the file format"""
+    pattern = re.compile(r"\S+\.vcf(\.\w+)?")
+    if path.endswith(("fasta", "fa")):
+        file_format = "FASTA"
+    elif path.endswith("fastq", "fq"):
+        file_format = "FASTQ"
+    elif path.endswith(".cram"):
+        file_format = "CRAM"
+    elif pattern.match(path):  # .vcf/.vcf.gz (or other compression)
+        file_format = "VCF"
+    elif path.endswith(".bcf"):
+        file_format = "BAM"
+    else:
+        file_format = None
+    return file_format
+
+
 def bytesio_to_alignment_segments(
     bytesio_buffer, reference_filename: str
 ) -> Iterator[AlignedSegment]:
+    """Takes a BytesIO buffer and returns a pysam iterator"""
     # Create a temporary file to write the bytesio data
     with tempfile.NamedTemporaryFile() as temp_file:
         # Write the contents of the BytesIO buffer to the temporary file
