@@ -12,10 +12,7 @@ from .introspection import get_haspart_property, get_slot_range, load_schema
 
 from io import BytesIO
 import tempfile
-from pysam import (
-    AlignedSegment,
-    AlignmentFile,
-)
+from pysam import AlignedSegment, AlignmentFile, VariantFile, VariantRecord
 
 
 def class_from_name(name: str):
@@ -233,9 +230,27 @@ def parse_region(region: str) -> tuple[str, Optional[int], Optional[int]]:
     return (chrom, start, end)
 
 
+def get_fileformat(path: str) -> Optional[str]:
+    pattern = re.compile(r"\S+\.vcf(\.\w+)?")
+    if path.endswith(("fasta", "fa")):
+        file_format = "FASTA"
+    elif path.endswith(("fastq", "fq")):
+        file_format = "FASTQ"
+    elif str(path).endswith(".cram"):
+        file_format = "CRAM"
+    elif pattern.match(str(path)):  # .vcf/.vcf.gz
+        file_format = "VCF"
+    elif str(path).endswith(".bcf"):
+        file_format = "BCF"
+    else:
+        file_format = None
+    return file_format
+
+
 def bytesio_to_alignment_segments(
     bytesio_buffer, reference_filename: str
 ) -> Iterator[AlignedSegment]:
+    """Takes a BytesIO buffer and returns a pysam iterator"""
     # Create a temporary file to write the bytesio data
     with tempfile.NamedTemporaryFile() as temp_file:
         # Write the contents of the BytesIO buffer to the temporary file
@@ -251,3 +266,32 @@ def bytesio_to_alignment_segments(
             # Iterate over the alignments in the file
             for alignment in alignment_file:
                 yield alignment
+
+
+def bytesio_to_iterator(
+    bytesio_buffer: BytesIO,
+    fileformat: str,
+    reference_filename: Optional[str] = None,
+) -> Iterator[AlignedSegment | VariantRecord]:
+    """Takes a BytesIO buffer and returns a pysam iterator of
+    AlignedSegment or VariantRecord"""
+    # Create a temporary file to write the bytesio data
+    with tempfile.NamedTemporaryFile() as temp_file:
+        # Write the contents of the BytesIO buffer to the temporary file
+        temp_file.write(bytesio_buffer.getvalue())
+
+        # Seek to the beginning of the temporary file
+        temp_file.seek(0)
+
+        # Open the temporary file as a pysam.AlignmentFile/VarianFile object
+        if fileformat == "CRAM":
+            pysamFile = AlignmentFile(
+                temp_file.name, "rc", reference_filename=reference_filename
+            )
+        elif fileformat in ("VCF", "BCF"):
+            # write_mode = r if fileformat=="VCF" else "rb"
+            pysamFile = VariantFile(temp_file.name, "rb")
+        with pysamFile as in_file:
+            # Iterate over the alignments in the file
+            for line in in_file:
+                yield line
