@@ -247,7 +247,7 @@ def get_fileformat(path: str) -> Optional[str]:
     elif pattern.match(path):  # .vcf/.vcf.gz (or other compression)
         file_format = "VCF"
     elif path.endswith(".bcf"):
-        file_format = "BAM"
+        file_format = "BCF"
     else:
         file_format = None
     return file_format
