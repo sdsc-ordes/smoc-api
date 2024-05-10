@@ -244,6 +244,10 @@ def get_fileformat(path: str) -> Optional[str]:
         file_format = "FASTQ"
     elif path.endswith(".cram"):
         file_format = "CRAM"
+    elif path.endswith(".bam"):
+        file_format = "BAM"
+    elif path.endswith(".sam"):
+        file_format = "SAM"
     elif pattern.match(path):  # .vcf/.vcf.gz (or other compression)
         file_format = "VCF"
     elif path.endswith(".bcf"):
