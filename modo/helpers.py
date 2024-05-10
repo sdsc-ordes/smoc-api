@@ -203,7 +203,7 @@ def is_uri(text: str):
 
 def parse_region(region: str) -> tuple[str, Optional[int], Optional[int]]:
     """Parses an input UCSC-format region string into
-    (chrom, start, end).
+    (reference_name, start, end).
 
     Examples
     --------
@@ -226,13 +226,13 @@ def parse_region(region: str) -> tuple[str, Optional[int], Optional[int]]:
             f"Invalid region format: {region}. Expected 'chr:start-end' (start/end optional)"
         )
 
-    chrom, _, start, end = matches.groups()
+    reference_name, _, start, end = matches.groups()
     if start:
         start = int(start)
     if end:
         end = int(end.replace("-", ""))
 
-    return (chrom, start, end)
+    return (reference_name, start, end)
 
 
 def get_fileformat(path: str) -> Optional[str]:
@@ -240,7 +240,7 @@ def get_fileformat(path: str) -> Optional[str]:
     pattern = re.compile(r"\S+\.vcf(\.\w+)?")
     if path.endswith(("fasta", "fa")):
         file_format = "FASTA"
-    elif path.endswith("fastq", "fq"):
+    elif path.endswith(("fastq", "fq")):
         file_format = "FASTQ"
     elif path.endswith(".cram"):
         file_format = "CRAM"
