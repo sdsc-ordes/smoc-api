@@ -126,7 +126,7 @@ def create(
         typer.Option(
             "--from-file",
             "-f",
-            help="Create a digital object from a file. The file must be in json or yaml format.",
+            help="Create a modo from a file. The file must be in json or yaml format.",
         ),
     ] = None,
     meta: Annotated[
@@ -138,10 +138,7 @@ def create(
         ),
     ] = None,
 ):
-    """Create a digital object.
-    The object can be created interactively, or initiated
-    from metadata provided in a file or as a json string.
-    """
+    """Create a modo interactively or from a file."""
     typer.echo("Creating a digital object.", err=True)
     # Initialize object's directory
     if object_directory.exists():
@@ -192,7 +189,7 @@ def remove(
         ),
     ] = None,
 ):
-    """Removes the target element from the digital object, along with its files (if any) and links from other elements"""
+    """Removes an element and its files from the modo."""
     modo = MODO(object_directory, s3_endpoint=s3_endpoint)
     element = modo.archive.get(element_id)
     rm_path = element.attrs.get("data_path", [])
@@ -251,13 +248,11 @@ def add(
         typer.Option(
             "--data-file",
             "-d",
-            help="Specify a data file to copy into the digital object and associate with the instance.",
+            help="Specify a data file (if any) to copy into the digital object and associate with the instance.",
         ),
     ] = None,
 ):
-    """Add elements to a digital object. Files whose path is provided
-    in the metadata will be added to the object's directory and the
-    metadata will be updated."""
+    """Add elements to a modo."""
 
     typer.echo(f"Updating {object_directory}.", err=True)
     modo = MODO(object_directory, s3_endpoint=s3_endpoint)
@@ -305,7 +300,7 @@ def show(
         ),
     ] = False,
 ):
-    """Show the contents of a digital object."""
+    """Show the contents of a modo."""
     if s3_endpoint:
         obj = MODO(object_directory, s3_endpoint=s3_endpoint)
     elif os.path.exists(object_directory):
@@ -335,13 +330,7 @@ def publish(
         ),
     ] = None,
 ):
-    """Creates a semantic artifact allowing to publish
-    a digital object as linked data. This artifact can be
-    published as linked data.
-
-    In the process, JSON metadata is converted to RDF and
-    all relative paths are converted to URIs.
-    """
+    """Export a modo as linked data. Turns all paths into URIs."""
     obj = MODO(object_directory, s3_endpoint=s3_endpoint)
     print(
         obj.knowledge_graph(uri_prefix=base_uri).serialize(
