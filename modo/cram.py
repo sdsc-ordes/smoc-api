@@ -5,13 +5,19 @@ from typing import Iterator, List, Optional
 from pysam import (
     AlignedSegment,
     AlignmentFile,
+    VariantFile,
+    VariantRecord,
 )
 from urllib.parse import urlparse
 import modo_schema.datamodel as model
 
 import sys
 import htsget
-from .helpers import parse_region, bytesio_to_alignment_segments
+from .helpers import (
+    parse_region,
+    bytesio_to_alignment_segments,
+    get_fileformat,
+)
 from io import BytesIO
 
 
@@ -42,6 +48,65 @@ def slice_cram(
         output.close()
 
     return cram_iter
+
+
+def slice_genomics(
+    path: str,
+    region: Optional[str] = None,
+    reference_filename: Optional[str] = None,
+    output_filename: Optional[str] = None,
+) -> Optional[Iterator[AlignedSegment | VariantRecord]]:
+    """Returns an iterable slice of the CRAM, VCF or BCF file,
+    or saves it to a local file."""
+    if region:
+        reference_name, start, end = parse_region(region)
+    else:
+        reference_name, start, end = None, None, None
+
+    fileformat = get_fileformat(path)
+    if fileformat == "CRAM":
+        infile = AlignmentFile(
+            path, "rc", reference_filename=reference_filename
+        )
+    elif fileformat in ("VCF", "BCF"):
+        infile = VariantFile(path)
+    else:
+        raise ValueError(
+            "Unsupported file type. Supported files: CRAM, VCF, BCF"
+        )
+
+    gen_iter = infile.fetch(reference_name, start, end)
+
+    if output_filename:
+        out_fileformat = get_fileformat(output_filename)
+        if out_fileformat in ("CRAM", "BAM", "SAM"):
+            write_mode = (
+                "wc"
+                if out_fileformat == "CRAM"
+                else ("wb" if out_fileformat == "BAM" else "w")
+            )
+            output = AlignmentFile(
+                output_filename,
+                mode=write_mode,
+                template=infile,
+                reference_filename=reference_filename,
+            )
+        elif out_fileformat in ("VCF", "BCF"):
+            write_mode = "w" if out_fileformat == "VCF" else "wb"
+            output = VariantFile(
+                output_filename, mode=write_mode, header=infile.header
+            )
+        else:
+            raise ValueError(
+                "Unsupported output file type. Supported files: CRAM, BAM, SAM, VCF, VCF.GZ, BCF"
+            )
+
+        for read in gen_iter:
+            output.write(read)
+        output.close()
+        return None
+
+    return gen_iter
 
 
 def slice_remote_cram(
