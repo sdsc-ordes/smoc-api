@@ -277,7 +277,7 @@ def bytesio_to_alignment_segments(
 
 def bytesio_to_iterator(
     bytesio_buffer: BytesIO,
-    fileformat: str,
+    file_format: str,
     reference_filename: Optional[str] = None,
 ) -> Iterator[AlignedSegment | VariantRecord]:
     """Takes a BytesIO buffer and returns a pysam iterator of
@@ -291,11 +291,11 @@ def bytesio_to_iterator(
         temp_file.seek(0)
 
         # Open the temporary file as a pysam.AlignmentFile/VarianFile object
-        if fileformat == "CRAM":
+        if file_format == "CRAM":
             pysamFile = AlignmentFile(
                 temp_file.name, "rc", reference_filename=reference_filename
             )
-        elif fileformat in ("VCF", "BCF"):
+        elif file_format in ("VCF", "BCF"):
             # write_mode = r if fileformat=="VCF" else "rb"
             pysamFile = VariantFile(temp_file.name, "rb")
         with pysamFile as in_file:
