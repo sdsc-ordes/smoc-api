@@ -4,6 +4,8 @@ from modo.api import MODO
 from modo.io import build_modo_from_file
 
 import modo_schema.datamodel as model
+import pysam
+import re
 
 ## Initialize modo
 
@@ -74,3 +76,24 @@ def test_update_element(test_modo):
 def test_enrich_metadata(test_modo):
     test_modo.enrich_metadata()
     assert "/sequence/BA000007.3_bd7522" in test_modo.metadata.keys()
+
+
+## Stream cram
+
+
+def test_stream_cram_no_region(test_modo):
+    modo_files = [str(fi) for fi in test_modo.list_files()]
+    cram_path = list(filter(lambda x: re.search(r"cram$", x), modo_files))
+    seq = test_modo.stream_cram(cram_path=cram_path[0])
+    assert isinstance(seq, pysam.libcalignmentfile.IteratorRowAllRefs)
+
+
+def test_stream_cram_region(test_modo):
+    modo_files = [str(fi) for fi in test_modo.list_files()]
+    cram_path = list(filter(lambda x: re.search(r"cram$", x), modo_files))
+    seq = test_modo.stream_cram(
+        cram_path=cram_path[0],
+        region="BA000007.3",
+        reference_filename="data/ex/reference1.fa",
+    )
+    assert isinstance(seq, pysam.libcalignmentfile.IteratorRowRegion)
