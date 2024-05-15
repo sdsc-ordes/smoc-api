@@ -257,26 +257,22 @@ def get_fileformat(path: str) -> Optional[str]:
     return file_format
 
 
-def bytesio_to_alignment_segments(
-    bytesio_buffer, reference_filename: str
-) -> Iterator[AlignedSegment]:
-    """Takes a BytesIO buffer and returns a pysam iterator"""
-    """Takes a BytesIO buffer and returns a pysam iterator"""
-    # Create a temporary file to write the bytesio data
-    with tempfile.NamedTemporaryFile() as temp_file:
-        # Write the contents of the BytesIO buffer to the temporary file
-        temp_file.write(bytesio_buffer.getvalue())
-
-        # Seek to the beginning of the temporary file
-        temp_file.seek(0)
-
-        # Open the temporary file as a pysam.AlignmentFile object
-        with AlignmentFile(
-            temp_file.name, "rc", reference_filename=reference_filename
-        ) as alignment_file:
-            # Iterate over the alignments in the file
-            for alignment in alignment_file:
-                yield alignment
+def make_pysam_inFile(
+    path: str, fileformat: str, reference_filename: Optional[str] = None
+):
+    """Create a pysam AlignmentFile of VariantFile"""
+    if fileformat in ("CRAM", "BAM"):
+        write_mode = "rc" if fileformat == "CRAM" else "wb"
+        pysamFile = AlignmentFile(
+            path, write_mode, reference_filename=reference_filename
+        )
+    elif fileformat in ("VCF", "BCF"):
+        pysamFile = VariantFile(path, "rb")
+    else:
+        raise ValueError(
+            "Unsupported input file type. Supported files: CRAM, BAM, VCF, BCF"
+        )
+    return pysamFile
 
 
 def bytesio_to_iterator(
@@ -295,13 +291,48 @@ def bytesio_to_iterator(
         temp_file.seek(0)
 
         # Open the temporary file as a pysam.AlignmentFile/VarianFile object
-        if file_format == "CRAM":
-            pysamFile = AlignmentFile(
-                temp_file.name, "rc", reference_filename=reference_filename
-            )
-        elif file_format in ("VCF", "BCF"):
-            pysamFile = VariantFile(temp_file.name, "rb")
+        pysamFile = make_pysam_inFile(
+            path=temp_file.name,
+            fileformat=file_format,
+            reference_filename=reference_filename,
+        )
+
         with pysamFile as in_file:
             # Iterate over the alignments in the file
             for line in in_file:
                 yield line
+
+
+def iter_to_file(
+    gen_iter: Iterator[AlignedSegment | VariantRecord],
+    infile,  # [AlignmentFile | VariantFile]
+    output_filename: str,
+    reference_filename: Optional[str] = None,
+):
+    out_fileformat = get_fileformat(output_filename)
+    if out_fileformat in ("CRAM", "BAM", "SAM"):
+        write_mode = (
+            "wc"
+            if out_fileformat == "CRAM"
+            else ("wb" if out_fileformat == "BAM" else "w")
+        )
+        output = AlignmentFile(
+            output_filename,
+            mode=write_mode,
+            template=infile,
+            reference_filename=reference_filename,
+        )
+    elif out_fileformat in ("VCF", "BCF"):
+        write_mode = "w" if out_fileformat == "VCF" else "wb"
+        output = VariantFile(
+            output_filename, mode=write_mode, header=infile.header
+        )
+    else:
+        raise ValueError(
+            "Unsupported output file type. Supported files: .cram, .bam, .sam, .vcf, .vcf.gz, .bcf."
+        )
+
+    for read in gen_iter:
+        output.write(read)
+    output.close()
+    return None
