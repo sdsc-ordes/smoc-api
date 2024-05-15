@@ -4,8 +4,6 @@ import pytest
 import modo_schema.datamodel as model
 import shutil
 
-from tempfile import TemporaryDirectory
-from modo.api import MODO
 from modo.io import build_modo_from_file
 
 
@@ -32,10 +30,24 @@ def DataEntity():
 
 
 @pytest.fixture
+def data_json(DataEntity):
+    data_json = DataEntity._as_json_obj()
+    data_json.update({"data_format": "CRAM"})
+    return str(data_json).replace("'", '"')
+
+
+@pytest.fixture
 def Assay():
     return model.Assay(
         id="test_assay", name="test_assay", omics_type="GENOMICS"
     )
+
+
+@pytest.fixture
+def assay_json(Assay):
+    assay_json = Assay._as_json_obj()
+    assay_json.update({"omics_type": "GENOMICS"})
+    return str(assay_json).replace("'", '"')
 
 
 @pytest.fixture
