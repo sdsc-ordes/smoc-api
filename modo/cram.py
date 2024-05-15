@@ -12,42 +12,16 @@ from urllib.parse import urlparse
 import modo_schema.datamodel as model
 
 import sys
+import re
 import htsget
 from .helpers import (
     parse_region,
-    bytesio_to_alignment_segments,
     get_fileformat,
+    make_pysam_inFile,
+    bytesio_to_iterator,
+    iter_to_file,
 )
 from io import BytesIO
-
-
-def slice_cram(
-    path: str,
-    region: Optional[str],
-    reference_filename: Optional[str] = None,
-    output_filename: Optional[str] = None,
-) -> Iterator[AlignedSegment]:
-    """Return an iterable slice of the CRAM file."""
-    if region:
-        chrom, start, end = parse_region(region)
-    else:
-        chrom, start, end = None, None, None
-
-    cramfile = AlignmentFile(path, "rc", reference_filename=reference_filename)
-    cram_iter = cramfile.fetch(chrom, start, end)
-
-    if output_filename:
-        output = AlignmentFile(
-            output_filename,
-            "wc",
-            template=cramfile,
-            reference_filename=reference_filename,
-        )
-        for read in cram_iter:
-            output.write(read)
-        output.close()
-
-    return cram_iter
 
 
 def slice_genomics(
