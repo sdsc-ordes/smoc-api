@@ -22,8 +22,9 @@ from .helpers import (
     ElementType,
     set_haspart_relationship,
     UserElementType,
+    get_fileformat,
 )
-from .cram import slice_cram, slice_remote_cram
+from .cram import slice_genomics, slice_remote_genomics
 
 
 class MODO:
@@ -377,27 +378,32 @@ class MODO:
                 else:
                     continue
 
-    def stream_cram(
+    def stream_genomics(
         self,
-        cram_path: str,
+        file_path: str,
         region: Optional[str] = None,
         reference_filename: Optional[str] = None,
     ):
         """Slices both local and remote CRAM files returning an iterator."""
 
         # check requested CRAM exists in MODO
-        if Path(cram_path) not in self.list_files():
-            raise ValueError(f"{cram_path} not found in {self.path}.")
+        if Path(file_path) not in self.list_files():
+            raise ValueError(f"{file_path} not found in {self.path}.")
 
         if self.s3_endpoint:
+            if get_fileformat(file_path) in ("CRAM", "BAM"):
+                endpoint_type = "/reads/"
+            elif get_fileformat(file_path) in ("VCF", "BCF"):
+                endpoint_type = "/variants/"
+
             # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
             url = (
                 self.htsget_endpoint
-                + "/reads/"
-                + str(Path(*Path(cram_path).parts[1:]))
+                + endpoint_type  # /reads/ or /variants/
+                + str(Path(*Path(file_path).parts[1:]))
             )
             # str(Path(*Path(cram_path).parts[1:])) same as path.split("/", maxsplit=1)[1] but cross-platform
-            cram_iter = slice_remote_cram(
+            gen_iter = slice_remote_genomics(
                 url=url, region=region, reference_filename=reference_filename
             )
         else:
@@ -406,13 +412,13 @@ class MODO:
             # for the time being, we do not check the validity of the supplied reference_filename, or
             # the reference given in the CRAM header (used if refernece not supplied by user).
 
-            cram_iter = slice_cram(
-                path=cram_path,
+            gen_iter = slice_genomics(
+                path=file_path,
                 region=region,
                 reference_filename=reference_filename,
             )
 
-        return cram_iter
+        return gen_iter
 
     def save_cram(
         self,
