@@ -10,7 +10,7 @@ from linkml_runtime.loaders import (
 )
 import modo_schema.datamodel as model
 from .api import MODO
-from .cram import slice_cram
+from .cram import slice_genomics, slice_remote_genomics
 from .helpers import dict_to_instance, update_haspart_id
 
 ext2loader = {
