@@ -21,7 +21,7 @@ from .helpers import (
     bytesio_to_iterator,
     iter_to_file,
 )
-from io import BytesIO
+from io import BytesIO, StringIO
 
 
 def slice_genomics(
@@ -38,60 +38,45 @@ def slice_genomics(
         reference_name, start, end = None, None, None
 
     fileformat = get_fileformat(path)
-    if fileformat == "CRAM":
-        infile = AlignmentFile(
-            path, "rc", reference_filename=reference_filename
-        )
-    elif fileformat in ("VCF", "BCF"):
-        infile = VariantFile(path)
-    else:
-        raise ValueError(
-            "Unsupported file type. Supported files: CRAM, VCF, BCF"
-        )
+
+    infile = make_pysam_inFile(
+        path=path, fileformat=fileformat, reference_filename=reference_filename
+    )
 
     gen_iter = infile.fetch(reference_name, start, end)
 
     if output_filename:
-        out_fileformat = get_fileformat(output_filename)
-        if out_fileformat in ("CRAM", "BAM", "SAM"):
-            write_mode = (
-                "wc"
-                if out_fileformat == "CRAM"
-                else ("wb" if out_fileformat == "BAM" else "w")
-            )
-            output = AlignmentFile(
-                output_filename,
-                mode=write_mode,
-                template=infile,
-                reference_filename=reference_filename,
-            )
-        elif out_fileformat in ("VCF", "BCF"):
-            write_mode = "w" if out_fileformat == "VCF" else "wb"
-            output = VariantFile(
-                output_filename, mode=write_mode, header=infile.header
-            )
-        else:
-            raise ValueError(
-                "Unsupported output file type. Supported files: CRAM, BAM, SAM, VCF, VCF.GZ, BCF"
-            )
-
-        for read in gen_iter:
-            output.write(read)
-        output.close()
-        return None
+        iter_to_file(
+            gen_iter=gen_iter,
+            infile=infile,
+            output_filename=output_filename,
+            reference_filename=reference_filename,
+        )
 
     return gen_iter
 
 
-def slice_remote_cram(
+def slice_remote_genomics(
     url: str,
     region: Optional[str] = None,
     reference_filename: Optional[str] = None,
     output_filename: Optional[str] = None,
 ):
-    """Stream or write to a local file a slice of a remote CRAM file"""
+    """Stream or write to a local file a slice of a remote CRAM or VCF/BCF file"""
 
     url = urlparse(url)
+    in_fileformat = get_fileformat(url.path)
+    if in_fileformat not in ("CRAM", "BAM", "VCF", "BCF") or url.path.endswith(
+        ".vcf"
+    ):
+        raise ValueError(
+            "Unsupported file type. Streaming/Saving remote genomic files support remote .cram, .bam, .vcf.gz, .bcf files."
+        )
+    # path = url.path
+    url = url._replace(
+        path=re.sub("\.vcf\.\w+$", ".vcf", url.path)
+    )  # remove aditional
+    # extensions, e.g., .vcf.gz -> .vcf
     url = url._replace(path=str(Path(url.path).with_suffix("")))
 
     if region:
@@ -99,31 +84,38 @@ def slice_remote_cram(
     else:
         chrom, start, end = None, None, None
 
+    htsget_response_buffer = BytesIO()
+    htsget.get(
+        url=url.geturl(),
+        output=htsget_response_buffer,  # sys.stdout.buffer,
+        reference_name=reference_name,
+        start=start,
+        end=end,
+        data_format=in_fileformat,
+    )
+
+    htsget_response_buffer.seek(0)
+
+    # To save remote slice to a local file without converting data type
     if output_filename:
-        with open(output_filename, "wb") as output:
-            htsget.get(
-                url=url.geturl(),
-                output=output,
-                reference_name=reference_name,
-                start=start,
-                end=end,
-                data_format="cram",
+        out_fileformat = get_fileformat(output_filename)
+        if out_fileformat == in_fileformat:
+            with open(output_filename, "wb") as output:
+                for chunk in htsget_response_buffer:
+                    output.write(chunk)
+            return None
+        else:
+            raise ValueError(
+                "Saving remote files does not support file format conversion. If needed, please use pysam or samtools to convert format of saved file."
             )
-    else:
-        htsget_response_buffer = BytesIO()
-        htsget.get(
-            url=url.geturl(),
-            output=htsget_response_buffer,  # sys.stdout.buffer,
-            reference_name=reference_name,
-            start=start,
-            end=end,
-            data_format="cram",
-        )
-        htsget_response_buffer.seek(0)
-        cram__iter = bytesio_to_alignment_segments(
-            htsget_response_buffer, reference_filename
-        )
-        return cram__iter
+
+    genome__iter = bytesio_to_iterator(
+        htsget_response_buffer,
+        file_format=in_fileformat,
+        reference_filename=reference_filename,
+    )
+
+    return genome__iter
 
 
 def extract_cram_metadata(cram: AlignmentFile) -> List:
