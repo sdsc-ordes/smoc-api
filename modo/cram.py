@@ -82,7 +82,7 @@ def slice_remote_genomics(
     if region:
         reference_name, start, end = parse_region(region)
     else:
-        chrom, start, end = None, None, None
+        reference_name, start, end = None, None, None
 
     htsget_response_buffer = BytesIO()
     htsget.get(
