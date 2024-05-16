@@ -1,10 +1,12 @@
 """Common fixtures for testing"""
 
-import pytest
 import modo_schema.datamodel as model
+import pytest
 import shutil
 
+from modo.api import MODO
 from modo.io import build_modo_from_file
+from testcontainers.minio import MinioContainer
 
 
 ## A test MODO
@@ -57,4 +59,31 @@ def Sample():
         name="test_sample",
         cell_type="Leukocytes",
         taxon_id="9606",
+    )
+
+
+## testcontainers minio
+
+minio = MinioContainer()
+
+
+@pytest.fixture(scope="module")
+def setup(request):
+    minio.start()
+
+    def remove_container():
+        minio.stop()
+
+    request.addfinalizer(remove_container)
+    client = minio.get_client()
+    client.make_bucket("test")
+
+
+@pytest.fixture()
+def remote_modo(setup):
+    endpoint = minio.get_config()["endpoint"]
+    return MODO(
+        "test/ex",
+        s3_endpoint="http://" + endpoint,
+        s3_kwargs={"secret": "minioadmin", "key": "minioadmin"},
     )

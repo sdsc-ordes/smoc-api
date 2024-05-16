@@ -53,7 +53,11 @@ def parse_multiple_instances(path: Path) -> List:
 
 
 def build_modo_from_file(
-    path: Path, object_directory: Path, s3_endpoint: Optional[str] = None
+    path: Path,
+    object_directory: Path,
+    s3_endpoint: Optional[str] = None,
+    s3_kwargs: dict = {"anon": True},
+    htsget_endpoint: Optional[str] = None,
 ) -> MODO:
     """build a modo from a yaml or json file"""
     instances = parse_multiple_instances(Path(path))
@@ -75,7 +79,13 @@ def build_modo_from_file(
             f"There must be exactly 1 MODO in the input file. Found {len(modo_inst)}"
         )
     modo_dict = modo_inst[0]._as_dict
-    modo = MODO(path=object_directory, s3_endpoint=s3_endpoint, **modo_dict)
+    modo = MODO(
+        path=object_directory,
+        s3_endpoint=s3_endpoint,
+        s3_kwargs=s3_kwargs,
+        htsget_endpoint=htsget_endpoint,
+        **modo_dict,
+    )
     for instance in instances:
         if not isinstance(instance, model.MODO):
             # copy data-path into modo

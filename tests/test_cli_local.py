@@ -1,3 +1,5 @@
+"""Tests for the local use of multi-omics digital object (modo) CLI
+"""
 from typer.testing import CliRunner
 
 from modo.api import MODO

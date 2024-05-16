@@ -1,4 +1,4 @@
-"""Tests for the multi-omics digital object (modo) API
+"""Tests for the local use of multi-omics digital object (modo) API
 """
 from modo.api import MODO
 from modo.io import build_modo_from_file
