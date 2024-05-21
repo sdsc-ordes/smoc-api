@@ -15,7 +15,7 @@ def test_modo(tmp_path):
     modo = build_modo_from_file("data/ex_config.yaml", tmp_path)
     # TODO: This should be automatically copied. Remove when issue is solved!
     shutil.copyfile(
-        "data/ex/demo1.cram.crai", str(tmp_path) + "/demo1.cram.crai"
+        Path("data", "ex", "demo1.cram.crai"), tmp_path / "demo1.cram.crai"
     )
     return modo
 
