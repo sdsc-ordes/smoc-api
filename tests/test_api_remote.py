@@ -5,17 +5,18 @@ from modo.api import MODO
 from modo.io import build_modo_from_file
 
 import modo_schema.datamodel as model
-import pysam
-import re
+import pytest
 
 ## Add element
 
 
+@pytest.mark.slow
 def test_add_element(assay, remote_modo):
     remote_modo.add_element(assay)
     assert "/assay/test_assay" in remote_modo.metadata.keys()
 
 
+@pytest.mark.slow
 def test_add_data(data_entity, remote_modo):
     remote_modo.add_element(data_entity, data_file="data/ex/demo1.cram")
     assert "demo1.cram" in [fi.name for fi in remote_modo.list_files()]
@@ -24,6 +25,7 @@ def test_add_data(data_entity, remote_modo):
 ## Remove element
 
 
+@pytest.mark.slow
 def test_remove_element(sample, remote_modo):
     remote_modo.add_element(sample)
     assert "/sample/test_sample" in remote_modo.list_samples()
@@ -34,6 +36,7 @@ def test_remove_element(sample, remote_modo):
 ## Update element
 
 
+@pytest.mark.slow
 def test_update_element(sample, remote_modo):
     remote_modo.add_element(sample)
     test_sample = model.Sample(
