@@ -25,20 +25,20 @@ def test_init_modo_from_yaml(tmp_path):
 ## Add element
 
 
-def test_add_element(Assay, tmp_path):
+def test_add_element(assay, tmp_path):
     modo = MODO(tmp_path)
-    modo.add_element(Assay)
+    modo.add_element(assay)
     assert "/assay/test_assay" in modo.metadata.keys()
 
 
-def test_add_data(DataEntity, tmp_path):
+def test_add_data(data_entity, tmp_path):
     modo = MODO(tmp_path)
-    modo.add_element(DataEntity, data_file="data/ex/demo1.cram")
+    modo.add_element(data_entity, data_file="data/ex/demo1.cram")
     assert "demo1.cram" in [fi.name for fi in modo.list_files()]
 
 
-def test_add_to_parent(Sample, test_modo):
-    test_modo.add_element(Sample, part_of="/assay/assay1")
+def test_add_to_parent(sample, test_modo):
+    test_modo.add_element(sample, part_of="/assay/assay1")
     assert "sample/test_sample" in test_modo.metadata["/assay/assay1"].get(
         "has_sample"
     )

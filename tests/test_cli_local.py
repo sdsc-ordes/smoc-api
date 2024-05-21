@@ -2,6 +2,7 @@
 """
 from typer.testing import CliRunner
 
+from linkml_runtime.dumpers import json_dumper
 from modo.api import MODO
 from modo.cli import cli
 
@@ -33,8 +34,9 @@ def test_create_modo_from_yaml(tmp_path):
 ## Add element / modo add
 
 
-def test_add_element(tmp_path, assay_json):
+def test_add_element(tmp_path, assay):
     modo = MODO(tmp_path)
+    assay_json = json_dumper.dumps(assay)
     result = runner.invoke(
         cli, ["add", "-m", assay_json, str(tmp_path), "assay"]
     )
@@ -42,14 +44,14 @@ def test_add_element(tmp_path, assay_json):
     assert "/assay/test_assay" in modo.metadata.keys()
 
 
-def test_add_data(tmp_path, data_json):
+def test_add_data(tmp_path, data_entity):
     modo = MODO(tmp_path)
     result = runner.invoke(
         cli,
         [
             "add",
             "-m",
-            data_json,
+            json_dumper.dumps(data_entity),
             "-d",
             "data/ex/demo1.cram",
             str(tmp_path),
@@ -60,13 +62,13 @@ def test_add_data(tmp_path, data_json):
     assert "demo1.cram" in [fi.name for fi in modo.list_files()]
 
 
-def test_add_to_parent(tmp_path, test_modo, Sample):
+def test_add_to_parent(tmp_path, test_modo, sample):
     result = runner.invoke(
         cli,
         [
             "add",
             "-m",
-            Sample._as_json,
+            sample._as_json,
             "-p",
             "/assay/assay1",
             str(tmp_path),
