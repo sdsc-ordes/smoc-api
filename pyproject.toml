@@ -17,12 +17,12 @@ modo_schema = { git = "https://github.com/sdsc-ordes/modo-schema.git", branch = 
 typer = "^0.9.0"
 s3fs = "^2024.3.1"
 htsget = "^0.2.6"
-testcontainers = {extras = ["minio"], version = "^4.4.1"}
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.6.0"
 black = "^23.12.0"
 pytest-cov = "^4.1.0"
+testcontainers = {extras = ["minio"], version = "^4.4.1"}
 
 [tool.poetry.group.docs]
 optional = true
