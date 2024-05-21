@@ -261,16 +261,15 @@ def make_pysam_inFile(
     path: str, fileformat: str, reference_filename: Optional[str] = None
 ):
     """Create a pysam AlignmentFile of VariantFile"""
-    if fileformat in ("CRAM", "BAM"):
-        write_mode = "rc" if fileformat == "CRAM" else "wb"
+    if fileformat == "CRAM":
         pysamFile = AlignmentFile(
-            path, write_mode, reference_filename=reference_filename
+            path, "rc", reference_filename=reference_filename
         )
     elif fileformat in ("VCF", "BCF"):
         pysamFile = VariantFile(path, "rb")
     else:
         raise ValueError(
-            "Unsupported input file type. Supported files: CRAM, BAM, VCF, BCF"
+            "Unsupported input file type. Supported files: CRAM, VCF, BCF"
         )
     return pysamFile
 

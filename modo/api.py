@@ -384,15 +384,15 @@ class MODO:
         region: Optional[str] = None,
         reference_filename: Optional[str] = None,
     ):
-        """Slices both local and remote CRAM, BAM, VCF (.vcf.gz), and BCF files
-        returning an iterator."""
+        """Slices both local and remote CRAM, VCF (.vcf.gz), and BCF
+        files returning an iterator."""
 
-        # check requested CRAM exists in MODO
+        # check requested genomics file exists in MODO
         if Path(file_path) not in self.list_files():
             raise ValueError(f"{file_path} not found in {self.path}.")
 
         if self.s3_endpoint:
-            if get_fileformat(file_path) in ("CRAM", "BAM"):
+            if get_fileformat(file_path) == "CRAM":
                 endpoint_type = "/reads/"
             elif get_fileformat(file_path) in ("VCF", "BCF"):
                 endpoint_type = "/variants/"
@@ -429,15 +429,15 @@ class MODO:
         region: Optional[str] = None,
         reference_filename: Optional[str] = None,
     ):
-        """Slices the requested CRAM file, both local and remote, and writes
-        the output to local file"""
+        """Slices the requested genomics (CRAM/VCF/BCF) file, both
+        local and remote, and writes the output to local file"""
 
-        # check requested CRAM exists in MODO
+        # check requested genomics file exists in MODO
         if Path(file_path) not in self.list_files():
             raise ValueError(f"{file_path} not found in {self.path}.")
 
         if self.s3_endpoint:
-            if get_fileformat(file_path) in ("CRAM", "BAM"):
+            if get_fileformat(file_path) == "CRAM":
                 endpoint_type = "/reads/"
             elif get_fileformat(file_path) in ("VCF", "BCF"):
                 endpoint_type = "/variants/"

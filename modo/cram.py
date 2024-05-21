@@ -66,11 +66,11 @@ def slice_remote_genomics(
 
     url = urlparse(url)
     in_fileformat = get_fileformat(url.path)
-    if in_fileformat not in ("CRAM", "BAM", "VCF", "BCF") or url.path.endswith(
+    if in_fileformat not in ("CRAM", "VCF", "BCF") or url.path.endswith(
         ".vcf"
     ):
         raise ValueError(
-            "Unsupported file type. Streaming/Saving remote genomic files support remote .cram, .bam, .vcf.gz, .bcf files."
+            "Unsupported file type. Streaming/Saving remote genomic files support remote .cram, .vcf.gz, .bcf files."
         )
     # path = url.path
     url = url._replace(
