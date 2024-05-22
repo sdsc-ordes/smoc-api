@@ -5,7 +5,6 @@ from typing import Iterator, List, Optional
 from pysam import (
     AlignedSegment,
     AlignmentFile,
-    VariantFile,
     VariantRecord,
 )
 from urllib.parse import urlparse
