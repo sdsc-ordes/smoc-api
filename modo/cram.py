@@ -20,7 +20,7 @@ from .helpers import (
     bytesio_to_iterator,
     iter_to_file,
 )
-from io import BytesIO, StringIO
+from io import BytesIO
 
 
 def slice_genomics(
