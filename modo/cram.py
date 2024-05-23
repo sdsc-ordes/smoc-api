@@ -31,10 +31,8 @@ def slice_genomics(
 ) -> Optional[Iterator[AlignedSegment | VariantRecord]]:
     """Returns an iterable slice of the CRAM, VCF or BCF file,
     or saves it to a local file."""
-    if region:
-        reference_name, start, end = parse_region(region)
-    else:
-        reference_name, start, end = None, None, None
+
+    reference_name, start, end = parse_region(region)
 
     fileformat = get_fileformat(path)
 
@@ -78,10 +76,7 @@ def slice_remote_genomics(
     # extensions, e.g., .vcf.gz -> .vcf
     url = url._replace(path=str(Path(url.path).with_suffix("")))
 
-    if region:
-        reference_name, start, end = parse_region(region)
-    else:
-        reference_name, start, end = None, None, None
+    reference_name, start, end = parse_region(region)
 
     htsget_response_buffer = BytesIO()
     htsget.get(

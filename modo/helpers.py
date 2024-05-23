@@ -201,7 +201,9 @@ def is_uri(text: str):
         return False
 
 
-def parse_region(region: str) -> tuple[str, Optional[int], Optional[int]]:
+def parse_region(
+    region: Optional[str] = None,
+) -> tuple[str, Optional[int], Optional[int]]:
     """Parses an input UCSC-format region string into
     (reference_name, start, end).
 
@@ -209,28 +211,37 @@ def parse_region(region: str) -> tuple[str, Optional[int], Optional[int]]:
     --------
     >>> parse_region('chr1:10-320')
     ('chr1', 10, 320)
-    >>> parse_region('chr-1ba:32-100')
+    >>> parse_region('chr-1ba:10-320')
     ('chr-1ba', 32, 100)
+    >>> parse_region('chr1:-320')
+    ('chr1', None, 320)
+    >>> parse_region('chr1:10-')
+    ('chr1', 10, None)
     >>> parse_region('chr1:10')
     ('chr1', 10, None)
     >>> parse_region('chr1')
     ('chr1', None, None)
     >>> parse_region('*')
     ('*', None, None)
+    >>> parse_region('')
+    (None, None, None)
     """
 
-    # region = region.strip()
-    matches = re.match(r"^([^:]+)(:([0-9]+)?(-[0-9]*)?)?$", region.strip())
-    if not matches:
-        raise ValueError(
-            f"Invalid region format: {region}. Expected 'chr:start-end' (start/end optional)"
-        )
+    if not region:
+        reference_name, start, end = None, None, None
+    else:
+        matches = re.match(r"^([^:]+)(:([0-9]+)?(-[0-9]*)?)?$", region.strip())
+        if not matches:
+            raise ValueError(
+                f"Invalid region format: {region}. Expected 'chr:start-end' (start/end optional)"
+            )
 
-    reference_name, _, start, end = matches.groups()
-    if start:
-        start = int(start)
-    if end:
-        end = int(end.replace("-", ""))
+        reference_name, _, start, end = matches.groups()
+        if start:
+            start = int(start)
+        if end:
+            end = end.replace("-", "")
+            end = None if end == "" else int(end)
 
     return (reference_name, start, end)
 
