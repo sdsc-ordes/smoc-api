@@ -212,7 +212,7 @@ def parse_region(
     >>> parse_region('chr1:10-320')
     ('chr1', 10, 320)
     >>> parse_region('chr-1ba:10-320')
-    ('chr-1ba', 32, 100)
+    ('chr-1ba', 10, 320)
     >>> parse_region('chr1:-320')
     ('chr1', None, 320)
     >>> parse_region('chr1:10-')
