@@ -16,7 +16,7 @@ import htsget
 from .helpers import (
     parse_region,
     get_fileformat,
-    make_pysam_inFile,
+    file_to_pysam_object,
     bytesio_to_iterator,
     iter_to_file,
 )
@@ -36,7 +36,7 @@ def slice_genomics(
 
     fileformat = get_fileformat(path)
 
-    infile = make_pysam_inFile(
+    infile = file_to_pysam_object(
         path=path, fileformat=fileformat, reference_filename=reference_filename
     )
 
