@@ -383,9 +383,10 @@ class MODO:
         file_path: str,
         region: Optional[str] = None,
         reference_filename: Optional[str] = None,
+        output_filename: Optional[str] = None,
     ):
         """Slices both local and remote CRAM, VCF (.vcf.gz), and BCF
-        files returning an iterator."""
+        files returning an iterator or saving to local file."""
 
         # check requested genomics file exists in MODO
         if Path(file_path) not in self.list_files():
@@ -406,7 +407,10 @@ class MODO:
             )
             # str(Path(*Path(cram_path).parts[1:])) same as path.split("/", maxsplit=1)[1] but cross-platform
             gen_iter = slice_remote_genomics(
-                url=url, region=region, reference_filename=reference_filename
+                url=url,
+                region=region,
+                reference_filename=reference_filename,
+                output_filename=output_filename,
             )
         else:
             # assuming user did not change directory, filepath should be the
@@ -418,51 +422,7 @@ class MODO:
                 path=file_path,
                 region=region,
                 reference_filename=reference_filename,
+                output_filename=output_filename,
             )
 
         return gen_iter
-
-    def save_genomics(
-        self,
-        file_path: str,
-        output_filename: str,
-        region: Optional[str] = None,
-        reference_filename: Optional[str] = None,
-    ):
-        """Slices the requested genomics (CRAM/VCF/BCF) file, both
-        local and remote, and writes the output to local file"""
-
-        # check requested genomics file exists in MODO
-        if Path(file_path) not in self.list_files():
-            raise ValueError(f"{file_path} not found in {self.path}.")
-
-        if self.s3_endpoint:
-            if get_fileformat(file_path) == "CRAM":
-                endpoint_type = "/reads/"
-            elif get_fileformat(file_path) in ("VCF", "BCF"):
-                endpoint_type = "/variants/"
-            # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
-            # or               + bucket/modo/file.vcf.gz --> http://domain/htsget/variants/modo/file.vcf.gz
-            url = (
-                self.htsget_endpoint
-                + endpoint_type  # "/reads/" or "/variants/"
-                + str(Path(*Path(file_path).parts[1:]))
-            )
-            # str(Path(*Path(cram_path).parts[1:])) same as path.split("/", maxsplit=1)[1] but cross-platform
-            slice_remote_genomics(
-                url=url,
-                region=region,
-                output_filename=output_filename,
-                reference_filename=reference_filename,
-            )
-        else:
-            # assuming user did not change directory, filepath should be the
-            # relative path to the file.
-            # for the time being, we do not check the validity of the supplied reference_filename, or
-            # the reference given in the CRAM header (used if refernece not supplied by user).
-            slice_genomics(
-                path=file_path,
-                region=region,
-                output_filename=output_filename,
-                reference_filename=reference_filename,
-            )
