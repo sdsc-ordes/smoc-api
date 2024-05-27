@@ -12,6 +12,8 @@ import s3fs
 import zarr
 import re
 
+from pysam import AlignedSegment, VariantRecord
+
 from .rdf import attrs_to_graph
 from .storage import add_metadata_group, init_zarr, list_zarr_items
 from .file_utils import extract_metadata, extraction_formats
