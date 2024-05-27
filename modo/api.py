@@ -2,7 +2,7 @@ from datetime import date
 import json
 from pathlib import Path
 import shutil
-from typing import Generator, List, Optional, Union
+from typing import Generator, List, Optional, Union, Iterator
 import yaml
 
 from linkml_runtime.dumpers import json_dumper
