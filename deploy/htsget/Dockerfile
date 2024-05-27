@@ -6,7 +6,7 @@ RUN cargo install cargo-strip
 
 RUN apt-get update && apt-get install -y git
 
-RUN git clone https://github.com/umccr/htsget-rs.git .
+RUN git clone https://github.com/umccr/htsget-rs.git --branch htsget-actix-v0.6.1 .
 
 
 RUN cargo build --features s3-storage --release && cargo strip
