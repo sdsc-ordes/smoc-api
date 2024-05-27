@@ -345,4 +345,3 @@ def iter_to_file(
     for read in gen_iter:
         output.write(read)
     output.close()
-    return None

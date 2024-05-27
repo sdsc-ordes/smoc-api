@@ -58,7 +58,7 @@ def slice_remote_genomics(
     region: Optional[str] = None,
     reference_filename: Optional[str] = None,
     output_filename: Optional[str] = None,
-):
+) -> Optional[Iterator[AlignedSegment | VariantRecord]]:
     """Stream or write to a local file a slice of a remote CRAM or VCF/BCF file"""
 
     url = urlparse(url)
