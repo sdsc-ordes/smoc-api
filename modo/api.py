@@ -55,7 +55,7 @@ class MODO:
         self,
         path: Union[Path, str],
         s3_endpoint: Optional[str] = None,
-        s3_kwargs: dict = {"anon": True},
+        s3_kwargs: Optional[dict] = None,
         htsget_endpoint: Optional[str] = None,
         id: Optional[str] = None,
         name: Optional[str] = None,
@@ -71,12 +71,13 @@ class MODO:
         self.htsget_endpoint = htsget_endpoint
         self.path = Path(path)
         if s3_endpoint:
-            fs = s3fs.S3FileSystem(endpoint_url=s3_endpoint, **s3_kwargs)
+            s3_opts = s3_kwargs or {"anon": True}
+            fs = s3fs.S3FileSystem(endpoint_url=s3_endpoint, **s3_opts)
             if fs.exists(str(self.path / "data.zarr")):
-                s3_kwargs["endpoint_url"] = s3_endpoint
+                s3_opts["endpoint_url"] = s3_endpoint
                 self.archive = zarr.convenience.open(
                     f"s3://{path}/data.zarr",
-                    storage_options=s3_kwargs,
+                    storage_options=s3_opts,
                 )
                 return
         else:
