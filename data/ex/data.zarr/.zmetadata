@@ -22,7 +22,8 @@
             "@type": "Assay",
             "description": "Dummy assay for tests.",
             "has_data": [
-                "demo1"
+                "demo1",
+                "data/calls1"
             ],
             "has_sample": [
                 "sample1"
@@ -36,6 +37,22 @@
             "zarr_format": 2
         },
         "data/.zgroup": {
+            "zarr_format": 2
+        },
+        "data/calls1/.zattrs": {
+            "@type": "DataEntity",
+            "data_format": "BCF",
+            "data_path": "calls1.bcf",
+            "description": "variant calls for tests",
+            "has_reference": [
+                "/reference/reference1"
+            ],
+            "has_sample": [
+                "/sample/sample1"
+            ],
+            "name": "Calls 1"
+        },
+        "data/calls1/.zgroup": {
             "zarr_format": 2
         },
         "data/demo1/.zattrs": {
