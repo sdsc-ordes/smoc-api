@@ -5,86 +5,111 @@ from typing import Iterator, List, Optional
 from pysam import (
     AlignedSegment,
     AlignmentFile,
+    VariantRecord,
 )
 from urllib.parse import urlparse
 import modo_schema.datamodel as model
 
 import sys
+import re
 import htsget
-from .helpers import parse_region, bytesio_to_alignment_segments
+from .helpers import (
+    parse_region,
+    get_fileformat,
+    file_to_pysam_object,
+    bytesio_to_iterator,
+    iter_to_file,
+)
 from io import BytesIO
 
 
-def slice_cram(
+def slice_genomics(
     path: str,
-    region: Optional[str],
+    region: Optional[str] = None,
     reference_filename: Optional[str] = None,
     output_filename: Optional[str] = None,
-) -> Iterator[AlignedSegment]:
-    """Return an iterable slice of the CRAM file."""
-    if region:
-        chrom, start, end = parse_region(region)
-    else:
-        chrom, start, end = None, None, None
+) -> Optional[Iterator[AlignedSegment | VariantRecord]]:
+    """Returns an iterable slice of the CRAM, VCF or BCF file,
+    or saves it to a local file."""
 
-    cramfile = AlignmentFile(path, "rc", reference_filename=reference_filename)
-    cram_iter = cramfile.fetch(chrom, start, end)
+    reference_name, start, end = parse_region(region)
+
+    fileformat = get_fileformat(path)
+
+    infile = file_to_pysam_object(
+        path=path, fileformat=fileformat, reference_filename=reference_filename
+    )
+
+    gen_iter = infile.fetch(reference_name, start, end)
 
     if output_filename:
-        output = AlignmentFile(
-            output_filename,
-            "wc",
-            template=cramfile,
+        iter_to_file(
+            gen_iter=gen_iter,
+            infile=infile,
+            output_filename=output_filename,
             reference_filename=reference_filename,
         )
-        for read in cram_iter:
-            output.write(read)
-        output.close()
 
-    return cram_iter
+    return gen_iter
 
 
-def slice_remote_cram(
+def slice_remote_genomics(
     url: str,
     region: Optional[str] = None,
     reference_filename: Optional[str] = None,
     output_filename: Optional[str] = None,
-):
-    """Stream or write to a local file a slice of a remote CRAM file"""
+) -> Optional[Iterator[AlignedSegment | VariantRecord]]:
+    """Stream or write to a local file a slice of a remote CRAM or VCF/BCF file"""
 
     url = urlparse(url)
+    in_fileformat = get_fileformat(url.path)
+    if in_fileformat not in ("CRAM", "VCF", "BCF") or url.path.endswith(
+        ".vcf"
+    ):
+        raise ValueError(
+            "Unsupported file type. Streaming/Saving remote genomic files support remote .cram, .vcf.gz, .bcf files."
+        )
+    # path = url.path
+    url = url._replace(
+        path=re.sub("\.vcf\.\w+$", ".vcf", url.path)
+    )  # remove aditional
+    # extensions, e.g., .vcf.gz -> .vcf
     url = url._replace(path=str(Path(url.path).with_suffix("")))
 
-    if region:
-        reference_name, start, end = parse_region(region)
-    else:
-        chrom, start, end = None, None, None
+    reference_name, start, end = parse_region(region)
 
+    htsget_response_buffer = BytesIO()
+    htsget.get(
+        url=url.geturl(),
+        output=htsget_response_buffer,  # sys.stdout.buffer,
+        reference_name=reference_name,
+        start=start,
+        end=end,
+        data_format=in_fileformat,
+    )
+
+    htsget_response_buffer.seek(0)
+
+    # To save remote slice to a local file without converting data type
     if output_filename:
-        with open(output_filename, "wb") as output:
-            htsget.get(
-                url=url.geturl(),
-                output=output,
-                reference_name=reference_name,
-                start=start,
-                end=end,
-                data_format="cram",
+        out_fileformat = get_fileformat(output_filename)
+        if out_fileformat == in_fileformat:
+            with open(output_filename, "wb") as output:
+                for chunk in htsget_response_buffer:
+                    output.write(chunk)
+            return None
+        else:
+            raise ValueError(
+                "Saving remote files does not support file format conversion. If needed, please use pysam or samtools to convert format of saved file."
             )
-    else:
-        htsget_response_buffer = BytesIO()
-        htsget.get(
-            url=url.geturl(),
-            output=htsget_response_buffer,  # sys.stdout.buffer,
-            reference_name=reference_name,
-            start=start,
-            end=end,
-            data_format="cram",
-        )
-        htsget_response_buffer.seek(0)
-        cram__iter = bytesio_to_alignment_segments(
-            htsget_response_buffer, reference_filename
-        )
-        return cram__iter
+
+    genome__iter = bytesio_to_iterator(
+        htsget_response_buffer,
+        file_format=in_fileformat,
+        reference_filename=reference_filename,
+    )
+
+    return genome__iter
 
 
 def extract_cram_metadata(cram: AlignmentFile) -> List:

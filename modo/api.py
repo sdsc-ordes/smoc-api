@@ -2,7 +2,7 @@ from datetime import date
 import json
 from pathlib import Path
 import shutil
-from typing import Generator, List, Optional, Union
+from typing import Generator, List, Optional, Union, Iterator
 import yaml
 
 from linkml_runtime.dumpers import json_dumper
@@ -11,6 +11,8 @@ import modo_schema.datamodel as model
 import s3fs
 import zarr
 import re
+
+from pysam import AlignedSegment, VariantRecord
 
 from .rdf import attrs_to_graph
 from .storage import add_metadata_group, init_zarr, list_zarr_items
@@ -22,8 +24,9 @@ from .helpers import (
     ElementType,
     set_haspart_relationship,
     UserElementType,
+    get_fileformat,
 )
-from .cram import slice_cram, slice_remote_cram
+from .cram import slice_genomics, slice_remote_genomics
 
 
 class MODO:
@@ -377,79 +380,51 @@ class MODO:
                 else:
                     continue
 
-    def stream_cram(
+    def stream_genomics(
         self,
-        cram_path: str,
+        file_path: str,
         region: Optional[str] = None,
         reference_filename: Optional[str] = None,
-    ):
-        """Slices both local and remote CRAM files returning an iterator."""
+        output_filename: Optional[str] = None,
+    ) -> Optional[Iterator[AlignedSegment | VariantRecord]]:
+        """Slices both local and remote CRAM, VCF (.vcf.gz), and BCF
+        files returning an iterator or saving to local file."""
 
-        # check requested CRAM exists in MODO
-        if Path(cram_path) not in self.list_files():
-            raise ValueError(f"{cram_path} not found in {self.path}.")
-
-        if self.s3_endpoint:
-            # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
-            url = (
-                self.htsget_endpoint
-                + "/reads/"
-                + str(Path(*Path(cram_path).parts[1:]))
-            )
-            # str(Path(*Path(cram_path).parts[1:])) same as path.split("/", maxsplit=1)[1] but cross-platform
-            cram_iter = slice_remote_cram(
-                url=url, region=region, reference_filename=reference_filename
-            )
-        else:
-            # assuming user did not change directory, filepath should be the
-            # relative path to the file.
-            # for the time being, we do not check the validity of the supplied reference_filename, or
-            # the reference given in the CRAM header (used if refernece not supplied by user).
-
-            cram_iter = slice_cram(
-                path=cram_path,
-                region=region,
-                reference_filename=reference_filename,
-            )
-
-        return cram_iter
-
-    def save_cram(
-        self,
-        cram_path: str,
-        output_filename: str,
-        region: Optional[str] = None,
-        reference_filename: Optional[str] = None,
-    ):
-        """Slices the requested CRAM file, both local and remote, and writes
-        the output to local file"""
-
-        # check requested CRAM exists in MODO
-        if Path(cram_path) not in self.list_files():
-            raise ValueError(f"{cram_path} not found in {self.path}.")
+        # check requested genomics file exists in MODO
+        if Path(file_path) not in self.list_files():
+            raise ValueError(f"{file_path} not found in {self.path}.")
 
         if self.s3_endpoint:
+            if get_fileformat(file_path) == "CRAM":
+                endpoint_type = "/reads/"
+            elif get_fileformat(file_path) in ("VCF", "BCF"):
+                endpoint_type = "/variants/"
+
             # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
+            # or               + bucket/modo/file.vcf.gz --> http://domain/htsget/variants/modo/file.vcf.gz
             url = (
                 self.htsget_endpoint
-                + "/reads/"
-                + str(Path(*Path(cram_path).parts[1:]))
+                + endpoint_type  # /reads/ or /variants/
+                + str(Path(*Path(file_path).parts[1:]))
             )
             # str(Path(*Path(cram_path).parts[1:])) same as path.split("/", maxsplit=1)[1] but cross-platform
-            slice_remote_cram(
+            gen_iter = slice_remote_genomics(
                 url=url,
                 region=region,
-                output_filename=output_filename,
                 reference_filename=reference_filename,
+                output_filename=output_filename,
             )
         else:
             # assuming user did not change directory, filepath should be the
             # relative path to the file.
             # for the time being, we do not check the validity of the supplied reference_filename, or
             # the reference given in the CRAM header (used if refernece not supplied by user).
-            slice_cram(
-                path=cram_path,
+
+            gen_iter = slice_genomics(
+                path=file_path,
                 region=region,
-                output_filename=output_filename,
                 reference_filename=reference_filename,
+                output_filename=output_filename,
             )
+
+        return gen_iter

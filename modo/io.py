@@ -10,7 +10,6 @@ from linkml_runtime.loaders import (
 )
 import modo_schema.datamodel as model
 from .api import MODO
-from .cram import slice_cram
 from .helpers import dict_to_instance, update_haspart_id
 
 ext2loader = {
@@ -99,21 +98,3 @@ def build_modo_from_file(
             else:
                 modo.add_element(instance)
     return modo
-
-
-def slice(data: model.DataEntity, region: str) -> Any:
-    """Returns a slice of the input data for the requested region.
-
-    Parameters
-    ----------
-    data
-        A data object in any supported format.
-    region
-        The region string in UCSC format (i.e. chr:start-end).
-    """
-
-    match str(data.data_format):
-        case "CRAM":
-            return slice_cram(data.data_path, region)
-        case _:
-            raise ValueError(f"Unsupported data format: {data.data_format}")
