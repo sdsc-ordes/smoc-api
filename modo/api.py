@@ -74,10 +74,10 @@ class MODO:
             s3_opts = s3_kwargs or {"anon": True}
             fs = s3fs.S3FileSystem(endpoint_url=s3_endpoint, **s3_opts)
             if fs.exists(str(self.path / "data.zarr")):
-                s3_opts["endpoint_url"] = s3_endpoint
+                zarr_s3_opts = s3_opts | {"endpoint_url": s3_endpoint}
                 self.archive = zarr.convenience.open(
                     f"s3://{path}/data.zarr",
-                    storage_options=s3_opts,
+                    storage_options=zarr_s3_opts,
                 )
                 return
         else:
