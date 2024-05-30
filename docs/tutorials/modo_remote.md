@@ -52,10 +52,10 @@ Remotely stored `MODOs` can be intiantiated by specifiying their remote endpoint
 :::{tab-item} python
 :sync: python
 ```{code-block} python
-from modo.api import MODO
+from modos.api import MODO
 
 # Load MODO from remote storage
-modo=MODO(path= 'modo-demo/ex', s3_endpoint = 'http://localhost/s3')
+modo=MODO(path= 'modos-demo/ex', s3_endpoint = 'http://localhost/s3')
 
 # All operations can be applied as if locally
 modo.metadata
@@ -67,7 +67,7 @@ modo.metadata
 :sync: cli
 ```{code-block} console
 # Interact with remotly stored MODO
-modo show -s3 "http://localhost/s3" modo-demo/ex
+modos show -s3 "http://localhost/s3" modos-demo/ex
 # ex:
 #   '@type': MODO
 #   creation_date: '2024-02-19T00:00:00'
@@ -92,14 +92,14 @@ A `MODO` can be generated from scratch or from file in the same way as locally, 
 :::{tab-item} python
 :sync: python
 ```{code-block} python
-from modo.api import MODO
+from modos.api import MODO
 from pathlib import Path
 
 # yaml file with MODO specifications
 config_ex = Path("path/to/ex.yaml")
 
 # Create a modo remotely
-modo = build_modo_from_file(config_ex, "modo-demo/ex", s3_endpoint= "http://localhost/s3")
+modo = build_modo_from_file(config_ex, "modos-demo/ex", s3_endpoint= "http://localhost/s3")
 ```
 :::
 
@@ -107,12 +107,12 @@ modo = build_modo_from_file(config_ex, "modo-demo/ex", s3_endpoint= "http://loca
 :sync: cli
 ```{code-block} console
 # Create a modo from file remotely
-modo create -s3 "http://localhost/s3" ----from-file "path/to/ex.yaml" modo-demo/ex3
+modos create -s3 "http://localhost/s3" ----from-file "path/to/ex.yaml" modos-demo/ex3
 ```
 :::
 
 ::::
 
 :::{note}
-Similar to `MODO` creation, any other modifying functionality of the `MODO-api`, (e.g.  `modo add`, `modo remove` or `modo.add_element()`, `modo.remove_element()`)can be performed on remotely stored objects by specifying the __S3 endpoint__ and __bucket name__ as path.
+Similar to `MODO` creation, any other modifying functionality of the `modos-api`, (e.g.  `modos add`, `modos remove` or `MODO.add_element()`, `MODO.remove_element()`)can be performed on remotely stored objects by specifying the __S3 endpoint__ and __bucket name__ as path.
 :::

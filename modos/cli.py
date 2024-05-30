@@ -12,7 +12,7 @@ from typing_extensions import Annotated
 
 import click
 from linkml_runtime.loaders import json_loader
-import modo_schema.datamodel as model
+import modos_schema.datamodel as model
 import s3fs
 import typer
 import zarr

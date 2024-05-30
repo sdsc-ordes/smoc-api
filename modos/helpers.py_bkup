@@ -6,7 +6,7 @@ from typing import Any, Mapping, Optional, Iterator
 from urllib.parse import urlparse
 import zarr
 
-import modo_schema.datamodel as model
+import modos_schema.datamodel as model
 
 from .introspection import get_haspart_property, get_slot_range, load_schema
 
@@ -16,7 +16,7 @@ from pysam import (
     AlignedSegment,
     AlignmentFile,
     VariantFile,
-    VariantRecord,
+    VariantRecord
 )
 
 
@@ -201,97 +201,59 @@ def is_uri(text: str):
         return False
 
 
-def parse_region(
-    region: Optional[str] = None,
-) -> tuple[str, Optional[int], Optional[int]]:
+def parse_region(region: str) -> tuple[str, Optional[int], Optional[int]]:
     """Parses an input UCSC-format region string into
-    (reference_name, start, end).
+    (chrom, start, end).
 
     Examples
     --------
     >>> parse_region('chr1:10-320')
     ('chr1', 10, 320)
-    >>> parse_region('chr-1ba:10-320')
-    ('chr-1ba', 10, 320)
-    >>> parse_region('chr1:-320')
-    ('chr1', None, 320)
-    >>> parse_region('chr1:10-')
-    ('chr1', 10, None)
+    >>> parse_region('chr-1ba:32-100')
+    ('chr-1ba', 32, 100)
     >>> parse_region('chr1:10')
     ('chr1', 10, None)
     >>> parse_region('chr1')
     ('chr1', None, None)
     >>> parse_region('*')
     ('*', None, None)
-    >>> parse_region('')
-    (None, None, None)
     """
 
-    if not region:
-        reference_name, start, end = None, None, None
-    else:
-        matches = re.match(r"^([^:]+)(:([0-9]+)?(-[0-9]*)?)?$", region.strip())
-        if not matches:
-            raise ValueError(
-                f"Invalid region format: {region}. Expected 'chr:start-end' (start/end optional)"
-            )
-
-        reference_name, _, start, end = matches.groups()
-        if start:
-            start = int(start)
-        if end:
-            end = end.replace("-", "")
-            end = None if end == "" else int(end)
-
-    return (reference_name, start, end)
-
-
-def get_fileformat(path: str) -> Optional[str]:
-    """Return the file format"""
-    pattern = re.compile(r"\S+\.vcf(\.\w+)?")
-    if path.endswith(("fasta", "fa")):
-        file_format = "FASTA"
-    elif path.endswith(("fastq", "fq")):
-        file_format = "FASTQ"
-    elif path.endswith(".cram"):
-        file_format = "CRAM"
-    elif path.endswith(".bam"):
-        file_format = "BAM"
-    elif path.endswith(".sam"):
-        file_format = "SAM"
-    elif pattern.match(path):  # .vcf/.vcf.gz (or other compression)
-        file_format = "VCF"
-    elif path.endswith(".bcf"):
-        file_format = "BCF"
-    else:
-        file_format = None
-    return file_format
-
-
-def file_to_pysam_object(
-    path: str, fileformat: str, reference_filename: Optional[str] = None
-):
-    """Create a pysam AlignmentFile of VariantFile"""
-    if fileformat == "CRAM":
-        pysam_file = AlignmentFile(
-            path, "rc", reference_filename=reference_filename
-        )
-    elif fileformat in ("VCF", "BCF"):
-        pysam_file = VariantFile(path, "rb")
-    else:
+    # region = region.strip()
+    matches = re.match(r"^([^:]+)(:([0-9]+)?(-[0-9]*)?)?$", region.strip())
+    if not matches:
         raise ValueError(
-            "Unsupported input file type. Supported files: CRAM, VCF, BCF"
+            f"Invalid region format: {region}. Expected 'chr:start-end' (start/end optional)"
         )
-    return pysam_file
+
+    chrom, _, start, end = matches.groups()
+    if start:
+        start = int(start)
+    if end:
+        end = int(end.replace("-", ""))
+
+    return (chrom, start, end)
+
+
+def file_format(path: str) -> Optional[str]:
+    pattern = re.compile(r".+\.vcf(\.\w+)?")
+    if str(path).endswith(".cram"):
+        fileformat = "CRAM"
+    elif pattern.match(str(path)): # .vcf/.vcf.gz
+        if str(path).endswith(".vcf"):
+            fileformat = "VCF"
+        else:
+            fileformat = "VCF compressed"
+    elif str(path).endswith(".bcf"):
+        fileformat = "BCF"
+    else:
+        fileformat = None
+    return fileformat
 
 
 def bytesio_to_iterator(
-    bytesio_buffer: BytesIO,
-    file_format: str,
-    reference_filename: Optional[str] = None,
-) -> Iterator[AlignedSegment | VariantRecord]:
-    """Takes a BytesIO buffer and returns a pysam
-    AlignedSegment or VariantRecord iterator"""
+    bytesio_buffer: BytesIO, fileformat: str, reference_filename: Optional[str]=None
+) -> Iterator[AlignedSegment|VariantRecord]:
     # Create a temporary file to write the bytesio data
     with tempfile.NamedTemporaryFile() as temp_file:
         # Write the contents of the BytesIO buffer to the temporary file
@@ -301,47 +263,12 @@ def bytesio_to_iterator(
         temp_file.seek(0)
 
         # Open the temporary file as a pysam.AlignmentFile/VarianFile object
-        pysam_file = file_to_pysam_object(
-            path=temp_file.name,
-            fileformat=file_format,
-            reference_filename=reference_filename,
-        )
-
-        with pysam_file as in_file:
+        if fileformat == "CRAM":
+            pysamFile = AlignmentFile(temp_file.name, "rc", reference_filename=reference_filename)
+        elif fileformat in ("VCF", "VCF compressed", "BCF"):
+            write_mode = r if fileformat=="VCF" else "rb"
+            pysamFile = VariantFile(temp_file.name, "r")
+        with pysamFile as in_file:
             # Iterate over the alignments in the file
             for line in in_file:
                 yield line
-
-
-def iter_to_file(
-    gen_iter: Iterator[AlignedSegment | VariantRecord],
-    infile,  # [AlignmentFile | VariantFile]
-    output_filename: str,
-    reference_filename: Optional[str] = None,
-):
-    out_fileformat = get_fileformat(output_filename)
-    if out_fileformat in ("CRAM", "BAM", "SAM"):
-        write_mode = (
-            "wc"
-            if out_fileformat == "CRAM"
-            else ("wb" if out_fileformat == "BAM" else "w")
-        )
-        output = AlignmentFile(
-            output_filename,
-            mode=write_mode,
-            template=infile,
-            reference_filename=reference_filename,
-        )
-    elif out_fileformat in ("VCF", "BCF"):
-        write_mode = "w" if out_fileformat == "VCF" else "wb"
-        output = VariantFile(
-            output_filename, mode=write_mode, header=infile.header
-        )
-    else:
-        raise ValueError(
-            "Unsupported output file type. Supported files: .cram, .bam, .sam, .vcf, .vcf.gz, .bcf."
-        )
-
-    for read in gen_iter:
-        output.write(read)
-    output.close()

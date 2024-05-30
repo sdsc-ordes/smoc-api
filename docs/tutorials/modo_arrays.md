@@ -70,7 +70,7 @@ Next, an element with the metadata describing the array can be added to the `MOD
 :sync: python
 ```{code-block} python
 from modo.api import MODO
-import modo_schema.datamodel as model
+import modos_schema.datamodel as model
 
 # load modo - example at "data/ex"
 modo= MODO("data/ex")

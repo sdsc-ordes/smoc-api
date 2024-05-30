@@ -1,19 +1,19 @@
 
 :::{image} img/modo1.png
    :width: 200
-   :alt: modo logo
+   :alt: modos logo
 :::
 
 
-# Welcome to modo-api's documentation!
+# Welcome to modos-api's documentation!
 
-modo-api (__Multi-Omics Digital Object__) is a python library and command line tool to process, store and serve multi-omics data together with their metadata.
+modos-api (__Multi-Omics Digital Object System__) is a python library and command line tool to process, store and serve multi-omics data together with their metadata.
 It allows remote storage and access using <a href="https://github.com/zarr-developers/zarr-python" target="_blank">zarr</a>'s S3 compatibility and integrates <a href="https://github.com/ga4gh/htsget" target="_blank">htsget</a> to stream and access genomics data.
 
 ::::{grid} 3
 
 :::{grid-item-card} {octicon}`rocket;2em`  Quick start
-A user guide to get started and try modo-api
+A user guide to get started and try modos-api
 
 :::{button-ref} intro/quickstart
 :ref-type: myst
@@ -70,7 +70,7 @@ Check the CLI!
 :::
 
 :::{grid-item-card} {octicon}`book;2em` Background
-Read more about __multiomics__ data and MODO's features and structure!
+Read more about __multiomics__ data and MODOS's features and structure!
 
 :::{button-ref} intro/background
 :ref-type: myst
@@ -78,15 +78,15 @@ Read more about __multiomics__ data and MODO's features and structure!
 :color: dark
 :click-parent:
 
-Learn more about MODO!
+Learn more about MODOS!
 :::
 
 :::
 
-:::{grid-item-card} {octicon}`beaker;2em` Modo-schema
-Check our data model for advanced and custom usage of modo-api.
+:::{grid-item-card} {octicon}`beaker;2em` Modos-schema
+Check our data model for advanced and custom usage of modos-api.
 
-:::{button-link} https://sdsc-ordes.github.io/modo-schema/
+:::{button-link} https://sdsc-ordes.github.io/modos-schema/
 :ref-type: myst
 :expand:
 :color: dark

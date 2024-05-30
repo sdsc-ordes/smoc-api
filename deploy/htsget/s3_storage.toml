@@ -16,6 +16,6 @@ substitution_string = "$0"
 #substitution_string = '$key'
 
 [resolvers.storage]
-bucket = 'modo-demo'
+bucket = 'modos-demo'
 endpoint = "http://172.23.0.2:9000"
 #endpoint = "http://minio:9000"

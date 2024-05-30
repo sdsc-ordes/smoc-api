@@ -6,12 +6,13 @@ The role of this server is to provide a list of
 available modos, as well as their metadata.
 
 """
+
 import difflib
 import os
 import s3fs
 
 from fastapi import FastAPI
-from modo.api import MODO
+from modos.api import MODO
 
 
 S3_LOCAL_URL = os.environ["S3_LOCAL_URL"]

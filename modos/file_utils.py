@@ -1,7 +1,7 @@
 """Utilities to manage data files associated with model instances"""
 
 from pysam import AlignmentFile
-from modo_schema.datamodel import DataEntity
+from modos_schema.datamodel import DataEntity
 from typing import List
 from pathlib import Path
 

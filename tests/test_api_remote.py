@@ -1,10 +1,10 @@
 """Tests for the remote use of multi-omics digital object (modo) API
 """
 
-from modo.api import MODO
-from modo.io import build_modo_from_file
+from modos.api import MODO
+from modos.io import build_modo_from_file
 
-import modo_schema.datamodel as model
+import modos_schema.datamodel as model
 import pytest
 
 ## Add element

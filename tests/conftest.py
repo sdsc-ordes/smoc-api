@@ -1,11 +1,11 @@
 """Common fixtures for testing"""
 
-import modo_schema.datamodel as model
+import modos_schema.datamodel as model
 import pytest
 import shutil
 
-from modo.api import MODO
-from modo.io import build_modo_from_file
+from modos.api import MODO
+from modos.io import build_modo_from_file
 from pathlib import Path
 from testcontainers.minio import MinioContainer
 

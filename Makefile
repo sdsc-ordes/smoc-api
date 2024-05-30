@@ -1,5 +1,5 @@
 REGISTRY="ghcr.io/sdsc-ordes"
-IMAGE_NAME="modo-api"
+IMAGE_NAME="modos-api"
 VERSION :=$(shell grep -E '^version += +' pyproject.toml | sed -E 's/.*= +//')
 
 .PHONY: install
@@ -23,7 +23,7 @@ doc: ## Build sphinx documentation website locally
 	@poetry run sphinx-build docs/ docs/_build
 
 .PHONY: docker-build
-docker-build: ## Build the modo-api client Docker image
+docker-build: ## Build the modos-api client Docker image
 	@echo "🐋 Building docker image"
 	@docker build \
 		--build-arg="VERSION_BUILD=$(VERSION)" \

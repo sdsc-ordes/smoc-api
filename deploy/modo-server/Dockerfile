@@ -10,6 +10,6 @@ RUN pip install \
   "uvicorn ~= 0.27.0.post1" \
   "s3fs == 2024.2.0"
 
-USER modo_user
+USER modos_user
 
 CMD ["uvicorn", "server:app", "--reload"]

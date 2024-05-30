@@ -1600,7 +1600,7 @@ typing-extensions = "*"
 urllib3 = "*"
 
 [[package]]
-name = "modo-schema"
+name = "modos-schema"
 version = "0.1.0"
 description = "Metadata schema for the SMOC Multi-Omics Digital Object"
 optional = false
@@ -1616,7 +1616,7 @@ docs = []
 
 [package.source]
 type = "git"
-url = "https://github.com/sdsc-ordes/modo-schema.git"
+url = "https://github.com/sdsc-ordes/modos-schema.git"
 reference = "main"
 resolved_reference = "c484ff135255e1f10985df03d2066bd3cc156d7a"
 

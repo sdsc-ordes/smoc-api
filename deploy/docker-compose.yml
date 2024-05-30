@@ -5,7 +5,7 @@ volumes:
     driver: local
 
 networks:
-  modo-network:
+  modos-network:
     external: false
     ipam:
       config:
@@ -25,11 +25,11 @@ services:
       - S3_LOCAL_URL=${S3_lOCAL_URL:-http://minio:9000}
       - HTSGET_PUBLIC_URL=${HTSGET_PUBLIC_URL:-http://localhost/htsget}
       - HTSGET_LOCAL_URL=${HTSGET_LOCAL_URL:-http://htsget:8080}
-      - MODO_LOCAL_URL=${MODO_LOCAL_URL:-http://modo-server:8000}
+      - MODOS_LOCAL_URL=${MODOS_LOCAL_URL:-http://modos-server:8000}
     ports:
       - "80:80"
     networks:
-      modo-network:
+      modos-network:
         ipv4_address: 172.23.0.5
 
   minio:
@@ -41,14 +41,14 @@ services:
     volumes:
       - minio-data:/bitnami/minio/data
     networks:
-      modo-network:
+      modos-network:
         ipv4_address: 172.23.0.2
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minio}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-miniosecret}
       - MINIO_SERVER_ACCESS_KEY=${MINIO_SERVER_ACCESS_KEY:-user}
       - MINIO_SERVER_SECRET_KEY=${MINIO_SERVER_SECRET_KEY:-pass}
-      - MINIO_DEFAULT_BUCKETS=${MINIO_DEFAULT_BUCKET:-modo-demo:public}
+      - MINIO_DEFAULT_BUCKETS=${MINIO_DEFAULT_BUCKET:-modos-demo:public}
       - CDK_DEFAULT_REGION='us-west-1'
 
 
@@ -62,7 +62,7 @@ services:
       - "8080" # ticket server
       - "8081" # data block server
     networks:
-      modo-network:
+      modos-network:
         ipv4_address: 172.23.0.3
     environment:
       - S3_LOCAL_URL=${S3_LOCAL_URL:-http://172.23.0.2:9000}
@@ -72,16 +72,16 @@ services:
     command: htsget-actix --config s3_storage.toml
 
 
-  modo-server:
-    build: ./modo-server
+  modos-server:
+    build: ./modos-server
     expose:
       - "8000"
     networks:
-      modo-network:
+      modos-network:
         ipv4_address: 172.23.0.4
     environment:
       - S3_LOCAL_URL=${S3_LOCAL_URL:-http://minio:9000}
       - S3_PUBLIC_URL=${S3_PUBLIC_URL:-http://localhost/s3}
       - HTSGET_LOCAL_URL=${HTSGET_LOCAL_URL:-http://htsget:8080}
-      - S3_BUCKET=${S3_BUCKET:-modo-demo}
+      - S3_BUCKET=${S3_BUCKET:-modos-demo}
     command: uvicorn --host 0.0.0.0 --port 8000 --reload server:app

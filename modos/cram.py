@@ -1,4 +1,5 @@
 """Utilities to interact with genomic intervals in CRAM files."""
+
 from pathlib import Path
 from typing import Iterator, List, Optional
 
@@ -8,7 +9,7 @@ from pysam import (
     VariantRecord,
 )
 from urllib.parse import urlparse
-import modo_schema.datamodel as model
+import modos_schema.datamodel as model
 
 import sys
 import re

@@ -1,7 +1,7 @@
 # Create and modify MODO
 
 A `MODO` is a digital object to store, share and access omics data (genomics, transcriptomics, proteomics and metabolomics) and their metadata.
-Each `MODO` consists of a unique id, a creation and an update timestamp and some further optional metadata. Elements such as __data entities__, __samples__, __assays__ and __reference genomes__ can be linked and added to a `MODO`. The full data model can be found at <a href="https://sdsc-ordes.github.io/modo-schema/" target="_blank">modo-schema</a>.
+Each `MODO` consists of a unique id, a creation and an update timestamp and some further optional metadata. Elements such as __data entities__, __samples__, __assays__ and __reference genomes__ can be linked and added to a `MODO`. The full data model can be found at <a href="https://sdsc-ordes.github.io/modos-schema/" target="_blank">modos-schema</a>.
 
 (scratch)=
 ## Generate a MODO from scratch
@@ -26,7 +26,7 @@ modo
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modo create data/ex
+modos create data/ex
 ```
 :::
 
@@ -51,7 +51,7 @@ There are 4 different element types, that can be added:
 - data
 - reference
 
-An element of the type data can be a <a href="https://sdsc-ordes.github.io/modo-schema/DataEntity/" target="_blank">DataEntity</a> or further spefied as an <a href="https://sdsc-ordes.github.io/modo-schema/AlignmentSet/" target="_blank">AlignmentSet</a>, an <a href="https://sdsc-ordes.github.io/modo-schema/Array/" target="_blank">Array</a>, a <a href="https://sdsc-ordes.github.io/modo-schema/VariantSet/" target="_blank">VariantSet</a>.
+An element of the type data can be a <a href="https://sdsc-ordes.github.io/modos-schema/DataEntity/" target="_blank">DataEntity</a> or further spefied as an <a href="https://sdsc-ordes.github.io/modos-schema/AlignmentSet/" target="_blank">AlignmentSet</a>, an <a href="https://sdsc-ordes.github.io/modos-schema/Array/" target="_blank">Array</a>, a <a href="https://sdsc-ordes.github.io/modos-schema/VariantSet/" target="_blank">VariantSet</a>.
 
 
 ::::{tab-set}
@@ -60,7 +60,7 @@ An element of the type data can be a <a href="https://sdsc-ordes.github.io/modo-
 :sync: python
 ```{code-block} python
 from modo.api import MODO
-import modo_schema.datamodel as model
+import modos_schema.datamodel as model
 
 # Load modo (see above)
 modo = MODO(path = "data/ex")
@@ -76,7 +76,7 @@ modo.add_element(element = data, data_file="path/to/cram_file.cram")
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modo add --data-file path/to/cram_file.cram data/ex data
+modos add --data-file path/to/cram_file.cram data/ex data
 ```
 :::
 
@@ -134,7 +134,7 @@ Alternatively, a MODO and all associated elements can be specified in a `yaml-fi
   sex: Male
 ```
 
-All valid element types, their fields and potential links can be found in the <a href="https://sdsc-ordes.github.io/modo-schema/" target="_blank">modo-schema</a>.
+All valid element types, their fields and potential links can be found in the <a href="https://sdsc-ordes.github.io/modos-schema/" target="_blank">modos-schema</a>.
 
 Using this `example.yaml` a `MODO` and all specified associated elements can be generated in one command:
 
@@ -143,7 +143,7 @@ Using this `example.yaml` a `MODO` and all specified associated elements can be 
 :::{tab-item} python
 :sync: python
 ```{code-block} python
-from modo.io import build_modo_from_file
+from modos.io import build_modo_from_file
 modo = build_modo_from_file(path = "path/to/example.yaml", object_directory = "data/ex")
 ```
 :::
@@ -151,7 +151,7 @@ modo = build_modo_from_file(path = "path/to/example.yaml", object_directory = "d
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modo create --from-file "path/to/example.yaml" data/ex
+modos create --from-file "path/to/example.yaml" data/ex
 ```
 :::
 
@@ -176,7 +176,7 @@ modo.remove_element("/data/genomics1")
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modo remove data/ex /data/genomics
+modos remove data/ex /data/genomics
 ```
 :::
 
@@ -185,7 +185,7 @@ modo remove data/ex /data/genomics
 To update an existing element a new entity of the same type can be provided:
 
 ```{code-block} python
-import modo_schema.datamodel as model
+import modos_schema.datamodel as model
 
 # Generate the data element from above with a change in name
 # Fields that are not changed will be kept

@@ -3,6 +3,7 @@
 This module provides utilities for accessing the schema structure
 and for converting instances to different representations.
 """
+
 from functools import lru_cache, reduce
 from pathlib import Path
 from typing import Any, Optional
@@ -12,9 +13,9 @@ from linkml_runtime.utils.schemaview import SchemaView
 from rdflib import Graph
 from rdflib.term import URIRef
 
-import modo_schema.schema as schema
+import modos_schema.schema as schema
 
-SCHEMA_PATH = Path(schema.__path__[0]) / "modo_schema.yaml"
+SCHEMA_PATH = Path(schema.__path__[0]) / "modos_schema.yaml"
 
 
 @lru_cache(1)

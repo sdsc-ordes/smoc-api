@@ -1,6 +1,6 @@
-# MODO-API
+# modos-api
 
-Initial API system for using and serving Multi-Omics Digital Objects (MODO).
+API system for using and serving Multi-Omics Digital Objects (MODOs).
 
 ## Context
 
@@ -17,22 +17,22 @@ The digital object is composed of a folder with:
 * Genomic data files (CRAM, FASTA)
 * A zarr archive for metadata and array-based database
 
-The metadata links the different files using the [modo-schema](https://sdsc-ordes.github.io/modo-schema).
+The metadata links the different files using the [modos-schema](https://sdsc-ordes.github.io/modos-schema).
 
 ## Installation
 
 The development version of the library can be installed from github using pip:
 
 ```sh
-pip install git+https://github.com/sdsc-ordes/modo-api.git@main#egg=modo
+pip install git+https://github.com/sdsc-ordes/modos-api.git@main
 ```
 
 ## Usage
 
-The user facing API is in `modo.api`. It allows to interact with existing digital objects:
+The user facing API is in `modos.api`. It allows to interact with existing digital objects:
 
 ```py
-from modo.api import MODO
+from modos.api import MODO
 
 ex = MODO('./example-digital-object')
 ex.list_files()
@@ -45,7 +45,7 @@ ex.list_samples()
 The development environment can be set up as follows:
 
 ```sh
-git clone https://github.com/sdsc-ordes/modo-api && cd modo-api
+git clone https://github.com/sdsc-ordes/modos-api && cd modos-api
 make install
 ```
 

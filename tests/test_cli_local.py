@@ -1,14 +1,15 @@
 """Tests for the local use of multi-omics digital object (modo) CLI
 """
+
 from typer.testing import CliRunner
 
 from linkml_runtime.dumpers import json_dumper
-from modo.api import MODO
-from modo.cli import cli
+from modos.api import MODO
+from modos.cli import cli
 
 runner = CliRunner()
 
-## Initialize modo / modo create
+## Initialize modo / modos create
 
 
 def test_create_modo(tmp_path):
@@ -31,7 +32,7 @@ def test_create_modo_from_yaml(tmp_path):
     assert result.exit_code == 0
 
 
-## Add element / modo add
+## Add element / modos add
 
 
 def test_add_element(tmp_path, assay):

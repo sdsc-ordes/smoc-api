@@ -8,7 +8,7 @@ from linkml_runtime.loaders import (
     csv_loader,
     rdf_loader,
 )
-import modo_schema.datamodel as model
+import modos_schema.datamodel as model
 from .api import MODO
 from .helpers import dict_to_instance, update_haspart_id
 

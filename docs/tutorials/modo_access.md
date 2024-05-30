@@ -26,7 +26,7 @@ modo.show_contents()
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modo show "data/ex"
+modos show "data/ex"
 ```
 :::
 
@@ -55,7 +55,7 @@ modo.list_arrays()
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modo show --zarr "data/ex"
+modos show --zarr "data/ex"
 #/
 # ├── assay
 # │   └── assay1
@@ -89,7 +89,7 @@ All files part of a `MODO` can be listed:
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modo show --files "data/ex"
+modos show --files "data/ex"
 # data/ex/reference1.fa
 # data/ex/demo1.cram
 ```
@@ -116,10 +116,10 @@ modo.knowledge_graph(uri_prefix="http://demo-data")
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modo publish --base-uri "http://demo-data" "data/ex"
+modos publish --base-uri "http://demo-data" "data/ex"
 # @prefix EDAM: <http://edamontology.org/> .
 # @prefix NCIT: <http://purl.obolibrary.org/obo/NCIT_> .
-# @prefix modos: <https://w3id.org/sdsc-ordes/modo-schema/> .
+# @prefix modos: <https://w3id.org/sdsc-ordes/modos-schema/> .
 # @prefix schema1: <http://schema.org/> .
 # @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 #
