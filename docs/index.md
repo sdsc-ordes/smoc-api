@@ -1,5 +1,5 @@
 
-:::{image} img/modo1.png
+:::{image} img/modos.png
    :width: 200
    :alt: modos logo
 :::
