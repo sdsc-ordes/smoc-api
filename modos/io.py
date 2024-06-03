@@ -55,7 +55,7 @@ def build_modo_from_file(
     path: Path,
     object_directory: Path,
     s3_endpoint: Optional[str] = None,
-    s3_kwargs: dict = {"anon": True},
+    s3_kwargs: Optional[dict] = None,
     htsget_endpoint: Optional[str] = None,
 ) -> MODO:
     """build a modo from a yaml or json file"""
@@ -81,7 +81,7 @@ def build_modo_from_file(
     modo = MODO(
         path=object_directory,
         s3_endpoint=s3_endpoint,
-        s3_kwargs=s3_kwargs,
+        s3_kwargs=s3_kwargs or {"anon": True},
         htsget_endpoint=htsget_endpoint,
         **modo_dict,
     )

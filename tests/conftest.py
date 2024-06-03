@@ -91,13 +91,15 @@ def setup(request):
     request.addfinalizer(remove_container)
     client = minio.get_client()
     client.make_bucket("test")
+    yield {"minio": minio}
 
 
 @pytest.fixture()
 def remote_modo(setup):
-    endpoint = minio.get_config()["endpoint"]
+    minio_endpoint = setup["minio"].get_config()["endpoint"]
+    minio_creds = {"secret": "minioadmin", "key": "minioadmin"}
     return MODO(
         "test/ex",
-        s3_endpoint="http://" + endpoint,
-        s3_kwargs={"secret": "minioadmin", "key": "minioadmin"},
+        s3_endpoint=f"http://{minio_endpoint}",
+        s3_kwargs=minio_creds,
     )

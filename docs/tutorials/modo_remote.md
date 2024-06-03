@@ -28,7 +28,7 @@ remo.get_metadata_from_remote("http://localhost")
 remo.get_metadata_from_remote("http://localhost", modo_id = "ex")
 ```
 
-## Find a specific MODO ad get it's S3 path
+## Find a specific MODO and get it's S3 path
 There are different options to query a specific `MODO` and the __bucket name__ to load it from - fuzzy search or exact string matching:
 
 ```{code-block} python
