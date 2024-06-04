@@ -1,4 +1,4 @@
-# Create and modify MODO
+# Create and modify a MODO
 
 A `MODO` is a digital object to store, share and access omics data (genomics, transcriptomics, proteomics and metabolomics) and their metadata.
 Each `MODO` consists of a unique id, a creation and an update timestamp and some further optional metadata. Elements such as __data entities__, __samples__, __assays__ and __reference genomes__ can be linked and added to a `MODO`. The full data model can be found at <a href="https://sdsc-ordes.github.io/modos-schema/" target="_blank">modos-schema</a>.
@@ -16,10 +16,10 @@ To create a new `MODO` you only need to specify the `path` where you want to gen
 :::{tab-item} python
 :sync: python
 ```{code-block} python
-from modo.api import MODO
+from modos.api import MODO
 modo = MODO(path = "data/ex")
 modo
-# <modo.api.MODO object at 0x7df3131cb670>
+# <modos.api.MODO object at 0x7df3131cb670>
 ```
 :::
 
@@ -59,7 +59,7 @@ An element of the type data can be a <a href="https://sdsc-ordes.github.io/modos
 :::{tab-item} python
 :sync: python
 ```{code-block} python
-from modo.api import MODO
+from modos.api import MODO
 import modos_schema.datamodel as model
 
 # Load modo (see above)

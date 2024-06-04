@@ -1,4 +1,4 @@
-# Handling data arrays with MODO
+# Handling data arrays with MODOS
 
 Any count-like data, e.g protein abundances, RNA counts, metabolomic measurements, etc. can be stored as arrays in the `MODO`.
 The underlying <a href="https://github.com/zarr-developers/zarr-python" target="_blank">zarr</a> supports array creation as well as an interface to NumPy arrays.
@@ -60,7 +60,7 @@ It is important to store them separately, if they contain important information.
 Skip this section, if you already have your data in a NumPy array.
 :::
 
-## Add array element to MODO
+## Add array element to a MODO
 
 Next, an element with the metadata describing the array can be added to the `MODO`:
 
@@ -69,7 +69,7 @@ Next, an element with the metadata describing the array can be added to the `MOD
 :::{tab-item} python
 :sync: python
 ```{code-block} python
-from modo.api import MODO
+from modos.api import MODO
 import modos_schema.datamodel as model
 
 # load modo - example at "data/ex"
@@ -96,11 +96,11 @@ modo.list_arrays()
 ::::
 
 :::{note}
-Skip this step, if you want to add the count data to an already existing element in `MODO`.
+Skip this step, if you want to add the count data to an already existing element in the `MODO`.
 A helper function to facilitate adding the metadata element and numpy array in one step will also be added in future releases.
 :::
 
-## Add array to MODO
+## Add array to a MODO
 Finally all arrays can be added to the modo element:
 
 ::::{tab-set}

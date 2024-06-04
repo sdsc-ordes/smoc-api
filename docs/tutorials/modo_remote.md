@@ -1,30 +1,30 @@
 # Working with remote objects
 
-Remote storage can be key to share and collaborate on multiomics data. `MODO` integrates with S3 object storage and <a href="https://academic.oup.com/bioinformatics/article/35/1/119/5040320" target="_blank">htsget</a> to allow remote storage, access and real-time secure streaming of genomic data.
-Most of the `MODO-api`'s functionalities work with remotely stored objects in the same way as with local objects. The user only as to specify the `s3_endpoint` of the remote object store.
+Remote storage can be key to share and collaborate on multiomics data. `MODOS` integrates with S3 object storage and <a href="https://academic.oup.com/bioinformatics/article/35/1/119/5040320" target="_blank">htsget</a> to allow remote storage, access and real-time secure streaming of genomic data.
+Most of the `MODOS-api`'s functionalities work with remotely stored objects in the same way as with local objects. The user only as to specify the `s3_endpoint` of the remote object store.
 
 ## List remotely available MODO's
 Listing all available `MODOs` at a specific S3 endpoint (in this tutorial we will use http://localhost as example) will show `MODOs` in all buckets at that endpoint:
 
 
 ```{code-block} python
-import modo.remote as remo
+import modos.remote as remo
 
 # Show all remote modos
 remo.list_remote_items("http://localhost")
-# ['modo-demo/GIAB', 'modo-demo/ex']
+# ['modos-demo/GIAB', 'modos-demo/ex']
 ```
 
 ## Show metadata of a remote MODO
 For all or a specific `MODO` metadata can directly be displayed:
 
 ```{code-block} python
-import modo.remote as remo
+import modos.remote as remo
 
-# Get metadata of all modos at endpoint "http://localhost"
+# Get metadata of all MODOs at endpoint "http://localhost"
 remo.get_metadata_from_remote("http://localhost")
 
-# Get metadata of modo with id ex
+# Get metadata of MODO with id ex
 remo.get_metadata_from_remote("http://localhost", modo_id = "ex")
 ```
 
@@ -32,11 +32,11 @@ remo.get_metadata_from_remote("http://localhost", modo_id = "ex")
 There are different options to query a specific `MODO` and the __bucket name__ to load it from - fuzzy search or exact string matching:
 
 ```{code-block} python
-import modo.remote as remo
+import modos.remote as remo
 
 # Query all MODOs with sequence similar to "ex"
 remo.get_s3_path("http://localhost", query="ex")
-# [{'http://localhost/s3/modo-demo/ex': {'s3_endpoint': 'http://localhost/s3', 'modo_path': 'modo-demo/ex'}}]
+# [{'http://localhost/s3/modos-demo/ex': {'s3_endpoint': 'http://localhost/s3', 'modo_path': 'modos-demo/ex'}}]
 
 # Query all MODOs exactly matching "ex"
 remo.get_s3_path("http://localhost", query="ex", exact_match = True)
