@@ -1,4 +1,4 @@
-FROM ghcr.io/sdsc-ordes/modo-api:latest
+FROM ghcr.io/sdsc-ordes/modos-api:latest
 
 WORKDIR /app
 COPY ./server.py /app
