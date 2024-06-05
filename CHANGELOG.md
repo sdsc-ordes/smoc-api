@@ -1,3 +1,3 @@
 # Release notes
 
-Notable changes introduced in MODO-api releases are documented in this file
+Notable changes introduced in modos-api releases are documented in this file

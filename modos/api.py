@@ -7,7 +7,7 @@ import yaml
 
 from linkml_runtime.dumpers import json_dumper
 import rdflib
-import modo_schema.datamodel as model
+import modos_schema.datamodel as model
 import s3fs
 import zarr
 import re
@@ -227,10 +227,12 @@ class MODO:
 
     def add_element(
         self,
-        element: model.DataEntity
-        | model.Sample
-        | model.Assay
-        | model.ReferenceGenome,
+        element: (
+            model.DataEntity
+            | model.Sample
+            | model.Assay
+            | model.ReferenceGenome
+        ),
         data_file: Optional[Path] = None,
         part_of: Optional[str] = None,
     ):
@@ -283,11 +285,13 @@ class MODO:
 
     def _add_any_element(
         self,
-        element: model.DataEntity
-        | model.Sample
-        | model.Assay
-        | model.ReferenceSequence
-        | model.ReferenceGenome,
+        element: (
+            model.DataEntity
+            | model.Sample
+            | model.Assay
+            | model.ReferenceSequence
+            | model.ReferenceGenome
+        ),
         data_file: Optional[Path] = None,
         part_of: Optional[str] = None,
     ):

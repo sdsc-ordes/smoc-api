@@ -12,7 +12,7 @@ There are multiple ways to use a `MODO` and interact with it's elements.
 :::{tab-item} python
 :sync: python
 ```{code-block} python
-from modo.api import MODO
+from modos.api import MODO
 
 # Create modo object (see Create and modify MODO)
 modo = MODO(path = "data/ex")
@@ -26,7 +26,7 @@ modo.show_contents()
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modo show "data/ex"
+modos show "data/ex"
 ```
 :::
 
@@ -55,7 +55,7 @@ modo.list_arrays()
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modo show --zarr "data/ex"
+modos show --zarr "data/ex"
 #/
 # ├── assay
 # │   └── assay1
@@ -71,7 +71,7 @@ modo show --zarr "data/ex"
 ::::
 
 :::{note}
-`MODO` internally uses <a href="https://zarr.readthedocs.io/en/stable/api/hierarchy.html" target="_blank">zarr's hierarchy groups</a>. Each sub-directory represents a new hierarchy group. Any array-like data can directly be stored within these hierarchy groups, while other file formats are stored separately.
+`MODOS` internally uses <a href="https://zarr.readthedocs.io/en/stable/api/hierarchy.html" target="_blank">zarr's hierarchy groups</a>. Each sub-directory represents a new hierarchy group. Any array-like data can directly be stored within these hierarchy groups, while other file formats are stored separately.
 :::
 
 All files part of a `MODO` can be listed:
@@ -89,7 +89,7 @@ All files part of a `MODO` can be listed:
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modo show --files "data/ex"
+modos show --files "data/ex"
 # data/ex/reference1.fa
 # data/ex/demo1.cram
 ```
@@ -98,7 +98,7 @@ modo show --files "data/ex"
 ::::
 
 (publish)=
-## Publish MODO as linked data
+## Publish a MODO as linked data
 
 A semantic artifact can be created from the digital object and published as linked data.
 In this process JSON metadata are converted to RDF and all relative paths are converted to URI's.
@@ -116,10 +116,10 @@ modo.knowledge_graph(uri_prefix="http://demo-data")
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modo publish --base-uri "http://demo-data" "data/ex"
+modos publish --base-uri "http://demo-data" "data/ex"
 # @prefix EDAM: <http://edamontology.org/> .
 # @prefix NCIT: <http://purl.obolibrary.org/obo/NCIT_> .
-# @prefix modos: <https://w3id.org/sdsc-ordes/modo-schema/> .
+# @prefix modos: <https://w3id.org/sdsc-ordes/modos-schema/> .
 # @prefix schema1: <http://schema.org/> .
 # @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 #

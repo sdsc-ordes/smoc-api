@@ -6,7 +6,7 @@ from typing import Any, Mapping, Optional, Iterator
 from urllib.parse import urlparse
 import zarr
 
-import modo_schema.datamodel as model
+import modos_schema.datamodel as model
 
 from .introspection import get_haspart_property, get_slot_range, load_schema
 

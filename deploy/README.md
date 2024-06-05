@@ -5,9 +5,9 @@
 
 ## Context
 
-This directory contains the necessary files to deploy a multi-omics digital objects (MODO) server.
+This directory contains the necessary files to deploy a multi-omics digital objects (MODOs) server.
 
-The modo-server is meant to provide remote access to the MODOs. Currently, it can:
+The modos-server is meant to provide remote access to the MODOs. Currently, it can:
 
 * [x] list available MODO
 * [x] return their metadata
@@ -15,7 +15,7 @@ The modo-server is meant to provide remote access to the MODOs. Currently, it ca
 * [ ] stream CRAM slices CRAM using htsget
 * [ ] manage authentication and access control
 
-The MODOs are stored in an s3 (minio) bucket, and an htsget server is deployed alongside the modo-server to handle slicing and streaming of CRAM files. A REST API is exposed to the client to interact with the remote MODOs.
+The MODOs are stored in an s3 (minio) bucket, and an htsget server is deployed alongside the modos-server to handle slicing and streaming of CRAM files. A REST API is exposed to the client to interact with the remote MODOs.
 
 All services are accessible at a single access point through an nginx reverse proxy on port 80.
 
@@ -28,10 +28,10 @@ subgraph " "
   Vminiodata([minio-data]) x-. /bitnami/minio/data .-x minio
   Vminiodata x-. /data/s3 .-x htsget
   P1((9001)) -.-> minio
-  nginx -.- modonetwork[/modo-network/]
+  nginx -.- modonetwork[/modos-network/]
   minio -.- modonetwork
   htsget -.- modonetwork
-  modoserver[modo-server] -.- modonetwork
+  modoserver[modos-server] -.- modonetwork
 
   classDef volumes fill:#fdfae4,stroke:#867a22
   class Vnginxdefaultconftemplate,Vminiodata,Vminiodata volumes

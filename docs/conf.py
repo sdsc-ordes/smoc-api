@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "modo-api"
+project = "modos-api"
 copyright = "2024, sdsc-ordes"
 author = "sdsc-ordes"
 release = "0.1.0"
@@ -48,12 +48,12 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
-html_logo = "img/modo1.png"
+html_logo = "img/modos.png"
 html_favicon = "img/favicon.ico"
 
 
 html_theme_options = {
-    "github_url": "https://github.com/sdsc-ordes/modo-api",
+    "github_url": "https://github.com/sdsc-ordes/modos-api",
     "collapse_navigation": True,
     "navigation_with_keys": False,
 }
@@ -65,7 +65,7 @@ myst_enable_extensions = ["colon_fence"]
 
 
 # Options for autoapi
-autoapi_dirs = ["../modo"]
+autoapi_dirs = ["../modos"]
 autoapi_ignore = ["*cli*"]
 autodoc_typehints = "description"
 

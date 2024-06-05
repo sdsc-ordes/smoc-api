@@ -23,8 +23,8 @@ server {
     rewrite ^/htsget/(.*) /$1 break ;
     proxy_pass ${HTSGET_LOCAL_URL} ;
   }
-  # All other paths forwarded to modo server
+  # All other paths forwarded to modos server
   location / {
-    proxy_pass ${MODO_LOCAL_URL} ;
+    proxy_pass ${MODOS_LOCAL_URL} ;
   }
 }
