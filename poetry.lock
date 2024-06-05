@@ -1583,21 +1583,14 @@ name = "modos-schema"
 version = "0.1.0"
 description = "Metadata schema for the Multi-Omics Digital Object System"
 optional = false
-python-versions = "^3.9"
-files = []
-develop = false
+python-versions = "<4.0,>=3.9"
+files = [
+    {file = "modos_schema-0.1.0-py3-none-any.whl", hash = "sha256:126a11795c9a543e0ab462762ee62c4b3d25b49fb9e2c8c58808050e4932d4e0"},
+    {file = "modos_schema-0.1.0.tar.gz", hash = "sha256:a315f3ddf7c901f40d4adeb774ec1c75f0d723aaf41c7ed7bcfdb52dce829d16"},
+]
 
 [package.dependencies]
-linkml-runtime = "^1.6"
-
-[package.extras]
-docs = []
-
-[package.source]
-type = "git"
-url = "https://github.com/sdsc-ordes/modos-schema.git"
-reference = "main"
-resolved_reference = "527309ff05da86c67aa2c64b76e93826a3c745cb"
+linkml-runtime = ">=1.6,<2.0"
 
 [[package]]
 name = "multidict"
@@ -3124,4 +3117,4 @@ jupyter = ["ipytree (>=0.2.2)", "ipywidgets (>=8.0.0)", "notebook"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "24942e33a25df99bc1ac77d8e0abb4d9d78ef8be86d114ba550471c84264c19d"
+content-hash = "8f63f30cf0e85639f284eb5e621c37a68a715e0d3816aee5dd3950c77a1f1f09"
