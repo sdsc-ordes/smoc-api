@@ -1,6 +1,6 @@
 # modos-api
 
-API system for using and serving Multi-Omics Digital Objects (MODOs).
+API for managing and serving Multi-Omics Digital Object System (MODOS).
 
 ## Context
 
