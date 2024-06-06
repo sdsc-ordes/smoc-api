@@ -67,3 +67,9 @@ The tests can be run with `make test`, it will execute pytest with the doctest m
 
 * Focusing on data retrieval, remote object creation not yet implemented
 * The htsget protocol supports streaming CRAM files, but it is currently only implemented for BAM in major genome browsers (igv.js, jbrowse)
+
+## Credits
+
+This project was developed by [SDSC](https://datascience.ch) as part of the [SMOC](http://smoc.ethz.ch) (Swiss Multi-Omics Consortium) and funded by the [PHRT](https://www.sfa-phrt.ch) ETH initiative (Personalized Health and Related technologies).
+
+<img src="http://smoc.ethz.ch/images/smoc_mint.svg" width=100 /> <img src="https://www.sfa-phrt.ch/wp-content/uploads/2022/07/PHRT_Logo_transparent_50px.png" width=200 />
