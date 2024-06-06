@@ -68,7 +68,7 @@ The tests can be run with `make test`, it will execute pytest with the doctest m
 * Focusing on data retrieval, remote object creation not yet implemented
 * The htsget protocol supports streaming CRAM files, but it is currently only implemented for BAM in major genome browsers (igv.js, jbrowse)
 
-## Credits
+## Acknowledgements and Funding
 
 The development of the Multi-Omics Digital Object System (MODOS) is being funded by the Personalized Health Data Analysis Hub, a joint initiative of the Personalized Health and Related Technologies ([PHRT](https://www.sfa-phrt.ch)) and the Swiss Data Science Center ([SDSC](https://datascience.ch)), for a period of three years from 2023 to 2025. The SDSC leads the development of MODOS, bringing expertise in complex data structures associated with multi-omics and imaging data to advance privacy-centric clinical-grade integration. The PHRT contributes its domain expertise of the Swiss Multi-Omics Center ([SMOC](http://smoc.ethz.ch)) in the generation, analysis, and interpretation of multi-omics data for personalized health and precision medicine applications.
 We gratefully acknowledge the Health 2030 Genome Center for their substantial contributions to the development of MODOS by providing test data sets, deployment infrastructure, and expertise. 
