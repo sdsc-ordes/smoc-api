@@ -27,7 +27,7 @@ minio = s3fs.S3FileSystem(anon=True, endpoint_url=S3_LOCAL_URL)
 @app.get("/list")
 def list_modos() -> list[str]:
     """List MODO entries in bucket."""
-    modos = minio.ls(BUCKET)
+    modos = minio.ls(BUCKET, refresh=True)
     # NOTE: modo contains bucket name
     return [modo for modo in modos]
 
@@ -37,7 +37,7 @@ def gather_metadata():
     """Generate metadata KG from all MODOs."""
     meta = {}
 
-    for modo in minio.ls(BUCKET):
+    for modo in minio.ls(BUCKET, refresh=True):
         meta.update(MODO(path=modo, s3_endpoint=S3_LOCAL_URL).metadata)
 
     return meta
@@ -51,7 +51,7 @@ def str_similarity(s1: str, s2: str) -> float:
 @app.get("/get")
 def get_s3_path(query: str, exact_match: bool = False):
     """Receive the S3 path of all modos matching the query"""
-    modos = minio.ls(BUCKET)
+    modos = minio.ls(BUCKET, refresh=True)
     paths = [modo.removeprefix(BUCKET) for modo in modos]
 
     if exact_match:
