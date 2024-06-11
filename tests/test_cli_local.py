@@ -61,6 +61,7 @@ def test_add_data(tmp_path, data_entity):
     )
     assert result.exit_code == 0
     assert "demo1.cram" in [fi.name for fi in modo.list_files()]
+    assert "demo1.cram.crai" in [fi.name for fi in modo.list_files()]
 
 
 def test_add_to_parent(tmp_path, test_modo, sample):
