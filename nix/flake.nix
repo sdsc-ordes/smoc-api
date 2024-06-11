@@ -46,7 +46,9 @@
 
         # Things needed only at compile-time.
         nativeBuildInputsBasic = with pkgs; [
-          just
+          just # Command runner.
+          direnv # Auto apply stuff on entering directory `cd`.
+
           python310
           poetry
         ];
