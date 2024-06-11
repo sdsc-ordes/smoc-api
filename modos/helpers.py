@@ -47,14 +47,18 @@ def copy_file_to_archive(
         # Check for index file
         fi_format = GenomicFileFormat.from_filepath(data_path)
         ix_suffix = GenomicFileFormat.get_index_suffix(fi_format)
-        ix_file = data_path.parent / (data_path.name + ix_suffix)
-        if not ix_file.is_file():
+        ix_path = data_path.parent / (data_path.name + ix_suffix)
+        if not ix_path.is_file():
             raise FileNotFoundError(f"Missing index for {data_path}")
 
         if remote_store:
-            remote_store.put(data_path, base_path / Path(archive_path).parent)
+            for fi in [data_path, ix_path]:
+                remote_store.put_file(
+                    fi, base_path / Path(archive_path).parent
+                )
         else:
-            shutil.copy(data_path, base_path / archive_path)
+            for fi in [data_path, ix_path]:
+                shutil.copy(fi, base_path / archive_path)
 
 
 def set_haspart_relationship(
