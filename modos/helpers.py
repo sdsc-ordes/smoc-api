@@ -52,13 +52,11 @@ def copy_file_to_archive(
             raise FileNotFoundError(f"Missing index for {data_path}")
 
         if remote_store:
-            for fi in [data_path, ix_path]:
-                remote_store.put_file(
-                    fi, base_path / Path(archive_path).parent
-                )
+            remote_store.put(data_path, base_path / Path(archive_path).parent)
+            remote_store.put(ix_path, base_path / Path(archive_path).parent)
         else:
-            for fi in [data_path, ix_path]:
-                shutil.copy(fi, base_path / archive_path)
+            shutil.copy(data_path, base_path / archive_path)
+            shutil.copy(ix_path, base_path / (archive_path + ix_suffix))
 
 
 def set_haspart_relationship(
@@ -277,19 +275,22 @@ class GenomicFileFormat(str, Enum):
         if not fi_format:
             supported = [fi_format for fi_format in cls]
             raise ValueError(
-                f'Unsupported file format {"".join(path.suffixes)}. Supported file formats: {supported}'
+                f'Unsupported file format: {"".join(path.suffixes)}.\n'
+                f"Supported formats: {supported}"
             )
         return fi_format
 
     def get_index_suffix(self):
         """Return the supported index suffix related to a genomic filetype"""
-        if self == GenomicFileFormat.BAM | self == GenomicFileFormat.SAM:
+        if self == GenomicFileFormat.BAM or self == GenomicFileFormat.SAM:
             return ".bai"
         elif self == GenomicFileFormat.BCF:
             return ".csi"
         elif self == GenomicFileFormat.CRAM:
             return ".crai"
-        elif self == GenomicFileFormat.FASTA | self == GenomicFileFormat.FASTQ:
+        elif (
+            self == GenomicFileFormat.FASTA or self == GenomicFileFormat.FASTQ
+        ):
             return ".fai"
         elif self == GenomicFileFormat.VCF:
             return ".tbi"
