@@ -24,7 +24,7 @@ from .helpers import (
     ElementType,
     set_haspart_relationship,
     UserElementType,
-    get_fileformat,
+    GenomicFileFormat,
 )
 from .cram import slice_genomics, slice_remote_genomics
 
@@ -400,9 +400,10 @@ class MODO:
             raise ValueError(f"{file_path} not found in {self.path}.")
 
         if self.s3_endpoint:
-            if get_fileformat(file_path) == "CRAM":
+            fileformat = GenomicFileFormat.from_filepath(Path(file_path)).name
+            if fileformat == "CRAM":
                 endpoint_type = "/reads/"
-            elif get_fileformat(file_path) in ("VCF", "BCF"):
+            elif fileformat in ["VCF", "BCF"]:
                 endpoint_type = "/variants/"
 
             # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram

@@ -271,14 +271,12 @@ class GenomicFileFormat(str, Enum):
     def from_filepath(cls, path: Path):
         for genome_ft in cls:
             if "".join(path.suffixes) in genome_ft.value:
-                fi_format = genome_ft
-        if not fi_format:
-            supported = [fi_format for fi_format in cls]
-            raise ValueError(
-                f'Unsupported file format: {"".join(path.suffixes)}.\n'
-                f"Supported formats: {supported}"
-            )
-        return fi_format
+                return genome_ft
+        supported = [fi_format for fi_format in cls]
+        raise ValueError(
+            f'Unsupported file format: {"".join(path.suffixes)}.\n'
+            f"Supported formats:{supported}"
+        )
 
     def get_index_suffix(self):
         """Return the supported index suffix related to a genomic filetype"""
@@ -294,28 +292,6 @@ class GenomicFileFormat(str, Enum):
             return ".fai"
         elif self == GenomicFileFormat.VCF:
             return ".tbi"
-
-
-def get_fileformat(path: str) -> Optional[str]:
-    """Return the file format"""
-    pattern = re.compile(r"\S+\.vcf(\.\w+)?")
-    if path.endswith(("fasta", "fa")):
-        file_format = "FASTA"
-    elif path.endswith(("fastq", "fq")):
-        file_format = "FASTQ"
-    elif path.endswith(".cram"):
-        file_format = "CRAM"
-    elif path.endswith(".bam"):
-        file_format = "BAM"
-    elif path.endswith(".sam"):
-        file_format = "SAM"
-    elif pattern.match(path):  # .vcf/.vcf.gz (or other compression)
-        file_format = "VCF"
-    elif path.endswith(".bcf"):
-        file_format = "BCF"
-    else:
-        file_format = None
-    return file_format
 
 
 def file_to_pysam_object(
@@ -369,7 +345,9 @@ def iter_to_file(
     output_filename: str,
     reference_filename: Optional[str] = None,
 ):
-    out_fileformat = get_fileformat(output_filename)
+    out_fileformat = GenomicFileFormat.from_filepath(
+        Path(output_filename)
+    ).name
     if out_fileformat in ("CRAM", "BAM", "SAM"):
         write_mode = (
             "wc"
