@@ -191,7 +191,7 @@ def remove(
 ):
     """Removes an element and its files from the modo."""
     modo = MODO(object_directory, s3_endpoint=s3_endpoint)
-    element = modo.archive.get(element_id)
+    element = modo.zarr.get(element_id)
     rm_path = element.attrs.get("data_path", [])
     if isinstance(element, zarr.hierarchy.Group) and len(rm_path) > 0:
         delete = typer.confirm(
@@ -224,7 +224,7 @@ def add(
     parent: Annotated[
         Optional[str],
         typer.Option(
-            "--parent", "-p", help="Parent object in the zarr archive."
+            "--parent", "-p", help="Parent object in the zarr store."
         ),
     ] = None,
     meta: Annotated[

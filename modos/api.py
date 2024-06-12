@@ -1,25 +1,28 @@
 from datetime import date
 import json
 from pathlib import Path
-import shutil
-from typing import Generator, List, Optional, Union, Iterator
+from typing import List, Optional, Union, Iterator
 import yaml
 
 from linkml_runtime.dumpers import json_dumper
 import rdflib
 import modos_schema.datamodel as model
-import s3fs
+import zarr.hierarchy
 import zarr
 import re
 
 from pysam import AlignedSegment, VariantRecord
 
 from .rdf import attrs_to_graph
-from .storage import add_metadata_group, init_zarr, list_zarr_items
+from .storage import (
+    add_metadata_group,
+    list_zarr_items,
+    LocalStorage,
+    S3Storage,
+)
 from .file_utils import extract_metadata, extraction_formats
 from .helpers import (
     class_from_name,
-    copy_file_to_archive,
     dict_to_instance,
     ElementType,
     set_haspart_relationship,
@@ -65,29 +68,17 @@ class MODO:
         has_assay: List = [],
         source_uri: Optional[str] = None,
     ):
-        self.s3_endpoint = s3_endpoint
+        self.htsget_endpoint = htsget_endpoint
+
         if s3_endpoint and not htsget_endpoint:
             htsget_endpoint = re.sub(r"s3$", "htsget", s3_endpoint)
-        self.htsget_endpoint = htsget_endpoint
-        self.path = Path(path)
+
         if s3_endpoint:
-            s3_opts = s3_kwargs or {"anon": True}
-            fs = s3fs.S3FileSystem(endpoint_url=s3_endpoint, **s3_opts)
-            if fs.exists(str(self.path / "data.zarr")):
-                zarr_s3_opts = s3_opts | {"endpoint_url": s3_endpoint}
-                self.archive = zarr.convenience.open(
-                    f"s3://{path}/data.zarr",
-                    storage_options=zarr_s3_opts,
-                )
-                return
+            self.storage = S3Storage(path, s3_endpoint, s3_kwargs)
         else:
-            fs = None
+            self.storage = LocalStorage(path)
         # Opening existing object
-        if (self.path / "data.zarr").exists():
-            self.archive = zarr.convenience.open(str(self.path / "data.zarr"))
-        # Creating from scratch
-        else:
-            self.archive = init_zarr(self.path, fs)
+        if not self.storage.exists():
             self.id = id or self.path.name
             fields = {
                 "@type": "MODO",
@@ -101,14 +92,22 @@ class MODO:
             }
             for key, val in fields.items():
                 if val:
-                    self.archive["/"].attrs[key] = val
-            zarr.consolidate_metadata(self.archive.store)
+                    self.zarr["/"].attrs[key] = val
+            zarr.consolidate_metadata(self.zarr.store)
+
+    @property
+    def zarr(self) -> zarr.hierarchy.Group:
+        return self.storage.zarr
+
+    @property
+    def path(self) -> Path:
+        return self.storage.path
 
     @property
     def metadata(self) -> dict:
         # Auto refresh metadata to match data before reading
-        zarr.consolidate_metadata(self.archive.store)
-        root = zarr.convenience.open_consolidated(self.archive.store)
+        zarr.consolidate_metadata(self.zarr.store)
+        root = zarr.convenience.open_consolidated(self.zarr.store)
 
         if isinstance(root, zarr.core.Array):
             raise ValueError("Root must be a group. Empty archive?")
@@ -141,31 +140,13 @@ class MODO:
 
         return yaml.dump(meta, sort_keys=False)
 
-    def list_files(self) -> Generator[Path, None, None]:
+    def list_files(self) -> List[Path]:
         """Lists files in the archive recursively (except for the zarr file)."""
-        if isinstance(self.archive.store, zarr.storage.FSStore):
-            fs = self.archive.store.fs
-            for path in fs.glob(f"{self.path}/*"):
-                if Path(path).name.endswith(".zarr"):
-                    continue
-                elif fs.isfile(path):
-                    yield Path(path)
-                elif fs.isdir(path):
-                    for file in fs.find(path):
-                        yield Path(file)
-        else:
-            for path in self.path.glob("*"):
-                if path.name.endswith(".zarr"):
-                    continue
-                elif path.is_file():
-                    yield path
-                for file in path.rglob("*"):
-                    if file.is_file():
-                        yield file
+        [fi for fi in self.storage.list()]
 
     def list_arrays(self):
         """Lists arrays in the archive recursively."""
-        root = zarr.convenience.open_consolidated(self.archive.store)
+        root = zarr.convenience.open_consolidated(self.zarr.store)
         return root.tree()
 
     def query(self, query: str):
@@ -188,10 +169,10 @@ class MODO:
         directly attached to it and links from other elements to it.
         """
         try:
-            attrs = self.archive[element_id].attrs
+            attrs = self.zarr[element_id].attrs
         except KeyError as err:
             keys = []
-            self.archive.visit(lambda k: keys.append(k))
+            self.zarr.visit(lambda k: keys.append(k))
             print(f"Element {element_id} not found in the archive.")
             print(f"Available elements are {keys}")
             raise err
@@ -199,31 +180,20 @@ class MODO:
         # Remove data file
         if "data_path" in attrs.keys():
             data_file = self.path / attrs["data_path"]
-            if data_file.exists():
-                data_file.unlink()
-                print(
-                    f"INFO: Permanently deleted {data_file} from filesystem."
-                )
-            elif isinstance(
-                self.archive.store, zarr.storage.FSStore
-            ) and self.archive.store.fs.exists(data_file):
-                self.archive.store.fs.rm(str(data_file))
-                print(
-                    f"INFO: Permanently deleted {data_file} from remote filesystem."
-                )
+            self.storage.remove(data_file)
 
         # Remove element group
-        del self.archive[element_id]
+        del self.zarr[element_id]
 
         # Remove links from other elements
         for elem, attrs in self.metadata.items():
             for key, value in attrs.items():
                 if value == element_id:
-                    del self.archive[elem].attrs[key]
+                    del self.zarr[elem].attrs[key]
                 elif isinstance(value, list) and element_id in value:
-                    self.archive[elem].attrs[key] = value.remove(element_id)
+                    self.zarr[elem].attrs[key] = value.remove(element_id)
 
-        zarr.consolidate_metadata(self.archive.store)
+        zarr.consolidate_metadata(self.zarr.store)
 
     def add_element(
         self,
@@ -257,23 +227,17 @@ class MODO:
                 f"Please specify a unique ID. Element with ID {element.id} already exist."
             )
 
-        # Copy data file to archive and update data_path in metadata
-        fs = (
-            self.archive.store.fs
-            if isinstance(self.archive.store, zarr.storage.FSStore)
-            else None
-        )
-        copy_file_to_archive(
-            data_file, self.path, element._get("data_path"), fs
-        )
+        # Copy data file to storage and update data_path in metadata
+        if data_file:
+            self.storage.put(data_file, Path(element._get("data_path")))
 
         # Inferred from type
         type_name = UserElementType.from_object(element).value
-        type_group = self.archive[type_name]
+        type_group = self.zarr[type_name]
         element_path = f"{type_name}/{element.id}"
 
         if part_of is not None:
-            partof_group = self.archive[part_of]
+            partof_group = self.zarr[part_of]
             set_haspart_relationship(
                 element.__class__.__name__, element_path, partof_group
             )
@@ -281,7 +245,7 @@ class MODO:
         # Add element to metadata
         attrs = json.loads(json_dumper.dumps(element))
         add_metadata_group(type_group, attrs)
-        zarr.consolidate_metadata(self.archive.store)
+        zarr.consolidate_metadata(self.zarr.store)
 
     def _add_any_element(
         self,
@@ -295,30 +259,24 @@ class MODO:
         data_file: Optional[Path] = None,
         part_of: Optional[str] = None,
     ):
-        """Add an element of any type to the archive."""
+        """Add an element of any type to the storage."""
         # Check that ID does not exist in modo
         if element.id in [Path(id).name for id in self.metadata.keys()]:
             raise ValueError(
                 f"Please specify a unique ID. Element with ID {element.id} already exist."
             )
 
-        # Copy data file to archive and update data_path in metadata
-        fs = (
-            self.archive.store.fs
-            if isinstance(self.archive.store, zarr.storage.FSStore)
-            else None
-        )
-        copy_file_to_archive(
-            data_file, self.path, element._get("data_path"), fs
-        )
+        # Copy data file to storage and update data_path in metadata
+        if data_file:
+            self.storage.put(data_file, Path(element._get("data_path")))
 
         # Inferred from type inferred from type
         type_name = ElementType.from_object(element).value
-        type_group = self.archive[type_name]
+        type_group = self.zarr[type_name]
         element_path = f"{type_name}/{element.id}"
 
         if part_of is not None:
-            partof_group = self.archive[part_of]
+            partof_group = self.zarr[part_of]
             set_haspart_relationship(
                 element.__class__.__name__, element_path, partof_group
             )
@@ -326,7 +284,7 @@ class MODO:
         # Add element to metadata
         attrs = json.loads(json_dumper.dumps(element))
         add_metadata_group(type_group, attrs)
-        zarr.consolidate_metadata(self.archive.store)
+        zarr.consolidate_metadata(self.zarr.store)
 
     def update_element(
         self,
@@ -342,7 +300,7 @@ class MODO:
         new
             Element containing the enriched metadata.
         """
-        attrs = self.archive[element_id].attrs
+        attrs = self.zarr[element_id].attrs
         attr_dict = attrs.asdict()
         if not isinstance(new, class_from_name(attr_dict.get("@type"))):
             raise ValueError(
@@ -399,7 +357,7 @@ class MODO:
         if Path(file_path) not in self.list_files():
             raise ValueError(f"{file_path} not found in {self.path}.")
 
-        if self.s3_endpoint:
+        if self.htsget_endpoint:
             if get_fileformat(file_path) == "CRAM":
                 endpoint_type = "/reads/"
             elif get_fileformat(file_path) in ("VCF", "BCF"):

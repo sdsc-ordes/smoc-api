@@ -114,7 +114,7 @@ modo.archive["data/rna1"].create_dataset("obs", data=obs)
 modo.archive["data/rna1"].create_dataset("var", data=var, object_codec=numcodecs.JSON())
 
 # update zarr metadata
-zarr.consolidate_metadata(modo.archive.store)
+zarr.consolidate_metadata(modo.store)
 
 # check the new structure
 modo.list_arrays()

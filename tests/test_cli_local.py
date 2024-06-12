@@ -92,9 +92,9 @@ def test_remove_element(test_modo, tmp_path):
 
 
 def test_remove_element_link_list(test_modo, tmp_path):
-    assert "sample/sample1" in test_modo.archive["assay/assay1"].attrs.get(
+    assert "sample/sample1" in test_modo.zarr["assay/assay1"].attrs.get(
         "has_sample"
     )
     result = runner.invoke(cli, ["remove", str(tmp_path), "sample/sample1"])
     assert result.exit_code == 0
-    assert test_modo.archive["assay/assay1"].attrs["has_sample"] is None
+    assert test_modo.zarr["assay/assay1"].attrs["has_sample"] is None
