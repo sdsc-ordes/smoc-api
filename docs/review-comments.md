@@ -5,6 +5,8 @@
 The project is in good structure already. I like it!
 You did a good job. File-naming is consistent, nice small kebab-case folder names. Already in good shape with BPA Repository Guidelines I think, (also there is much more I like to see, later =)). Overall continue what I see and beeing clean and precise etc. ❤️
 
+All below items are equally important until prioritization:
+
 - `has_sample` variables in `.zarr` files implies `bool` values. Maybe consider
   `sample(s)`. Check also for other use cases of this pattern.
 
@@ -38,6 +40,8 @@ You did a good job. File-naming is consistent, nice small kebab-case folder name
 
 - Write all titles in markdown files capitalized (correct English). I am somewhat unsure with stuff like `Welcome to the modos-api documentation`.
   But I think consistency matters more. (?)
+
+- Change `Makefile` to `justfile`: Its a better and nicer command runner. `make` is really old and has some arcane workings I want nobody to expose to =).
 
 ## Code Review 🐊
 
