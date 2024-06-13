@@ -48,9 +48,9 @@ class MODO:
     ['/sample/sample1']
 
     # List files in the archive
-    >>> files = sorted([file.name for file in demo.list_files()])
-    >>> assert 'demo1.cram' in files
-    >>> assert 'reference1.fa' in files
+    >>> files = sorted(demo.list_files())
+    >>> assert Path('data/ex/demo1.cram') in files
+    >>> assert Path('data/ex/reference1.fa') in files
 
     """
 
@@ -78,7 +78,7 @@ class MODO:
         else:
             self.storage = LocalStorage(path)
         # Opening existing object
-        if not self.storage.exists():
+        if not "id" in self.zarr.attrs.keys():
             self.id = id or self.path.name
             fields = {
                 "@type": "MODO",
@@ -142,7 +142,7 @@ class MODO:
 
     def list_files(self) -> List[Path]:
         """Lists files in the archive recursively (except for the zarr file)."""
-        [fi for fi in self.storage.list()]
+        return [fi for fi in self.storage.list()]
 
     def list_arrays(self):
         """Lists arrays in the archive recursively."""

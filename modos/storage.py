@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 import shutil
-from typing import Any
+from typing import Any, Optional
 
 import s3fs
 import zarr
@@ -36,7 +36,11 @@ class LocalStorage(Storage):
         if (self.path / ZARR_ROOT).exists():
             self.zarr = zarr.convenience.open(str(self.path / ZARR_ROOT))
         else:
-            self.zarr = init_zarr(path)
+            self.path.mkdir(exist_ok=True)
+            zarr_store = zarr.storage.DirectoryStore(
+                str(self.path / ZARR_ROOT)
+            )
+            self.zarr = init_zarr(zarr_store)
 
     def exists(self, path: str = ZARR_ROOT) -> bool:
         return (self.path / path).exists()
@@ -79,13 +83,17 @@ class S3Storage(Storage):
                 storage_options=zarr_s3_opts,
             )
         else:
-            self.zarr = init_zarr(path, fs)
+            fs.mkdirs(self.path, exist_ok=True)
+            zarr_store = zarr.storage.FSStore(
+                str(self.path / ZARR_ROOT), fs=fs
+            )
+            self.zarr = init_zarr(zarr_store)
 
     def exists(self, path: str = ZARR_ROOT) -> bool:
         fs = self.zarr.store.fs
         return fs.exists(str(self.path / path))
 
-    def list(self, path: str):
+    def list(self):
         fs = self.zarr.store.fs
         for path in fs.glob(f"{self.path}/*"):
             if Path(path).name.endswith(".zarr"):
@@ -104,12 +112,13 @@ class S3Storage(Storage):
             )
 
     def put(self, source: Path, dest: Path):
-        self.zarr.store.fs.put(source, self.path / Path(dest).parent)
+        self.zarr.store.fs.put_file(source, self.path / Path(dest))
 
 
 # Initialize object's directory given the metadata graph
-def init_zarr(store):
-    data = zarr.hierarchy.group(store=store)
+def init_zarr(zarr_store: zarr.storage.Store) -> zarr.hierarchy.Group:
+    """Initialize object's directory and metadata structure."""
+    data = zarr.hierarchy.group(store=zarr_store)
     elem_types = [t.value for t in ElementType]
     for elem_type in elem_types:
         data.create_group(elem_type)
