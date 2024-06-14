@@ -27,7 +27,7 @@ from .helpers import (
     ElementType,
     set_haspart_relationship,
     UserElementType,
-    GenomicFileFormat,
+    GenomicFileSuffix,
 )
 from .cram import slice_genomics, slice_remote_genomics
 
@@ -229,7 +229,21 @@ class MODO:
 
         # Copy data file to storage and update data_path in metadata
         if data_file:
-            self.storage.put(data_file, Path(element._get("data_path")))
+            source_path = Path(data_file)
+            target_path = Path(element._get("data_path"))
+            self.storage.put(source_path, target_path)
+            try:
+                # Genomic files have an associated index file
+                ft = GenomicFileSuffix.from_path(source_path)
+                source_ix = source_path.with_suffix(
+                    source_path.suffix + ft.get_index_suffix()
+                )
+                target_ix = target_path.with_suffix(
+                    source_path.suffix + ft.get_index_suffix()
+                )
+                self.storage.put(source_ix, target_ix)
+            except ValueError:
+                pass
 
         # Inferred from type
         type_name = UserElementType.from_object(element).value
@@ -358,7 +372,7 @@ class MODO:
             raise ValueError(f"{file_path} not found in {self.path}.")
 
         if self.htsget_endpoint:
-            match GenomicFileFormat.from_filepath(Path(file_path)).name:
+            match GenomicFileSuffix.from_path(Path(file_path)).name:
                 case "CRAM":
                     endpoint_type = "/reads/"
                 case "VCF" | "BCF":
