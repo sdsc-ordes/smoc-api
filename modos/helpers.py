@@ -256,7 +256,7 @@ def parse_region(
     return (reference_name, start, end)
 
 
-class GenomicFileFormat(str, Enum):
+class GenomicFileFormat(tuple, Enum):
     """Enumeration of all supported genomic file types."""
 
     CRAM = (".cram",)
