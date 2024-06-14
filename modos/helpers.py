@@ -43,10 +43,20 @@ def copy_file_to_archive(
 ):
     if data_file is not None:
         data_path = Path(data_file)
+
+        # Check for index file
+        fi_format = GenomicFileFormat.from_filepath(data_path)
+        ix_suffix = fi_format.get_index_suffix()
+        ix_path = data_path.parent / (data_path.name + ix_suffix)
+        if not ix_path.is_file():
+            raise FileNotFoundError(f"Missing index for {data_path}")
+
         if remote_store:
             remote_store.put(data_path, base_path / Path(archive_path).parent)
+            remote_store.put(ix_path, base_path / Path(archive_path).parent)
         else:
             shutil.copy(data_path, base_path / archive_path)
+            shutil.copy(ix_path, base_path / (archive_path + ix_suffix))
 
 
 def set_haspart_relationship(
@@ -246,26 +256,41 @@ def parse_region(
     return (reference_name, start, end)
 
 
-def get_fileformat(path: str) -> Optional[str]:
-    """Return the file format"""
-    pattern = re.compile(r"\S+\.vcf(\.\w+)?")
-    if path.endswith(("fasta", "fa")):
-        file_format = "FASTA"
-    elif path.endswith(("fastq", "fq")):
-        file_format = "FASTQ"
-    elif path.endswith(".cram"):
-        file_format = "CRAM"
-    elif path.endswith(".bam"):
-        file_format = "BAM"
-    elif path.endswith(".sam"):
-        file_format = "SAM"
-    elif pattern.match(path):  # .vcf/.vcf.gz (or other compression)
-        file_format = "VCF"
-    elif path.endswith(".bcf"):
-        file_format = "BCF"
-    else:
-        file_format = None
-    return file_format
+class GenomicFileFormat(tuple, Enum):
+    """Enumeration of all supported genomic file types."""
+
+    CRAM = (".cram",)
+    FASTA = (".fasta", ".fa")
+    FASTQ = (".fastq", ".fq")
+    BAM = (".bam",)
+    SAM = (".sam",)
+    VCF = (".vcf", ".vcf.gz")
+    BCF = (".bcf",)
+
+    @classmethod
+    def from_filepath(cls, path: Path):
+        for genome_ft in cls:
+            if "".join(path.suffixes) in genome_ft.value:
+                return genome_ft
+        supported = [fi_format for fi_format in cls]
+        raise ValueError(
+            f'Unsupported file format: {"".join(path.suffixes)}.\n'
+            f"Supported formats:{supported}"
+        )
+
+    def get_index_suffix(self):
+        """Return the supported index suffix related to a genomic filetype"""
+        match self.name:
+            case "BAM" | "SAM":
+                return ".bai"
+            case "BCF":
+                return ".csi"
+            case "CRAM":
+                return ".crai"
+            case "FASTA" | "FASTQ":
+                return ".fai"
+            case "VCF":
+                return ".tbi"
 
 
 def file_to_pysam_object(
@@ -319,7 +344,9 @@ def iter_to_file(
     output_filename: str,
     reference_filename: Optional[str] = None,
 ):
-    out_fileformat = get_fileformat(output_filename)
+    out_fileformat = GenomicFileFormat.from_filepath(
+        Path(output_filename)
+    ).name
     if out_fileformat in ("CRAM", "BAM", "SAM"):
         write_mode = (
             "wc"
