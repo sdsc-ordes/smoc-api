@@ -1,7 +1,6 @@
 from enum import Enum
 from pathlib import Path
 import re
-import shutil
 from typing import Any, Mapping, Optional, Iterator
 from urllib.parse import urlparse
 import zarr
@@ -33,30 +32,6 @@ def dict_to_instance(element: Mapping[str, Any]) -> Any:
     return target_class(
         **{k: v for k, v in element.items() if k not in "@type"}
     )
-
-
-def copy_file_to_archive(
-    data_file: Optional[str],
-    base_path: Path,
-    archive_path: Optional[Path],
-    remote_store: Optional[zarr.storage.FSStore] = None,
-):
-    if data_file is not None:
-        data_path = Path(data_file)
-
-        # Check for index file
-        fi_format = GenomicFileFormat.from_filepath(data_path)
-        ix_suffix = fi_format.get_index_suffix()
-        ix_path = data_path.parent / (data_path.name + ix_suffix)
-        if not ix_path.is_file():
-            raise FileNotFoundError(f"Missing index for {data_path}")
-
-        if remote_store:
-            remote_store.put(data_path, base_path / Path(archive_path).parent)
-            remote_store.put(ix_path, base_path / Path(archive_path).parent)
-        else:
-            shutil.copy(data_path, base_path / archive_path)
-            shutil.copy(ix_path, base_path / (archive_path + ix_suffix))
 
 
 def set_haspart_relationship(
@@ -117,30 +92,32 @@ class UserElementType(str, Enum):
         self,
     ) -> type:
         """Return the target class for the element type."""
-        if self == UserElementType.SAMPLE:
-            return model.Sample
-        elif self == UserElementType.ASSAY:
-            return model.Assay
-        elif self == UserElementType.DATA_ENTITY:
-            return model.DataEntity
-        elif self == UserElementType.REFERENCE_GENOME:
-            return model.ReferenceGenome
-        else:
-            raise ValueError(f"Unknown element type: {self}")
+        match self:
+            case UserElementType.SAMPLE:
+                return model.Sample
+            case UserElementType.ASSAY:
+                return model.Assay
+            case UserElementType.DATA_ENTITY:
+                return model.DataEntity
+            case UserElementType.REFERENCE_GENOME:
+                return model.ReferenceGenome
+            case _:
+                raise ValueError(f"Unknown element type: {self}")
 
     @classmethod
     def from_object(cls, obj):
         """Return the element type from an object."""
-        if isinstance(obj, model.Sample):
-            return UserElementType.SAMPLE
-        elif isinstance(obj, model.Assay):
-            return UserElementType.ASSAY
-        elif isinstance(obj, model.DataEntity):
-            return UserElementType.DATA_ENTITY
-        elif isinstance(obj, model.ReferenceGenome):
-            return UserElementType.REFERENCE_GENOME
-        else:
-            raise ValueError(f"Unknown object type: {type(obj)}")
+        match obj:
+            case model.Sample():
+                return UserElementType.SAMPLE
+            case model.Assay():
+                return UserElementType.ASSAY
+            case model.DataEntity():
+                return UserElementType.DATA_ENTITY
+            case model.ReferenceGenome():
+                return UserElementType.REFERENCE_GENOME
+            case _:
+                raise ValueError(f"Unknown object type: {type(obj)}")
 
 
 class ElementType(str, Enum):
@@ -156,50 +133,53 @@ class ElementType(str, Enum):
         self,
     ) -> type:
         """Return the target class for the element type."""
-        if self == ElementType.SAMPLE:
-            return model.Sample
-        elif self == ElementType.ASSAY:
-            return model.Assay
-        elif self == ElementType.DATA_ENTITY:
-            return model.DataEntity
-        elif self == ElementType.REFERENCE_GENOME:
-            return model.ReferenceGenome
-        elif self == ElementType.REFERENCE_SEQUENCE:
-            return model.ReferenceSequence
-        else:
-            raise ValueError(f"Unknown element type: {self}")
+        match self:
+            case ElementType.SAMPLE:
+                return model.Sample
+            case ElementType.ASSAY:
+                return model.Assay
+            case ElementType.DATA_ENTITY:
+                return model.DataEntity
+            case ElementType.REFERENCE_GENOME:
+                return model.ReferenceGenome
+            case ElementType.REFERENCE_SEQUENCE:
+                return model.ReferenceSequence
+            case _:
+                raise ValueError(f"Unknown element type: {self}")
 
     @classmethod
     def from_object(cls, obj):
         """Return the element type from an object."""
-        if isinstance(obj, model.Sample):
-            return ElementType.SAMPLE
-        elif isinstance(obj, model.Assay):
-            return ElementType.ASSAY
-        elif isinstance(obj, model.DataEntity):
-            return ElementType.DATA_ENTITY
-        elif isinstance(obj, model.ReferenceGenome):
-            return ElementType.REFERENCE_GENOME
-        elif isinstance(obj, model.ReferenceSequence):
-            return ElementType.REFERENCE_SEQUENCE
-        else:
-            raise ValueError(f"Unknown object type: {type(obj)}")
+        match obj:
+            case model.Sample():
+                return ElementType.SAMPLE
+            case model.Assay():
+                return ElementType.ASSAY
+            case model.DataEntity():
+                return ElementType.DATA_ENTITY
+            case model.ReferenceGenome():
+                return ElementType.REFERENCE_GENOME
+            case model.ReferenceSequence():
+                return ElementType.REFERENCE_SEQUENCE
+            case _:
+                raise ValueError(f"Unknown object type: {type(obj)}")
 
     @classmethod
-    def from_model_name(cls, obj):
-        """Return the element type from an object."""
-        if obj == "Sample":
-            return ElementType.SAMPLE
-        elif obj == "Assay":
-            return ElementType.ASSAY
-        elif obj == "DataEntity":
-            return ElementType.DATA_ENTITY
-        elif obj == "ReferenceGenome":
-            return ElementType.REFERENCE_GENOME
-        elif obj == "ReferenceSequence":
-            return ElementType.REFERENCE_SEQUENCE
-        else:
-            raise ValueError(f"Unknown object type: {obj}")
+    def from_model_name(cls, name: str):
+        """Return the element type from an object name."""
+        match name:
+            case "Sample":
+                return ElementType.SAMPLE
+            case "Assay":
+                return ElementType.ASSAY
+            case "DataEntity":
+                return ElementType.DATA_ENTITY
+            case "ReferenceGenome":
+                return ElementType.REFERENCE_GENOME
+            case "ReferenceSequence":
+                return ElementType.REFERENCE_SEQUENCE
+            case _:
+                raise ValueError(f"Unknown object type: {name}")
 
 
 def is_uri(text: str):
@@ -256,8 +236,8 @@ def parse_region(
     return (reference_name, start, end)
 
 
-class GenomicFileFormat(tuple, Enum):
-    """Enumeration of all supported genomic file types."""
+class GenomicFileSuffix(tuple, Enum):
+    """Enumeration of all supported genomic file suffixes."""
 
     CRAM = (".cram",)
     FASTA = (".fasta", ".fa")
@@ -268,7 +248,7 @@ class GenomicFileFormat(tuple, Enum):
     BCF = (".bcf",)
 
     @classmethod
-    def from_filepath(cls, path: Path):
+    def from_path(cls, path: Path):
         for genome_ft in cls:
             if "".join(path.suffixes) in genome_ft.value:
                 return genome_ft
@@ -344,9 +324,7 @@ def iter_to_file(
     output_filename: str,
     reference_filename: Optional[str] = None,
 ):
-    out_fileformat = GenomicFileFormat.from_filepath(
-        Path(output_filename)
-    ).name
+    out_fileformat = GenomicFileSuffix.from_path(Path(output_filename)).name
     if out_fileformat in ("CRAM", "BAM", "SAM"):
         write_mode = (
             "wc"
