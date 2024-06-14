@@ -280,18 +280,17 @@ class GenomicFileFormat(tuple, Enum):
 
     def get_index_suffix(self):
         """Return the supported index suffix related to a genomic filetype"""
-        if self == GenomicFileFormat.BAM or self == GenomicFileFormat.SAM:
-            return ".bai"
-        elif self == GenomicFileFormat.BCF:
-            return ".csi"
-        elif self == GenomicFileFormat.CRAM:
-            return ".crai"
-        elif (
-            self == GenomicFileFormat.FASTA or self == GenomicFileFormat.FASTQ
-        ):
-            return ".fai"
-        elif self == GenomicFileFormat.VCF:
-            return ".tbi"
+        match self.name:
+            case "BAM" | "SAM":
+                return ".bai"
+            case "BCF":
+                return ".csi"
+            case "CRAM":
+                return ".crai"
+            case "FASTA" | "FASTQ":
+                return ".fai"
+            case "VCF":
+                return ".tbi"
 
 
 def file_to_pysam_object(
