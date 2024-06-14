@@ -259,13 +259,13 @@ def parse_region(
 class GenomicFileFormat(str, Enum):
     """Enumeration of all supported genomic file types."""
 
-    CRAM = [".cram"]
-    FASTA = [".fasta", ".fa"]
-    FASTQ = [".fastq", ".fq"]
-    BAM = [".bam"]
-    SAM = [".sam"]
-    VCF = [".vcf", ".vcf.gz"]
-    BCF = [".bcf"]
+    CRAM = (".cram",)
+    FASTA = (".fasta", ".fa")
+    FASTQ = (".fastq", ".fq")
+    BAM = (".bam",)
+    SAM = (".sam",)
+    VCF = (".vcf", ".vcf.gz")
+    BCF = (".bcf",)
 
     @classmethod
     def from_filepath(cls, path: Path):
