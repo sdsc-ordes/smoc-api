@@ -46,7 +46,7 @@ def copy_file_to_archive(
 
         # Check for index file
         fi_format = GenomicFileFormat.from_filepath(data_path)
-        ix_suffix = GenomicFileFormat.get_index_suffix(fi_format)
+        ix_suffix = fi_format.get_index_suffix()
         ix_path = data_path.parent / (data_path.name + ix_suffix)
         if not ix_path.is_file():
             raise FileNotFoundError(f"Missing index for {data_path}")
