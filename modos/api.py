@@ -27,7 +27,7 @@ from .helpers import (
     ElementType,
     set_haspart_relationship,
     UserElementType,
-    get_fileformat,
+    GenomicFileFormat,
 )
 from .cram import slice_genomics, slice_remote_genomics
 
@@ -357,11 +357,13 @@ class MODO:
         if Path(file_path) not in self.list_files():
             raise ValueError(f"{file_path} not found in {self.path}.")
 
+
         if self.htsget_endpoint:
-            if get_fileformat(file_path) == "CRAM":
-                endpoint_type = "/reads/"
-            elif get_fileformat(file_path) in ("VCF", "BCF"):
-                endpoint_type = "/variants/"
+            match GenomicFileFormat.from_filepath(Path(file_path)).name:
+                case "CRAM":
+                    endpoint_type = "/reads/"
+                case "VCF" | "BCF":
+                    endpoint_type = "/variants/"
 
             # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
             # or               + bucket/modo/file.vcf.gz --> http://domain/htsget/variants/modo/file.vcf.gz
@@ -370,7 +372,7 @@ class MODO:
                 + endpoint_type  # /reads/ or /variants/
                 + str(Path(*Path(file_path).parts[1:]))
             )
-            # str(Path(*Path(cram_path).parts[1:])) same as path.split("/", maxsplit=1)[1] but cross-platform
+
             gen_iter = slice_remote_genomics(
                 url=url,
                 region=region,
@@ -381,7 +383,7 @@ class MODO:
             # assuming user did not change directory, filepath should be the
             # relative path to the file.
             # for the time being, we do not check the validity of the supplied reference_filename, or
-            # the reference given in the CRAM header (used if refernece not supplied by user).
+            # the reference given in the CRAM header (used if reference not supplied by user).
 
             gen_iter = slice_genomics(
                 path=file_path,

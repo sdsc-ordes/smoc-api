@@ -36,6 +36,7 @@ def test_add_data(data_entity, tmp_path):
     modo = MODO(tmp_path)
     modo.add_element(data_entity, data_file="data/ex/demo1.cram")
     assert "demo1.cram" in [fi.name for fi in modo.list_files()]
+    assert "demo1.cram.crai" in [fi.name for fi in modo.list_files()]
 
 
 def test_add_to_parent(sample, test_modo):
