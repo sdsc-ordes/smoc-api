@@ -16,7 +16,7 @@ import re
 import htsget
 from .helpers import (
     parse_region,
-    GenomicFileFormat,
+    GenomicFileSuffix,
     file_to_pysam_object,
     bytesio_to_iterator,
     iter_to_file,
@@ -35,7 +35,7 @@ def slice_genomics(
 
     reference_name, start, end = parse_region(region)
 
-    fileformat = GenomicFileFormat.from_filepath(Path(path)).name
+    fileformat = GenomicFileSuffix.from_path(Path(path)).name
 
     infile = file_to_pysam_object(
         path=path, fileformat=fileformat, reference_filename=reference_filename
@@ -63,7 +63,7 @@ def slice_remote_genomics(
     """Stream or write to a local file a slice of a remote CRAM or VCF/BCF file"""
 
     url = urlparse(url)
-    in_fileformat = GenomicFileFormat.from_filepath(Path(url.path)).name
+    in_fileformat = GenomicFileSuffix.from_path(Path(url.path)).name
     if in_fileformat not in ("CRAM", "VCF", "BCF") or url.path.endswith(
         ".vcf"
     ):
@@ -93,7 +93,7 @@ def slice_remote_genomics(
 
     # To save remote slice to a local file without converting data type
     if output_filename:
-        out_fileformat = GenomicFileFormat.from_filepath(
+        out_fileformat = GenomicFileSuffix.from_path(
             Path(output_filename)
         ).name
         if out_fileformat == in_fileformat:
