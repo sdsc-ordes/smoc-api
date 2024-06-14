@@ -78,7 +78,7 @@ class MODO:
         else:
             self.storage = LocalStorage(path)
         # Opening existing object
-        if not "id" in self.zarr.attrs.keys():
+        if self.storage.empty():
             self.id = id or self.path.name
             fields = {
                 "@type": "MODO",
