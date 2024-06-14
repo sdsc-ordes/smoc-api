@@ -357,7 +357,6 @@ class MODO:
         if Path(file_path) not in self.list_files():
             raise ValueError(f"{file_path} not found in {self.path}.")
 
-
         if self.htsget_endpoint:
             match GenomicFileFormat.from_filepath(Path(file_path)).name:
                 case "CRAM":
