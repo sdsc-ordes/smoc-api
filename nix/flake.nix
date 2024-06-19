@@ -50,6 +50,7 @@
           direnv # Auto apply stuff on entering directory `cd`.
 
           python310
+          pyright
           poetry
         ];
 
