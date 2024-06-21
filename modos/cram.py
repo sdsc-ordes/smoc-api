@@ -11,7 +11,6 @@ from pysam import (
 from urllib.parse import urlparse
 import modos_schema.datamodel as model
 
-import sys
 import re
 import htsget
 from .helpers import (
