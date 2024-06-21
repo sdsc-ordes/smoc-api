@@ -53,6 +53,15 @@ This will install dependencies and create the python virtual environment using [
 
 The tests can be run with `make test`, it will execute pytest with the doctest module.
 
+### Using Nix Package Manager
+
+If you are using [`nix`](https://nixos.org/download) package manager with [flakes enabled](https://nixos.wiki/wiki/Flakes), 
+you can enter a development shell with all requirements installed by doing:
+
+```shell
+nix develop ./nix#default
+```
+
 ## Implementation details
 
 * To allow faster horizontal traversal of digital objects in the catalogue (e.g. for listing), the metadata should be exported in a central database/knowledge-graph on the server side.
