@@ -108,6 +108,7 @@ def slice_remote_genomics(
     genome__iter = bytesio_to_iterator(
         htsget_response_buffer,
         file_format=in_fileformat,
+        region=region,
         reference_filename=reference_filename,
     )
 

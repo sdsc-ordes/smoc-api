@@ -275,7 +275,7 @@ class GenomicFileSuffix(tuple, Enum):
 
 def file_to_pysam_object(
     path: str, fileformat: str, reference_filename: Optional[str] = None
-):
+) -> VariantFile | AlignmentFile:
     """Create a pysam AlignmentFile of VariantFile"""
     if fileformat == "CRAM":
         pysam_file = AlignmentFile(
@@ -293,6 +293,7 @@ def file_to_pysam_object(
 def bytesio_to_iterator(
     bytesio_buffer: BytesIO,
     file_format: str,
+    region: Optional[str],
     reference_filename: Optional[str] = None,
 ) -> Iterator[AlignedSegment | VariantRecord]:
     """Takes a BytesIO buffer and returns a pysam
@@ -311,11 +312,9 @@ def bytesio_to_iterator(
             fileformat=file_format,
             reference_filename=reference_filename,
         )
-
-        with pysam_file as in_file:
+        for record in pysam_file.fetch(*parse_region(region), until_eof=True):
             # Iterate over the alignments in the file
-            for line in in_file:
-                yield line
+            yield record
 
 
 def iter_to_file(
