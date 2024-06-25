@@ -41,7 +41,7 @@ def test_add_data(data_entity, tmp_path):
 
 def test_add_to_parent(sample, test_modo):
     test_modo.add_element(sample, part_of="/assay/assay1")
-    assert "sample/test_sample" in test_modo.metadata["/assay/assay1"].get(
+    assert "/sample/test_sample" in test_modo.metadata["/assay/assay1"].get(
         "has_sample"
     )
 
@@ -55,8 +55,9 @@ def test_remove_element(test_modo):
 
 
 def test_remove_element_link_list(test_modo):
-    test_modo.remove_element("sample/sample1")
-    assert ["sample/sample1"] not in test_modo.metadata[
+    assert ["/sample/sample1"] in test_modo.metadata["/assay/assay1"].values()
+    test_modo.remove_element("/sample/sample1")
+    assert ["/sample/sample1"] not in test_modo.metadata[
         "/assay/assay1"
     ].values()
 
@@ -65,8 +66,8 @@ def test_remove_element_link_list(test_modo):
 
 
 def test_update_element(test_modo):
-    sample1 = model.Sample(id="sample/sample1", cell_type="Leukocytes")
-    test_modo.update_element("sample/sample1", sample1)
+    sample1 = model.Sample(id="/sample/sample1", cell_type="Leukocytes")
+    test_modo.update_element("/sample/sample1", sample1)
     assert (
         test_modo.metadata["/sample/sample1"].get("cell_type") == "Leukocytes"
     )

@@ -249,7 +249,7 @@ class MODO:
         # Inferred from type
         type_name = UserElementType.from_object(element).value
         type_group = self.zarr[type_name]
-        element_path = f"{type_name}/{element.id}"
+        element_path = f"/{type_name}/{element.id}"
 
         # Update part_of (parent) relationship
         if part_of is not None:
@@ -306,7 +306,7 @@ class MODO:
         # Inferred from type inferred from type
         type_name = ElementType.from_object(element).value
         type_group = self.zarr[type_name]
-        element_path = f"{type_name}/{element.id}"
+        element_path = f"/{type_name}/{element.id}"
 
         if part_of is not None:
             partof_group = self.zarr[part_of]
