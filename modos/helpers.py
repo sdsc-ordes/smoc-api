@@ -34,16 +34,16 @@ def dict_to_instance(element: Mapping[str, Any]) -> Any:
     )
 
 
-def full_id(element_id: str) -> bool:
+def is_full_id(element_id: str) -> bool:
     """Checks if an element_id contains the element type as prefix.
 
     Examples
     --------
-    >>> full_id("sample1")
+    >>> is_full_id("sample1")
     False
-    >>> full_id("data/test")
+    >>> is_full_id("data/test")
     True
-    >>> full_id("/assay/test_assay")
+    >>> is_full_id("/assay/test_assay")
     True
     """
     etypes = [elem.value + "/" for elem in ElementType]
