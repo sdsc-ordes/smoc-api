@@ -29,7 +29,7 @@ def test_init_modo_from_yaml(tmp_path):
 def test_add_element(assay, tmp_path):
     modo = MODO(tmp_path)
     modo.add_element(assay)
-    assert "/assay/test_assay" in modo.metadata.keys()
+    assert "assay/test_assay" in modo.metadata.keys()
 
 
 def test_add_data(data_entity, tmp_path):
@@ -40,8 +40,8 @@ def test_add_data(data_entity, tmp_path):
 
 
 def test_add_to_parent(sample, test_modo):
-    test_modo.add_element(sample, part_of="/assay/assay1")
-    assert "/sample/test_sample" in test_modo.metadata["/assay/assay1"].get(
+    test_modo.add_element(sample, part_of="assay/assay1")
+    assert "sample/test_sample" in test_modo.metadata["assay/assay1"].get(
         "has_sample"
     )
 
@@ -51,14 +51,14 @@ def test_add_to_parent(sample, test_modo):
 
 def test_remove_element(test_modo):
     test_modo.remove_element("sample/sample1")
-    assert "/sample/sample1" not in test_modo.list_samples()
+    assert "sample/sample1" not in test_modo.list_samples()
 
 
 def test_remove_element_link_list(test_modo):
-    assert ["/sample/sample1"] in test_modo.metadata["/assay/assay1"].values()
-    test_modo.remove_element("/sample/sample1")
-    assert ["/sample/sample1"] not in test_modo.metadata[
-        "/assay/assay1"
+    assert ["sample/sample1"] in test_modo.metadata["assay/assay1"].values()
+    test_modo.remove_element("sample/sample1")
+    assert ["sample/sample1"] not in test_modo.metadata[
+        "assay/assay1"
     ].values()
 
 
@@ -66,10 +66,10 @@ def test_remove_element_link_list(test_modo):
 
 
 def test_update_element(test_modo):
-    sample1 = model.Sample(id="/sample/sample1", cell_type="Leukocytes")
-    test_modo.update_element("/sample/sample1", sample1)
+    sample1 = model.Sample(id="sample/sample1", cell_type="Leukocytes")
+    test_modo.update_element("sample/sample1", sample1)
     assert (
-        test_modo.metadata["/sample/sample1"].get("cell_type") == "Leukocytes"
+        test_modo.metadata["sample/sample1"].get("cell_type") == "Leukocytes"
     )
 
 
@@ -78,7 +78,7 @@ def test_update_element(test_modo):
 
 def test_enrich_metadata(test_modo):
     test_modo.enrich_metadata()
-    assert "/sequence/BA000007.3_bd7522" in test_modo.metadata.keys()
+    assert "sequence/BA000007.3_bd7522" in test_modo.metadata.keys()
 
 
 ## Stream cram

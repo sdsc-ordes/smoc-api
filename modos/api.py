@@ -46,7 +46,7 @@ class MODO:
 
     # List identifiers of samples in the archive
     >>> demo.list_samples()
-    ['/sample/sample1']
+    ['sample/sample1']
 
     # List files in the archive
     >>> files = sorted(demo.list_files())
@@ -121,7 +121,7 @@ class MODO:
         for subgroup in root.groups():
             group_type = subgroup[0]
             for name, value in list_zarr_items(subgroup[1]):
-                group_attrs[f"/{group_type}/{name}"] = dict(value.attrs)
+                group_attrs[f"{group_type}/{name}"] = dict(value.attrs)
         return group_attrs
 
     def knowledge_graph(
@@ -130,7 +130,7 @@ class MODO:
         """Return an RDF graph of the metadata. All identifiers
         are converted to valid URIs if needed."""
         if uri_prefix is None:
-            uri_prefix = f"file://{self.path.name}"
+            uri_prefix = f"file://{self.path.name}/"
         kg = attrs_to_graph(self.metadata, uri_prefix=uri_prefix)
         return kg
 
@@ -161,7 +161,7 @@ class MODO:
         for row in res:
             for val in row:
                 samples.append(
-                    str(val).removeprefix(f"file://{self.path.name}")
+                    str(val).removeprefix(f"file://{self.path.name}/")
                 )
         return samples
 
@@ -249,7 +249,7 @@ class MODO:
         # Inferred from type
         type_name = UserElementType.from_object(element).value
         type_group = self.zarr[type_name]
-        element_path = f"/{type_name}/{element.id}"
+        element_path = f"{type_name}/{element.id}"
 
         # Update part_of (parent) relationship
         if part_of is not None:
@@ -306,7 +306,7 @@ class MODO:
         # Inferred from type inferred from type
         type_name = ElementType.from_object(element).value
         type_group = self.zarr[type_name]
-        element_path = f"/{type_name}/{element.id}"
+        element_path = f"{type_name}/{element.id}"
 
         if part_of is not None:
             partof_group = self.zarr[part_of]

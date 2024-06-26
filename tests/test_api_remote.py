@@ -28,7 +28,7 @@ def test_multi_modos(setup):
 @pytest.mark.slow
 def test_add_element(assay, remote_modo):
     remote_modo.add_element(assay)
-    assert "/assay/test_assay" in remote_modo.metadata.keys()
+    assert "assay/test_assay" in remote_modo.metadata.keys()
 
 
 @pytest.mark.slow
@@ -44,9 +44,9 @@ def test_add_data(data_entity, remote_modo):
 @pytest.mark.slow
 def test_remove_element(sample, remote_modo):
     remote_modo.add_element(sample)
-    assert "/sample/test_sample" in remote_modo.list_samples()
+    assert "sample/test_sample" in remote_modo.list_samples()
     remote_modo.remove_element("sample/test_sample")
-    assert "/sample/test_sample" not in remote_modo.list_samples()
+    assert "sample/test_sample" not in remote_modo.list_samples()
 
 
 ## Update element
@@ -60,6 +60,6 @@ def test_update_element(sample, remote_modo):
     )
     remote_modo.update_element("sample/test_sample", test_sample)
     assert (
-        remote_modo.metadata["/sample/test_sample"].get("description")
+        remote_modo.metadata["sample/test_sample"].get("description")
         == "A fake sample for test purposes"
     )
