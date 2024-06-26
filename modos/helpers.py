@@ -307,12 +307,24 @@ def bytesio_to_iterator(
         temp_file.seek(0)
 
         # Open the temporary file as a pysam.AlignmentFile/VarianFile object
-        pysam_file = file_to_pysam_object(
+        pysam_iter = file_to_pysam_object(
             path=temp_file.name,
             fileformat=file_format,
             reference_filename=reference_filename,
         )
-        for record in pysam_file.fetch(*parse_region(region), until_eof=True):
+        chrom, start, end = parse_region(region)
+        if file_format in ("VCF", "BCF"):
+            get_chrom = lambda r: r.chrom
+            get_start = lambda r: r.start
+        else:
+            get_chrom = lambda r: r.reference_name
+            get_start = lambda r: r.reference_start
+
+        for record in pysam_iter:
+            if get_chrom(record) != chrom:
+                continue
+            if get_start(record) < start or get_start(record) > end:
+                continue
             # Iterate over the alignments in the file
             yield record
 
