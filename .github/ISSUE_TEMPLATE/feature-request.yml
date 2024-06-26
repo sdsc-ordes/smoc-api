@@ -49,8 +49,8 @@ body:
         - server setup
         - data schema
         - other
-      validations:
-        required: false
+    validations:
+      required: false
   - type: textarea
     id: technical
     attributes:
