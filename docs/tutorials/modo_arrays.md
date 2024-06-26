@@ -1,25 +1,21 @@
 # Handling data arrays with MODOS
 
-Any count-like data, e.g protein abundances, RNA counts, metabolomic
-measurements, etc. can be stored as arrays in the `MODO`. The underlying
-<a href="https://github.com/zarr-developers/zarr-python" target="_blank">zarr</a>
-supports array creation as well as an interface to NumPy arrays.
+Any count-like data, e.g protein abundances, RNA counts, metabolomic measurements, etc. can be stored as arrays in the `MODO`.
+The underlying <a href="https://github.com/zarr-developers/zarr-python" target="_blank">zarr</a> supports array creation as well as an interface to NumPy arrays.
+
 
 ## Load data
 
 (pandas)=
-
 ### Using panda DataFrames
 
-Count-like data can usually be loaded into
-<a href="https://pandas.pydata.org/docs/reference/frame.html" target="_blank">pandas
-DataFrame</a>. To keep column names (**observations**) and row names
-(**variables**) both need to be stored in a separate numpy array first:
+Count-like data can usually be loaded into <a href="https://pandas.pydata.org/docs/reference/frame.html" target="_blank">pandas DataFrame</a>.
+To keep column names (__observations__) and row names (__variables__) both need to be stored in a separate numpy array first:
 
 ::::{tab-set}
 
-:::{tab-item} python :sync: python
-
+:::{tab-item} python
+:sync: python
 ```{code-block} python
 import pandas as pd
 import numpy as np
@@ -53,24 +49,25 @@ rna_array
 #        [ 334,  202,  218, ...]])
 
 ```
-
 ::::
 
-:::{warning} `to_numpy()` automatically removes row and column names from pandas
-DataFrames. It is important to store them separately, if they contain important
-information. :::
+:::{warning}
+`to_numpy()` automatically removes row and column names from pandas DataFrames.
+It is important to store them separately, if they contain important information.
+:::
 
-:::{note} Skip this section, if you already have your data in a NumPy array. :::
+:::{note}
+Skip this section, if you already have your data in a NumPy array.
+:::
 
 ## Add array element to a MODO
 
-Next, an element with the metadata describing the array can be added to the
-`MODO`:
+Next, an element with the metadata describing the array can be added to the `MODO`:
 
 ::::{tab-set}
 
-:::{tab-item} python :sync: python
-
+:::{tab-item} python
+:sync: python
 ```{code-block} python
 from modos.api import MODO
 import modos_schema.datamodel as model
@@ -95,22 +92,21 @@ modo.list_arrays()
 #     └── sample1
 
 ```
+:::
+::::
 
-::: ::::
-
-:::{note} Skip this step, if you want to add the count data to an already
-existing element in the `MODO`. A helper function to facilitate adding the
-metadata element and numpy array in one step will also be added in future
-releases. :::
+:::{note}
+Skip this step, if you want to add the count data to an already existing element in the `MODO`.
+A helper function to facilitate adding the metadata element and numpy array in one step will also be added in future releases.
+:::
 
 ## Add array to a MODO
-
 Finally all arrays can be added to the modo element:
 
 ::::{tab-set}
 
-:::{tab-item} python :sync: python
-
+:::{tab-item} python
+:sync: python
 ```{code-block} python
 
 modo.archive["data/rna1"].create_dataset("data", data=rna_array)
@@ -134,24 +130,20 @@ modo.list_arrays()
 #     └── sample1
 
 ```
-
 :::
 
 ::::
 
 (access)=
-
 ## Access Array data
 
 ### Load array as pandas DataFrame
-
-To access array data and analyse them the separated arrays can be loaded into a
-pandas dataframe:
+To access array data and analyse them the separated arrays can be loaded into a pandas dataframe:
 
 ::::{tab-set}
 
-:::{tab-item} python :sync: python
-
+:::{tab-item} python
+:sync: python
 ```{code-block} python
 import pandas as pd
 
@@ -161,5 +153,5 @@ var = modo.archive["data/rna1/var"][:]
 
 rna_counts = pd.DataFrame(rna_array, index=var, columns=obs)
 ```
-
-::: ::::
+:::
+::::

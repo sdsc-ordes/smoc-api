@@ -1,83 +1,63 @@
 # Create and modify a MODO
 
-A `MODO` is a digital object to store, share and access omics data (genomics,
-transcriptomics, proteomics and metabolomics) and their metadata. Each `MODO`
-consists of a unique id, a creation and an update timestamp and some further
-optional metadata. Elements such as **data entities**, **samples**, **assays**
-and **reference genomes** can be linked and added to a `MODO`. The full data
-model can be found at
-<a href="https://sdsc-ordes.github.io/modos-schema/" target="_blank">modos-schema</a>.
+A `MODO` is a digital object to store, share and access omics data (genomics, transcriptomics, proteomics and metabolomics) and their metadata.
+Each `MODO` consists of a unique id, a creation and an update timestamp and some further optional metadata. Elements such as __data entities__, __samples__, __assays__ and __reference genomes__ can be linked and added to a `MODO`. The full data model can be found at <a href="https://sdsc-ordes.github.io/modos-schema/" target="_blank">modos-schema</a>.
 
 (scratch)=
-
 ## Generate a MODO from scratch
 
 (Create_scratch)=
-
 ### Create the object
 
-To create a new `MODO` you only need to specify the `path` where you want to
-generate the object. This will automatically generate a new
-<a href="https://zarr.readthedocs.io/en/stable/api/hierarchy.html" target="_blank">zarr
-group</a> at the specified `path`. If not specified explicitly the `MODO` id
-will be set to the `path` name.
+To create a new `MODO` you only need to specify the `path` where you want to generate the object. This will automatically generate a new <a href="https://zarr.readthedocs.io/en/stable/api/hierarchy.html" target="_blank">zarr group</a> at the specified `path`. If not specified explicitly the `MODO` id will be set to the `path` name.
 
 ::::{tab-set}
 
-:::{tab-item} python :sync: python
-
+:::{tab-item} python
+:sync: python
 ```{code-block} python
 from modos.api import MODO
 modo = MODO(path = "data/ex")
 modo
 # <modos.api.MODO object at 0x7df3131cb670>
 ```
-
 :::
 
-:::{tab-item} cli :sync: cli
-
+:::{tab-item} cli
+:sync: cli
 ```{code-block} console
 modos create data/ex
 ```
-
 :::
 
 ::::
 
-:::{note} If the specified path refers to an existing `MODO`, the existing
-object will be loaded instead of creating a new object and overwriting the
-existing object. Check [update](update) for details on how to update metadata of
-an existing `MODO`. :::
+:::{note}
+If the specified path refers to an existing `MODO`, the existing object will be loaded instead of creating a new object and overwriting the existing object.
+Check [update](update) for details on how to update metadata of an existing `MODO`.
+:::
 
-:::{warning} The specified `path` can not point to an existing object other than
-a `MODO` or the command will fail. :::
+:::{warning}
+The specified `path` can not point to an existing object other than a `MODO` or the command will fail.
+:::
 
 (add_scratch)=
-
 ### Add elements to the object
 
-To add omics data entities or further metadata to the object, you can add
-elements to the `MODO`. There are 4 different element types, that can be added:
-
+To add omics data entities or further metadata to the object, you can add elements to the `MODO`.
+There are 4 different element types, that can be added:
 - sample
 - assay
 - data
 - reference
 
-An element of the type data can be a
-<a href="https://sdsc-ordes.github.io/modos-schema/DataEntity/" target="_blank">DataEntity</a>
-or further spefied as an
-<a href="https://sdsc-ordes.github.io/modos-schema/AlignmentSet/" target="_blank">AlignmentSet</a>,
-an
-<a href="https://sdsc-ordes.github.io/modos-schema/Array/" target="_blank">Array</a>,
-a
-<a href="https://sdsc-ordes.github.io/modos-schema/VariantSet/" target="_blank">VariantSet</a>.
+An element of the type data can be a <a href="https://sdsc-ordes.github.io/modos-schema/DataEntity/" target="_blank">DataEntity</a> or further spefied as an <a href="https://sdsc-ordes.github.io/modos-schema/AlignmentSet/" target="_blank">AlignmentSet</a>, an <a href="https://sdsc-ordes.github.io/modos-schema/Array/" target="_blank">Array</a>, a <a href="https://sdsc-ordes.github.io/modos-schema/VariantSet/" target="_blank">VariantSet</a>.
+
 
 ::::{tab-set}
 
-:::{tab-item} python :sync: python
-
+:::{tab-item} python
+:sync: python
 ```{code-block} python
 from modos.api import MODO
 import modos_schema.datamodel as model
@@ -91,34 +71,30 @@ data = model.DataEntity(id="genomics1", name= "demo_genomics", description = "A 
 # Add element to modo
 modo.add_element(element = data, data_file="path/to/cram_file.cram")
 ```
-
 :::
 
-:::{tab-item} cli :sync: cli
-
+:::{tab-item} cli
+:sync: cli
 ```{code-block} console
 modos add --data-file path/to/cram_file.cram data/ex data
 ```
-
 :::
 
 ::::
 
-:::{note} To specify a file that should be associated with this object the
-`data-file` option can be used. In addition elements can be linked with each
-other, e.g. a `VariantSet` to a `ReferenceGenome` or a `DataEntity` to a
-`Sample` by using the `parent`/`part-of` option. :::
+:::{note}
+To specify a file that should be associated with this object the `data-file` option can be used.
+In addition elements can be linked with each other, e.g. a `VariantSet` to a `ReferenceGenome` or a `DataEntity` to a `Sample` by using the `parent`/`part-of` option.
+:::
 
-:::{warning} Files associated through the `data-file` option will be copied into
-the `MODO` at the path specified in the `data_path` attribute. For large files
-this can take some time. :::
+:::{warning}
+Files associated through the `data-file` option will be copied into the `MODO` at the path specified in the `data_path` attribute. For large files this can take some time.
+:::
 
 (file)=
-
 ## Generate a MODO from (yaml-)file
 
-Alternatively, a MODO and all associated elements can be specified in a
-`yaml-file`, such as the following `example.yaml`:
+Alternatively, a MODO and all associated elements can be specified in a `yaml-file`, such as the following `example.yaml`:
 
 ```{code-block} yaml
 # An example yaml file to generate a MODO.
@@ -158,58 +134,50 @@ Alternatively, a MODO and all associated elements can be specified in a
   sex: Male
 ```
 
-All valid element types, their fields and potential links can be found in the
-<a href="https://sdsc-ordes.github.io/modos-schema/" target="_blank">modos-schema</a>.
+All valid element types, their fields and potential links can be found in the <a href="https://sdsc-ordes.github.io/modos-schema/" target="_blank">modos-schema</a>.
 
-Using this `example.yaml` a `MODO` and all specified associated elements can be
-generated in one command:
+Using this `example.yaml` a `MODO` and all specified associated elements can be generated in one command:
 
 ::::{tab-set}
 
-:::{tab-item} python :sync: python
-
+:::{tab-item} python
+:sync: python
 ```{code-block} python
 from modos.io import build_modo_from_file
 modo = build_modo_from_file(path = "path/to/example.yaml", object_directory = "data/ex")
 ```
-
 :::
 
-:::{tab-item} cli :sync: cli
-
+:::{tab-item} cli
+:sync: cli
 ```{code-block} console
 modos create --from-file "path/to/example.yaml" data/ex
 ```
-
 :::
 
 ::::
 
-(update)=
 
+(update)=
 ## Update or remove a MODO element
 
-All elements of a `MODO` can be added (see
-[Add elements to the object](add_scratch)) or removed at any timepoint using the
-`element id`:
+All elements of a `MODO` can be added (see [Add elements to the object](add_scratch)) or removed at any timepoint using the `element id`:
 
 ::::{tab-set}
 
-:::{tab-item} python :sync: python
-
+:::{tab-item} python
+:sync: python
 ```{code-block} python
 # Remove an associated element
 modo.remove_element("/data/genomics1")
 ```
-
 :::
 
-:::{tab-item} cli :sync: cli
-
+:::{tab-item} cli
+:sync: cli
 ```{code-block} console
 modos remove data/ex /data/genomics
 ```
-
 :::
 
 ::::
