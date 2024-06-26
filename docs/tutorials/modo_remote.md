@@ -1,18 +1,11 @@
 # Working with remote objects
 
-Remote storage can be key to share and collaborate on multiomics data. `MODOS`
-integrates with S3 object storage and
-<a href="https://academic.oup.com/bioinformatics/article/35/1/119/5040320" target="_blank">htsget</a>
-to allow remote storage, access and real-time secure streaming of genomic data.
-Most of the `MODOS-api`'s functionalities work with remotely stored objects in
-the same way as with local objects. The user only as to specify the
-`s3_endpoint` of the remote object store.
+Remote storage can be key to share and collaborate on multiomics data. `MODOS` integrates with S3 object storage and <a href="https://academic.oup.com/bioinformatics/article/35/1/119/5040320" target="_blank">htsget</a> to allow remote storage, access and real-time secure streaming of genomic data.
+Most of the `MODOS-api`'s functionalities work with remotely stored objects in the same way as with local objects. The user only as to specify the `s3_endpoint` of the remote object store.
 
 ## List remotely available MODO's
+Listing all available `MODOs` at a specific S3 endpoint (in this tutorial we will use http://localhost as example) will show `MODOs` in all buckets at that endpoint:
 
-Listing all available `MODOs` at a specific S3 endpoint (in this tutorial we
-will use http://localhost as example) will show `MODOs` in all buckets at that
-endpoint:
 
 ```{code-block} python
 import modos.remote as remo
@@ -23,7 +16,6 @@ remo.list_remote_items("http://localhost")
 ```
 
 ## Show metadata of a remote MODO
-
 For all or a specific `MODO` metadata can directly be displayed:
 
 ```{code-block} python
@@ -37,9 +29,7 @@ remo.get_metadata_from_remote("http://localhost", modo_id = "ex")
 ```
 
 ## Find a specific MODO and get it's S3 path
-
-There are different options to query a specific `MODO` and the **bucket name**
-to load it from - fuzzy search or exact string matching:
+There are different options to query a specific `MODO` and the __bucket name__ to load it from - fuzzy search or exact string matching:
 
 ```{code-block} python
 import modos.remote as remo
@@ -55,13 +45,12 @@ remo.get_s3_path("http://localhost", query="ex", exact_match = True)
 
 ## Intiantiate a remote MODO locally
 
-Remotely stored `MODOs` can be intiantiated by specifiying their remote endpoint
-and then and worked with as if they were stored locally.
+Remotely stored `MODOs` can be intiantiated by specifiying their remote endpoint and then and worked with as if they were stored locally.
 
 ::::{tab-set}
 
-:::{tab-item} python :sync: python
-
+:::{tab-item} python
+:sync: python
 ```{code-block} python
 from modos.api import MODO
 
@@ -72,11 +61,10 @@ modo=MODO(path= 'modos-demo/ex', s3_endpoint = 'http://localhost/s3')
 modo.metadata
 # {'ex': {'@type': 'MODO', 'creation_date': '2024-02-19T00:00:00', 'description': 'Dummy modo for tests.', 'has_assay': ..}}
 ```
-
 :::
 
-:::{tab-item} cli :sync: cli
-
+:::{tab-item} cli
+:sync: cli
 ```{code-block} console
 # Interact with remotly stored MODO
 modos show -s3 "http://localhost/s3" modos-demo/ex
@@ -86,27 +74,23 @@ modos show -s3 "http://localhost/s3" modos-demo/ex
 #   description: Dummy modo for tests.
 #   has_assay:
 ```
-
 :::
 
 ::::
 
-:::{note} The **bucket name** and the **S3 endpoint url** are specified
-separatly. The **bucket name** is prepended to the `MODO`'s name in the same way
-as a local path, while the **S3 endpoint url** needs to be specified
-specifically. :::
+:::{note}
+The __bucket name__ and the __S3 endpoint url__ are specified separatly. The __bucket name__ is prepended to the `MODO`'s name in the same way as a local path, while the __S3 endpoint url__ needs to be specified specifically.
+:::
 
 (generate_remote)=
-
 ## Generate and modify a MODO at a remote object store
 
-A `MODO` can be generated from scratch or from file in the same way as locally,
-by specifying the remote endpoint's url:
+A `MODO` can be generated from scratch or from file in the same way as locally, by specifying the remote endpoint's url:
 
 ::::{tab-set}
 
-:::{tab-item} python :sync: python
-
+:::{tab-item} python
+:sync: python
 ```{code-block} python
 from modos.api import MODO
 from pathlib import Path
@@ -117,21 +101,18 @@ config_ex = Path("path/to/ex.yaml")
 # Create a modo remotely
 modo = build_modo_from_file(config_ex, "modos-demo/ex", s3_endpoint= "http://localhost/s3")
 ```
-
 :::
 
-:::{tab-item} cli :sync: cli
-
+:::{tab-item} cli
+:sync: cli
 ```{code-block} console
 # Create a modo from file remotely
 modos create -s3 "http://localhost/s3" ----from-file "path/to/ex.yaml" modos-demo/ex3
 ```
-
 :::
 
 ::::
 
-:::{note} Similar to `MODO` creation, any other modifying functionality of the
-`modos-api`, (e.g. `modos add`, `modos remove` or `MODO.add_element()`,
-`MODO.remove_element()`)can be performed on remotely stored objects by
-specifying the **S3 endpoint** and **bucket name** as path. :::
+:::{note}
+Similar to `MODO` creation, any other modifying functionality of the `modos-api`, (e.g.  `modos add`, `modos remove` or `MODO.add_element()`, `MODO.remove_element()`)can be performed on remotely stored objects by specifying the __S3 endpoint__ and __bucket name__ as path.
+:::
