@@ -91,7 +91,7 @@ def update_haspart_id(
             haspart_type = get_slot_range(has_part)
             type_name = ElementType.from_model_name(haspart_type).value
             updated_ids = [
-                id if full_id(id) else f"/{type_name}/{id}"
+                id if is_full_id(id) else f"/{type_name}/{id}"
                 for id in getattr(element, has_part)
             ]
             setattr(element, has_part, updated_ids)
