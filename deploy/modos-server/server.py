@@ -13,6 +13,7 @@ import s3fs
 
 from fastapi import FastAPI
 from modos.api import MODO
+from modos.storage import connect_s3
 
 
 S3_LOCAL_URL = os.environ["S3_LOCAL_URL"]
@@ -21,7 +22,7 @@ BUCKET = os.environ["S3_BUCKET"]
 HTSGET_LOCAL_URL = os.environ["HTSGET_LOCAL_URL"]
 
 app = FastAPI()
-minio = s3fs.S3FileSystem(anon=True, endpoint_url=S3_LOCAL_URL)
+minio = connect_s3(S3_LOCAL_URL, {"anon": True})
 
 
 @app.get("/list")
