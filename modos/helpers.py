@@ -321,13 +321,16 @@ def bytesio_to_iterator(
             get_start = lambda r: r.reference_start
 
         for record in pysam_iter:
-            if region and get_chrom(record) != chrom:
+            if region is None:
+                yield record
                 continue
-            if region and (
-                (get_start(record) < start) or (get_start(record) > end)
-            ):
+
+            bad_chrom = get_chrom(record) != chrom
+            bad_start = start is not None and (get_start(record) < start)
+            bad_end = end is not None and (get_start(record) > end)
+
+            if any([bad_chrom, bad_start, bad_end]):
                 continue
-            # Iterate over the alignments in the file
             yield record
 
 
