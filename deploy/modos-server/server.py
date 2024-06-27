@@ -9,7 +9,6 @@ available modos, as well as their metadata.
 
 import difflib
 import os
-import s3fs
 
 from fastapi import FastAPI
 from modos.api import MODO
