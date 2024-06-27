@@ -25,9 +25,10 @@ from .helpers import (
     class_from_name,
     dict_to_instance,
     ElementType,
+    GenomicFileSuffix,
     set_haspart_relationship,
     UserElementType,
-    GenomicFileSuffix,
+    update_haspart_id,
 )
 from .cram import slice_genomics, slice_remote_genomics
 
@@ -45,7 +46,7 @@ class MODO:
 
     # List identifiers of samples in the archive
     >>> demo.list_samples()
-    ['/sample/sample1']
+    ['sample/sample1']
 
     # List files in the archive
     >>> files = sorted(demo.list_files())
@@ -120,7 +121,7 @@ class MODO:
         for subgroup in root.groups():
             group_type = subgroup[0]
             for name, value in list_zarr_items(subgroup[1]):
-                group_attrs[f"/{group_type}/{name}"] = dict(value.attrs)
+                group_attrs[f"{group_type}/{name}"] = dict(value.attrs)
         return group_attrs
 
     def knowledge_graph(
@@ -250,11 +251,15 @@ class MODO:
         type_group = self.zarr[type_name]
         element_path = f"{type_name}/{element.id}"
 
+        # Update part_of (parent) relationship
         if part_of is not None:
             partof_group = self.zarr[part_of]
             set_haspart_relationship(
                 element.__class__.__name__, element_path, partof_group
             )
+
+        # Update haspart relationship
+        element = update_haspart_id(element)
 
         # Add element to metadata
         attrs = json.loads(json_dumper.dumps(element))
@@ -282,7 +287,21 @@ class MODO:
 
         # Copy data file to storage and update data_path in metadata
         if data_file:
-            self.storage.put(data_file, Path(element._get("data_path")))
+            source_path = Path(data_file)
+            target_path = Path(element._get("data_path"))
+            self.storage.put(source_path, target_path)
+            try:
+                # Genomic files have an associated index file
+                ft = GenomicFileSuffix.from_path(source_path)
+                source_ix = source_path.with_suffix(
+                    source_path.suffix + ft.get_index_suffix()
+                )
+                target_ix = target_path.with_suffix(
+                    source_path.suffix + ft.get_index_suffix()
+                )
+                self.storage.put(source_ix, target_ix)
+            except ValueError:
+                pass
 
         # Inferred from type inferred from type
         type_name = ElementType.from_object(element).value
@@ -294,6 +313,9 @@ class MODO:
             set_haspart_relationship(
                 element.__class__.__name__, element_path, partof_group
             )
+
+        # Update haspart relationship
+        element = update_haspart_id(element)
 
         # Add element to metadata
         attrs = json.loads(json_dumper.dumps(element))
@@ -320,6 +342,9 @@ class MODO:
             raise ValueError(
                 f"Class {attr_dict['@type']} of {element_id} does not match {new.class_name}."
             )
+
+        new = update_haspart_id(new)
+
         # in the zarr store, empty properties are not stored
         # in the linkml model, they present as empty lists/None.
         new_items = {

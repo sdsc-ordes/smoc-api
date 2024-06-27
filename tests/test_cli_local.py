@@ -43,7 +43,7 @@ def test_add_element(tmp_path, assay):
         cli, ["add", "-m", assay_json, str(tmp_path), "assay"]
     )
     assert result.exit_code == 0
-    assert "/assay/test_assay" in modo.metadata.keys()
+    assert "assay/test_assay" in modo.metadata.keys()
 
 
 def test_add_data(tmp_path, data_entity):
@@ -73,13 +73,13 @@ def test_add_to_parent(tmp_path, test_modo, sample):
             "-m",
             sample._as_json,
             "-p",
-            "/assay/assay1",
+            "assay/assay1",
             str(tmp_path),
             "sample",
         ],
     )
     assert result.exit_code == 0
-    assert "sample/test_sample" in test_modo.metadata["/assay/assay1"].get(
+    assert "sample/test_sample" in test_modo.metadata["assay/assay1"].get(
         "has_sample"
     )
 
@@ -88,9 +88,10 @@ def test_add_to_parent(tmp_path, test_modo, sample):
 
 
 def test_remove_element(test_modo, tmp_path):
+    assert "sample/sample1" in test_modo.list_samples()
     result = runner.invoke(cli, ["remove", str(tmp_path), "sample/sample1"])
-    # assert result.exit_code == 0
-    assert "/sample/sample1" not in test_modo.list_samples()
+    assert result.exit_code == 0
+    assert "sample/sample1" not in test_modo.list_samples()
 
 
 def test_remove_element_link_list(test_modo, tmp_path):

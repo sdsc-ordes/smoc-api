@@ -34,6 +34,23 @@ def dict_to_instance(element: Mapping[str, Any]) -> Any:
     )
 
 
+def is_full_id(element_id: str) -> bool:
+    """Checks if an element_id contains the element type as prefix.
+
+    Examples
+    --------
+    >>> is_full_id("sample1")
+    False
+    >>> is_full_id("data/test")
+    True
+    >>> is_full_id("/assay/test_assay")
+    True
+    """
+    etypes = [elem.value + "/" for elem in ElementType]
+    extended_etypes = etypes + ["/" + etype for etype in etypes]
+    return element_id.startswith(tuple(extended_etypes))
+
+
 def set_haspart_relationship(
     child_class: str,
     child_path: str,
@@ -74,7 +91,8 @@ def update_haspart_id(
             haspart_type = get_slot_range(has_part)
             type_name = ElementType.from_model_name(haspart_type).value
             updated_ids = [
-                f"{type_name}/{id}" for id in getattr(element, has_part)
+                id if is_full_id(id) else f"{type_name}/{id}"
+                for id in getattr(element, has_part)
             ]
             setattr(element, has_part, updated_ids)
     return element
