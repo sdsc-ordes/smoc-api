@@ -49,6 +49,7 @@ services:
       - MINIO_SERVER_ACCESS_KEY=${MINIO_SERVER_ACCESS_KEY:-user}
       - MINIO_SERVER_SECRET_KEY=${MINIO_SERVER_SECRET_KEY:-pass}
       - MINIO_DEFAULT_BUCKETS=${MINIO_DEFAULT_BUCKET:-modos-demo:public}
+      - MINIO_REGION=us-east-1
 
 
   htsget:
@@ -67,6 +68,8 @@ services:
       - S3_LOCAL_URL=${S3_LOCAL_URL:-http://172.23.0.2:9000}
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minio}
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-miniosecret}
+      - AWS_REGION=us-east-1
+      #- RUST_LOG=debug
     command: htsget-actix --config s3_storage.toml
 
 
