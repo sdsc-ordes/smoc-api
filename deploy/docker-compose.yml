@@ -57,7 +57,7 @@ services:
     depends_on:
         - minio
     volumes:
-      - ./htsget/s3_storage.toml:/s3_storage.toml:ro
+      - ./htsget/config.toml.template:/htsget/config.toml.template:ro
     expose:
       - "8080" # ticket server
       - "8081" # data block server
@@ -65,12 +65,13 @@ services:
       modos-network:
         ipv4_address: 172.23.0.3
     environment:
-      - S3_LOCAL_URL=${S3_LOCAL_URL:-http://172.23.0.2:9000}
+      - ENDPOINT=${S3_LOCAL_URL:-http://172.23.0.2:9000}
+      - BUCKET=${S3_BUCKET:-modos-demo}
+      - S3_ADDRESSING_STYLE=${S3_ADDRESSING_STYLE:-auto}
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minio}
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-miniosecret}
       - AWS_REGION=us-east-1
-      #- RUST_LOG=debug
-    command: htsget-actix --config s3_storage.toml
+      - RUST_LOG=debug
 
 
   modos-server:
