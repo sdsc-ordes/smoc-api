@@ -8,7 +8,7 @@ WORKDIR /app
 ##################################################
 # Poetry setup
 ##################################################
-FROM python as poetry
+FROM python AS poetry
 
 WORKDIR /app
 # Install poetry
@@ -32,7 +32,7 @@ RUN poetry install --no-interaction --no-ansi -vvv
 ##################################################
 # modos setup
 ##################################################
-FROM python as runtime
+FROM python AS runtime
 ARG VERSION_BUILD
 ENV PATH="/app/.venv/bin:$PATH"
 COPY --from=poetry /app /app
@@ -45,7 +45,7 @@ USER modos_user
 LABEL org.opencontainers.image.source=https://github.com/sdsc-ordes/modos-api
 LABEL org.opencontainers.image.description="Serve multi-omics digital objects"
 LABEL org.opencontainers.image.licenses=Apache-2.0
-LABEL org.opencontainers.image.version ${VERSION_BUILD}
+LABEL org.opencontainers.image.version=${VERSION_BUILD}
 
 # Test run
 RUN modos --help
