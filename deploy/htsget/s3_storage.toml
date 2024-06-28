@@ -1,7 +1,7 @@
 # An example for a server which uses s3 storage with data located in "bucket".
 # Run with `cargo run -p htsget-actix --features s3-storage -- --config htsget-config/examples/config-files/s3_storage.toml`
 
-id = "Test1"
+id = "modos-htsget"
 ticket_server_cors_allow_headers = "All"
 ticket_server_cors_allow_methods = "All"
 ticket_server_cors_allow_credentials = true
@@ -12,10 +12,8 @@ data_server_enabled = false
 [[resolvers]]
 regex = ".*"
 substitution_string = "$0"
-#regex = '^(bucket)/(?P<key>.*)$'
-#substitution_string = '$key'
 
 [resolvers.storage]
-bucket = 'modos-demo'
-endpoint = "http://172.23.0.2:9000"
-#endpoint = "http://minio:9000"
+endpoint = 'http://172.23.0.2:9000' # template
+path_style = true # template
+bucket = 'modos-demo' # template
