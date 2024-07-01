@@ -165,6 +165,10 @@ class MODO:
                 )
         return samples
 
+    def update_date(self, date: date = date.today()):
+        """update last_update_date attribute"""
+        self.zarr.attrs.update(last_update_date=str(date))
+
     def remove_element(self, element_id: str):
         """Remove an element from the archive, along with any files
         directly attached to it and links from other elements to it.
@@ -194,6 +198,7 @@ class MODO:
                 elif isinstance(value, list) and element_id in value:
                     self.zarr[elem].attrs[key] = value.remove(element_id)
 
+        self.update_date()
         zarr.consolidate_metadata(self.zarr.store)
 
     def add_element(
@@ -264,6 +269,7 @@ class MODO:
         # Add element to metadata
         attrs = json.loads(json_dumper.dumps(element))
         add_metadata_group(type_group, attrs)
+        self.update_date()
         zarr.consolidate_metadata(self.zarr.store)
 
     def _add_any_element(
@@ -320,6 +326,7 @@ class MODO:
         # Add element to metadata
         attrs = json.loads(json_dumper.dumps(element))
         add_metadata_group(type_group, attrs)
+        self.update_date()
         zarr.consolidate_metadata(self.zarr.store)
 
     def update_element(
@@ -356,6 +363,7 @@ class MODO:
             and value != []
         }
         attrs.update(**new_items)
+        self.update_date()
 
     def enrich_metadata(self):
         """Add metadata and corresponding elements extracted from object associated data to the MODO object"""
