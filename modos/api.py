@@ -410,6 +410,8 @@ class MODO:
                     endpoint_type = "/reads/"
                 case "VCF" | "BCF":
                     endpoint_type = "/variants/"
+                case _:
+                    raise ValueError("Invalid file format.")
 
             # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
             # or               + bucket/modo/file.vcf.gz --> http://domain/htsget/variants/modo/file.vcf.gz
