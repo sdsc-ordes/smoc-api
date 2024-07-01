@@ -79,9 +79,8 @@ class LocalStorage(Storage):
                     yield file
 
     def remove(self, target: Path):
-        path = self.path / target
-        if path.exists():
-            path.unlink()
+        if target.exists():
+            target.unlink()
             print(f"INFO: Permanently deleted {target} from filesystem.")
 
     def put(self, source: Path, target: Path):
