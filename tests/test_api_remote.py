@@ -49,6 +49,28 @@ def test_remove_element(sample, remote_modo):
     assert "sample/test_sample" not in remote_modo.list_samples()
 
 
+## Remove modo
+
+
+@pytest.mark.slow
+def test_remove_modo(setup):
+    # NOTE: We build a new modo to prevent remote_modo from being deleted
+    # in following tests.
+    minio_client = setup["minio"].get_client()
+    minio_endpoint = setup["minio"].get_config()["endpoint"]
+    minio_creds = {"secret": "minioadmin", "key": "minioadmin"}
+    modo = MODO(
+        "test/remove_ex",
+        s3_endpoint=f"http://{minio_endpoint}",
+        s3_kwargs=minio_creds,
+    )
+    objects = minio_client.list_objects("test")
+    assert "remove_ex/" in [o.object_name for o in objects]
+    modo.remove_object()
+    objects = minio_client.list_objects("test")
+    assert "remove_ex/" not in [o.object_name for o in objects]
+
+
 ## Update element
 
 

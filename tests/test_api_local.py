@@ -62,6 +62,16 @@ def test_remove_element_link_list(test_modo):
     ].values()
 
 
+## Remove modos
+
+
+def test_remove_modo(test_modo):
+    modo_path = test_modo.path
+    assert modo_path.exists()
+    test_modo.remove_object()
+    assert not modo_path.exists()
+
+
 ## Update element
 
 

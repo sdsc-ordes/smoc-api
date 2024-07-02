@@ -2,7 +2,6 @@
 """
 
 from typer.testing import CliRunner
-from pathlib import Path
 
 from linkml_runtime.dumpers import json_dumper
 from modos.api import MODO
@@ -101,3 +100,25 @@ def test_remove_element_link_list(test_modo, tmp_path):
     result = runner.invoke(cli, ["remove", str(tmp_path), "sample/sample1"])
     assert result.exit_code == 0
     assert test_modo.zarr["assay/assay1"].attrs["has_sample"] is None
+
+
+## Remove modo
+
+
+def test_remove_modo(test_modo, tmp_path):
+    assert test_modo.path.exists()
+    result = runner.invoke(
+        cli, ["remove", "--force", str(tmp_path), test_modo.path.name]
+    )
+    assert result.exit_code == 0
+    assert not test_modo.path.exists()
+
+
+def test_not_remove_modo_without_force(test_modo, tmp_path):
+    result = runner.invoke(cli, ["remove", str(tmp_path), test_modo.path.name])
+    assert result.exit_code == 1
+    assert isinstance(result.exception, ValueError)
+    assert (
+        "Cannot delete root object. If you want to delete the entire MODOS, use --force."
+        == str(result.exception)
+    )

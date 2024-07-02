@@ -188,19 +188,35 @@ def remove(
             help="Url to S3 endpoint that stores the digital object.",
         ),
     ] = None,
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force",
+            "-f",
+            help="Remove the entire MODOS, including all files",
+        ),
+    ] = False,
 ):
     """Removes an element and its files from the modo."""
     modo = MODO(object_directory, s3_endpoint=s3_endpoint)
-    element = modo.zarr.get(element_id)
-    rm_path = element.attrs.get("data_path", [])
-    if isinstance(element, zarr.hierarchy.Group) and len(rm_path) > 0:
-        delete = typer.confirm(
-            f"Removing {element_id} will permanently delete {rm_path}.\n Please confirm that you want to continue?"
-        )
-        if not delete:
-            print(f"Stop removing element {element_id}!")
-            raise typer.Abort()
-    modo.remove_element(element_id)
+    if element_id == modo.path.name:
+        if force:
+            modo.remove_object()
+        else:
+            raise ValueError(
+                "Cannot delete root object. If you want to delete the entire MODOS, use --force."
+            )
+    else:
+        element = modo.zarr.get(element_id)
+        rm_path = element.attrs.get("data_path", [])
+        if isinstance(element, zarr.hierarchy.Group) and len(rm_path) > 0:
+            delete = typer.confirm(
+                f"Removing {element_id} will permanently delete {rm_path}.\n Please confirm that you want to continue?"
+            )
+            if not delete:
+                print(f"Stop removing element {element_id}!")
+                raise typer.Abort()
+        modo.remove_element(element_id)
 
 
 @cli.command()
