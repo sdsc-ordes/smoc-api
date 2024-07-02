@@ -13,12 +13,12 @@ RUN cargo build --features s3-storage --release && cargo strip
 
 FROM debian:stable-slim
 
-RUN apt update && apt install -y libc6-dev awscli && rm -rf /var/lib/apt/lists/*
-
-RUN aws configure set region us-west-1
+# gettext-base is required for envsubst (config templating)
+RUN apt update && apt install -y gettext-base libc6-dev && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /etc/ssl/certs/ /etc/ssl/certs/
 COPY --from=builder /build/target/release/htsget-actix /usr/local/bin/htsget-actix
+COPY docker-entrypoint.sh /
 
 ENV HTSGET_TICKET_SERVER_ADDR 0.0.0.0:8080
 ENV HTSGET_DATA_SERVER_ADDR 0.0.0.0:8081
@@ -26,4 +26,6 @@ ENV HTSGET_DATA_SERVER_ADDR 0.0.0.0:8081
 EXPOSE 8080
 EXPOSE 8081
 
-CMD [ "htsget-actix" ]
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
+CMD ["htsget-actix", "--config", "/htsget/config.toml"]

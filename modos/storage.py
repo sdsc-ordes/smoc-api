@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import os
 from pathlib import Path
 import shutil
 from typing import Any, Generator, Optional
@@ -11,6 +12,7 @@ import zarr.hierarchy as zh
 from .helpers import ElementType, GenomicFileSuffix
 
 ZARR_ROOT = Path("data.zarr")
+S3_ADDRESSING_STYLE = os.getenv("S3_ADDRESSING_STYLE", "auto")
 
 
 class Storage(ABC):
@@ -92,13 +94,13 @@ class S3Storage(Storage):
     def __init__(
         self,
         path: Path,
-        s3_endpoint: dict[str, Any],
+        s3_endpoint: str,
         s3_kwargs: dict[str, Any],
     ):
         self._path = Path(path)
         self.endpoint = s3_endpoint
         s3_opts = s3_kwargs or {"anon": True}
-        fs = s3fs.S3FileSystem(endpoint_url=s3_endpoint, **s3_opts)
+        fs = connect_s3(s3_endpoint, s3_opts)
         if fs.exists(str(self.path / ZARR_ROOT)):
             zarr_s3_opts = s3_opts | {"endpoint_url": s3_endpoint}
 
@@ -159,6 +161,14 @@ def init_zarr(zarr_store: zarr.storage.Store) -> zh.Group:
         data.create_group(elem_type)
 
     return data
+
+
+def connect_s3(endpoint: str, s3_kwargs: dict[str, Any]) -> s3fs.S3FileSystem:
+    return s3fs.S3FileSystem(
+        endpoint_url=endpoint,
+        config_kwargs={"s3": {"addressing_style": S3_ADDRESSING_STYLE}},
+        **s3_kwargs,
+    )
 
 
 def add_metadata_group(parent_group: zh.Group, metadata: dict) -> None:

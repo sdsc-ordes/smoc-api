@@ -1,0 +1,20 @@
+# Template used to generate /htsget/config.toml
+# For config documentation and examples,
+# see https://github.com/umccr/htsget-rs/tree/main/htsget-config
+
+id = "modos-htsget"
+ticket_server_cors_allow_headers = "All"
+ticket_server_cors_allow_methods = "All"
+ticket_server_cors_allow_credentials = true
+ticket_server_cors_max_age = 300
+
+data_server_enabled = false
+
+[[resolvers]]
+regex = '.*'
+substitution_string = '$0'
+
+[resolvers.storage]
+endpoint = '${ENDPOINT}'
+bucket = '${BUCKET}'
+path_style = ${PATH_STYLE}

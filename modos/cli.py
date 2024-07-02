@@ -26,7 +26,7 @@ from .introspection import (
     load_schema,
 )
 from .io import build_modo_from_file, parse_instance
-from .storage import add_metadata_group, init_zarr
+from .storage import connect_s3
 
 
 class RdfFormat(str, Enum):
@@ -145,7 +145,7 @@ def create(
         raise ValueError(f"Directory already exists: {object_directory}")
 
     if s3_endpoint:
-        fs = s3fs.S3FileSystem(endpoint_url=s3_endpoint, anon=True)
+        fs = connect_s3(s3_endpoint, {"anon": True})
         if fs.exists(object_directory):
             raise ValueError(
                 f"Remote directory already exists: {object_directory}"

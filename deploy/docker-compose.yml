@@ -49,7 +49,7 @@ services:
       - MINIO_SERVER_ACCESS_KEY=${MINIO_SERVER_ACCESS_KEY:-user}
       - MINIO_SERVER_SECRET_KEY=${MINIO_SERVER_SECRET_KEY:-pass}
       - MINIO_DEFAULT_BUCKETS=${MINIO_DEFAULT_BUCKET:-modos-demo:public}
-      - CDK_DEFAULT_REGION='us-west-1'
+      - MINIO_REGION=us-east-1
 
 
   htsget:
@@ -57,7 +57,7 @@ services:
     depends_on:
         - minio
     volumes:
-      - ./htsget/s3_storage.toml:/s3_storage.toml:ro
+      - ./htsget/config.toml.template:/htsget/config.toml.template:ro
     expose:
       - "8080" # ticket server
       - "8081" # data block server
@@ -65,11 +65,13 @@ services:
       modos-network:
         ipv4_address: 172.23.0.3
     environment:
-      - S3_LOCAL_URL=${S3_LOCAL_URL:-http://172.23.0.2:9000}
+      - ENDPOINT=${S3_LOCAL_URL:-http://172.23.0.2:9000}
+      - BUCKET=${S3_BUCKET:-modos-demo}
+      - S3_ADDRESSING_STYLE=${S3_ADDRESSING_STYLE:-auto}
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minio}
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-miniosecret}
-      - CDK_DEFAULT_REGION='us-west-1'
-    command: htsget-actix --config s3_storage.toml
+      - AWS_REGION=us-east-1
+      - RUST_LOG=debug
 
 
   modos-server:
@@ -84,4 +86,5 @@ services:
       - S3_PUBLIC_URL=${S3_PUBLIC_URL:-http://localhost/s3}
       - HTSGET_LOCAL_URL=${HTSGET_LOCAL_URL:-http://htsget:8080}
       - S3_BUCKET=${S3_BUCKET:-modos-demo}
+      - S3_ADDRESSING_STYLE=${S3_ADDRESSING_STYLE:-auto}
     command: uvicorn --host 0.0.0.0 --port 8000 --reload server:app

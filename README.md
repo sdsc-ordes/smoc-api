@@ -56,7 +56,7 @@ The tests can be run with `make test`, it will execute pytest with the doctest m
 
 ### Using Nix Package Manager
 
-If you are using [`nix`](https://nixos.org/download) package manager with [flakes enabled](https://nixos.wiki/wiki/Flakes), 
+If you are using [`nix`](https://nixos.org/download) package manager with [flakes enabled](https://nixos.wiki/wiki/Flakes),
 you can enter a development shell with all requirements installed by doing:
 
 ```shell
