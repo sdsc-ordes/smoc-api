@@ -12,7 +12,6 @@ from urllib.parse import urlparse
 import modos_schema.datamodel as model
 
 import re
-import htsget
 from .helpers.genomics import (
     GenomicFileSuffix,
     file_to_pysam_object,

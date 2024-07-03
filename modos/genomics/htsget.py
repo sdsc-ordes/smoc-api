@@ -44,6 +44,7 @@ import re
 from typing import Optional, Iterator
 from urllib.parse import urlparse, parse_qs
 
+import pysam
 import requests
 
 from ..helpers.region import Region
@@ -232,3 +233,15 @@ class HtsgetConnection:
         """Open connection directly from an htsget URL."""
         host, path, region = parse_htsget_url(url)
         return cls(host, path, region=region)
+
+    def to_pysam(self) -> pysam.HTSFile:
+        """Convert the stream to a pysam object."""
+        # NOTE: Broken: pysam does not support streaming from_url
+        # a file-like object unless it is a file on disk.
+        match self.path.suffix.lstrip(".").upper():
+            case "BAM":
+                return pysam.AlignmentFile(self.open())
+            case "VCF":
+                return pysam.VariantFile(self.open())
+            case _:
+                raise ValueError(f"Unsupported format: {self.path.suffix}")
