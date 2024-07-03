@@ -4,20 +4,19 @@ This module provides helpers for accessing the schema structure
 and for converting instances to different representations.
 """
 from enum import Enum
-from typing import Any, Mapping
-from urllib.parse import urlparse
-import zarr
-
-import modos_schema.datamodel as model
-import modos_schema.schema as schema
-
 from functools import lru_cache, reduce
-from typing import Any, Optional
+from pathlib import Path
+from typing import Any, Mapping, Optional
+from urllib.parse import urlparse
 
+import zarr
 from linkml_runtime.dumpers import rdflib_dumper
 from linkml_runtime.utils.schemaview import SchemaView
 from rdflib import Graph
 from rdflib.term import URIRef
+
+import modos_schema.datamodel as model
+import modos_schema.schema as schema
 
 
 SCHEMA_PATH = Path(schema.__path__[0]) / "modos_schema.yaml"
