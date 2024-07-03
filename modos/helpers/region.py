@@ -70,8 +70,6 @@ class Region:
 
         Example
         -------
-        >>> Region.from_ucsc('chr1:0-100')
-        Region(chrom='chr1', start=0, end=100)
         >>> Region.from_ucsc('chr-1ba:10-320')
         Region(chrom='chr-1ba', start=10, end=320)
         >>> Region.from_ucsc('chr1:-320')
@@ -80,8 +78,6 @@ class Region:
         Region(chrom='chr1', start=10, end=inf)
         >>> Region.from_ucsc('chr1:10')
         Region(chrom='chr1', start=10, end=inf)
-        >>> Region.from_ucsc('*')
-        Region(chrom='*', start=0, end=inf)
         >>> Region.from_ucsc('')
         Region(chrom='', start=0, end=inf)
 

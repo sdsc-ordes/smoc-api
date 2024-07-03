@@ -1,0 +1,19 @@
+import pytest
+from modos.helpers.region import Region
+
+
+def test_invalid_region():
+    with pytest.raises(ValueError):
+        Region(chrom="chr1", start=10, end=5)
+
+    with pytest.raises(ValueError):
+        Region(chrom="chr1", start=-10, end=-1)
+
+
+def test_overlap():
+    region1 = Region(chrom="chr1", start=10, end=20)
+    region2 = Region(chrom="chr1", start=15, end=25)
+    region3 = Region(chrom="chr1", start=150, end=250)
+    assert region2 in region1
+    assert region1 in region2
+    assert region3 not in region1
