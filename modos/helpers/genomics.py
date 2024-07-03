@@ -11,6 +11,8 @@ from pysam import (
     VariantRecord,
 )
 
+from .region import Region
+
 
 class GenomicFileSuffix(tuple, Enum):
     """Enumeration of all supported genomic file suffixes."""
@@ -69,7 +71,7 @@ def file_to_pysam_object(
 def bytesio_to_iterator(
     bytesio_buffer: BytesIO,
     file_format: str,
-    region: Optional[str],
+    region: Optional[Region],
     reference_filename: Optional[str] = None,
 ) -> Iterator[AlignedSegment | VariantRecord]:
     """Takes a BytesIO buffer and returns a pysam
@@ -88,7 +90,6 @@ def bytesio_to_iterator(
             fileformat=file_format,
             reference_filename=reference_filename,
         )
-        chrom, start, end = parse_region(region)
         if file_format in ("VCF", "BCF"):
             get_chrom = lambda r: r.chrom
             get_start = lambda r: r.start
@@ -100,12 +101,10 @@ def bytesio_to_iterator(
             if region is None:
                 yield record
                 continue
-
-            bad_chrom = get_chrom(record) != chrom
-            bad_start = start is not None and (get_start(record) < start)
-            bad_end = end is not None and (get_start(record) > end)
-
-            if any([bad_chrom, bad_start, bad_end]):
+            record_region = Region(
+                get_chrom(record), get_start(record), get_start(record)
+            )
+            if not record_region in region:
                 continue
             yield record
 
