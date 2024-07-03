@@ -27,8 +27,8 @@ class Region:
 
         Example
         -------
-        >>> Region(chrom="chr1", start=0, end=100).to_htsget_query()
-        "referenceName=chr1&start=0&end=100"
+        >>> Region(chrom='chr1', start=0, end=100).to_htsget_query()
+        'referenceName=chr1&start=0&end=100'
         """
         query = f"referenceName={self.chrom}&start={self.start}"
         if self.end != math.inf:
@@ -50,9 +50,9 @@ class Region:
         Example
         -------
         >>> Region.from_htsget_query(
-          "http://localhost/htsget/reads/ex/demo1?format=CRAM&referenceName=chr1&start=0
-        )
-        Region(chrom="chr1", start=0, end=math.inf)
+        ...   "http://localhost/htsget/reads/ex/demo1?format=CRAM&referenceName=chr1&start=0"
+        ... )
+        Region(chrom='chr1', start=0, end=inf)
         """
         query = parse_qs(urlparse(url).query)
         try:
@@ -70,20 +70,20 @@ class Region:
 
         Example
         -------
-        >>> Region.from_ucsc("chr1:0-100")
-        Region(chrom="chr1", start=0, end=100)
-        >>> parse_region('chr-1ba:10-320')
+        >>> Region.from_ucsc('chr1:0-100')
+        Region(chrom='chr1', start=0, end=100)
+        >>> Region.from_ucsc('chr-1ba:10-320')
         Region(chrom='chr-1ba', start=10, end=320)
-        >>> parse_region('chr1:-320')
+        >>> Region.from_ucsc('chr1:-320')
         Region(chrom='chr1', start=0, end=320)
-        >>> parse_region('chr1:10-')
-        Region(chrom='chr1', start=10, end=math.inf)
-        >>> parse_region('chr1:10')
-        Region(chrom='chr1', start=10, end=math.inf)
-        >>> parse_region('*')
-        Region(chrom='*', start=0, end=math.inf)
-        >>> parse_region('')
-        Region(chrom='', start=0, end=math.inf)
+        >>> Region.from_ucsc('chr1:10-')
+        Region(chrom='chr1', start=10, end=inf)
+        >>> Region.from_ucsc('chr1:10')
+        Region(chrom='chr1', start=10, end=inf)
+        >>> Region.from_ucsc('*')
+        Region(chrom='*', start=0, end=inf)
+        >>> Region.from_ucsc('')
+        Region(chrom='', start=0, end=inf)
 
         Note
         ----
