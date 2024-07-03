@@ -14,7 +14,7 @@ The client then streams data from these URLs, effectively concatenating the bloc
 
 
 .. figure:: http://samtools.github.io/hts-specs/pub/htsget-ticket.png
-   :width: 600
+   :width: 66%
    :alt: htsget mechanism diagram
 
    Illustration of the mechanism through which the htsget server allows streaming and random-access on genomic files. See [1]_ for more details.
