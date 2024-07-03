@@ -1,6 +1,8 @@
+from __future__ import annotations
 import math
 from dataclasses import dataclass
 from urllib.parse import parse_qs, urlparse
+from typing import Optional
 
 
 @dataclass
@@ -32,6 +34,14 @@ class Region:
         if self.end != math.inf:
             query += f"&end={self.end}"
         return query
+
+    def to_tuple(self) -> tuple[str, Optional[int], Optional[int]]:
+        """Return the region as a simple tuple."""
+        return (
+            self.chrom,
+            self.start,
+            int(self.end) if self.end != math.inf else None,
+        )
 
     @classmethod
     def from_htsget_query(cls, url: str):
@@ -95,3 +105,12 @@ class Region:
         start = 0 if start == "" else int(start)
         end = math.inf if end == "" else int(end)
         return cls(chrom, start, end)
+
+    def __contains__(self, other: Region) -> bool:
+        """Checks if other in self.
+        This check if any portion of other overlaps with self.
+        """
+        same_chrom = self.chrom == other.chrom
+        starts_in = self.start <= other.start <= self.end
+        ends_in = self.start <= other.end <= self.end
+        return same_chrom and (starts_in or ends_in)
