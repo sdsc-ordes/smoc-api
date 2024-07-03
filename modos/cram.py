@@ -13,26 +13,24 @@ import modos_schema.datamodel as model
 
 import re
 import htsget
-from .helpers import (
-    parse_region,
+from .helpers.genomics import (
     GenomicFileSuffix,
     file_to_pysam_object,
     bytesio_to_iterator,
     iter_to_file,
 )
+from .helpers.region import Region
 from io import BytesIO
 
 
 def slice_genomics(
     path: str,
-    region: Optional[str] = None,
+    region: Optional[Region] = None,
     reference_filename: Optional[str] = None,
     output_filename: Optional[str] = None,
 ) -> Optional[Iterator[AlignedSegment | VariantRecord]]:
     """Returns an iterable slice of the CRAM, VCF or BCF file,
     or saves it to a local file."""
-
-    reference_name, start, end = parse_region(region)
 
     fileformat = GenomicFileSuffix.from_path(Path(path)).name
 
@@ -40,7 +38,8 @@ def slice_genomics(
         path=path, fileformat=fileformat, reference_filename=reference_filename
     )
 
-    gen_iter = infile.fetch(reference_name, start, end)
+    coords = region.to_tuple() if region else (None, None, None)
+    gen_iter = infile.fetch(*coords)
 
     if output_filename:
         iter_to_file(
@@ -55,37 +54,34 @@ def slice_genomics(
 
 def slice_remote_genomics(
     url: str,
-    region: Optional[str] = None,
+    region: Optional[Region] = None,
     reference_filename: Optional[str] = None,
     output_filename: Optional[str] = None,
 ) -> Optional[Iterator[AlignedSegment | VariantRecord]]:
     """Stream or write to a local file a slice of a remote CRAM or VCF/BCF file"""
 
-    url = urlparse(url)
-    in_fileformat = GenomicFileSuffix.from_path(Path(url.path)).name
-    if in_fileformat not in ("CRAM", "VCF", "BCF") or url.path.endswith(
-        ".vcf"
-    ):
+    parsed = urlparse(url)
+    path = parsed.path
+    in_fileformat = GenomicFileSuffix.from_path(Path(path)).name
+    if in_fileformat not in ("CRAM", "VCF", "BCF") or path.endswith(".vcf"):
         raise ValueError(
             "Unsupported file type. Streaming/Saving remote genomic files support remote .cram, .vcf.gz, .bcf files."
         )
-    # path = url.path
-    url = url._replace(
-        path=re.sub("\.vcf\.\w+$", ".vcf", url.path)
-    )  # remove aditional
-    # extensions, e.g., .vcf.gz -> .vcf
-    url = url._replace(path=str(Path(url.path).with_suffix("")))
-
-    reference_name, start, end = parse_region(region)
+    # remove aditional extensions, e.g., .vcf.gz -> .vcf
+    path_noext = str(
+        Path(re.sub(r"\.vcf\.\w+$", ".vcf", path)).with_suffix("")
+    )
+    parsed = parsed._replace(path=path_noext)
 
     htsget_response_buffer = BytesIO()
+    chrom, start, end = region.to_tuple() if region else (None, None, None)
     htsget.get(
-        url=url.geturl(),
+        url=parsed.geturl(),
         output=htsget_response_buffer,  # sys.stdout.buffer,
-        reference_name=reference_name,
+        data_format=in_fileformat,
+        reference_name=chrom,
         start=start,
         end=end,
-        data_format=in_fileformat,
     )
 
     htsget_response_buffer.seek(0)
