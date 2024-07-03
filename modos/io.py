@@ -10,7 +10,7 @@ from linkml_runtime.loaders import (
 )
 import modos_schema.datamodel as model
 from .api import MODO
-from .helpers import dict_to_instance, update_haspart_id
+from .helpers.schema import dict_to_instance, update_haspart_id
 
 ext2loader = {
     "json": json_loader,

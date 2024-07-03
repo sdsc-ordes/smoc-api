@@ -1,12 +1,12 @@
 from linkml_runtime.loaders import json_loader
 import rdflib
-from .introspection import (
+from .helpers.schema import (
     get_slot_range,
     instance_to_graph,
     load_prefixmap,
     load_schema,
 )
-from .helpers import (
+from .helpers.schema import (
     is_uri,
     class_from_name,
 )
