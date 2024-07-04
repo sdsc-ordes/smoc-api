@@ -5,7 +5,7 @@ from urllib.parse import parse_qs, urlparse
 from typing import Optional
 
 
-@dataclass
+@dataclass(order=True)
 class Region:
     """Genomic region consisting of a chromosome (aka reference) name
     and a 0-indexed half-open coordinate interval.
