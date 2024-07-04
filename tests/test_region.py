@@ -9,6 +9,9 @@ def test_invalid_region():
     with pytest.raises(ValueError):
         Region(chrom="chr1", start=-10, end=-1)
 
+    with pytest.raises(ValueError):
+        Region(chrom="", start=10, end=11)
+
 
 def test_overlap():
     region1 = Region(chrom="chr1", start=10, end=20)
