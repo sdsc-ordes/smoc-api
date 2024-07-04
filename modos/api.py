@@ -21,15 +21,16 @@ from .storage import (
     S3Storage,
 )
 from .file_utils import extract_metadata, extraction_formats
-from .helpers import (
+from .helpers.schema import (
     class_from_name,
     dict_to_instance,
     ElementType,
-    GenomicFileSuffix,
     set_haspart_relationship,
     UserElementType,
     update_haspart_id,
 )
+from .helpers.genomics import GenomicFileSuffix
+from .helpers.region import Region
 from .cram import slice_genomics, slice_remote_genomics
 
 
@@ -400,6 +401,7 @@ class MODO:
         """Slices both local and remote CRAM, VCF (.vcf.gz), and BCF
         files returning an iterator or saving to local file."""
 
+        _region = Region.from_ucsc(region) if region else None
         # check requested genomics file exists in MODO
         if Path(file_path) not in self.list_files():
             raise ValueError(f"{file_path} not found in {self.path}.")
@@ -423,7 +425,7 @@ class MODO:
 
             gen_iter = slice_remote_genomics(
                 url=url,
-                region=region,
+                region=_region,
                 reference_filename=reference_filename,
                 output_filename=output_filename,
             )
@@ -435,7 +437,7 @@ class MODO:
 
             gen_iter = slice_genomics(
                 path=file_path,
-                region=region,
+                region=_region,
                 reference_filename=reference_filename,
                 output_filename=output_filename,
             )

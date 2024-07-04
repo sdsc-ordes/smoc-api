@@ -1,22 +1,25 @@
+"""Introspection utilities for the MODO schema.
+
+This module provides helpers for accessing the schema structure
+and for converting instances to different representations.
+"""
 from enum import Enum
+from functools import lru_cache, reduce
 from pathlib import Path
-import re
-from typing import Any, Mapping, Optional, Iterator
+from typing import Any, Mapping, Optional
 from urllib.parse import urlparse
+
 import zarr
+from linkml_runtime.dumpers import rdflib_dumper
+from linkml_runtime.utils.schemaview import SchemaView
+from rdflib import Graph
+from rdflib.term import URIRef
 
 import modos_schema.datamodel as model
+import modos_schema.schema as schema
 
-from .introspection import get_haspart_property, get_slot_range, load_schema
 
-from io import BytesIO
-import tempfile
-from pysam import (
-    AlignedSegment,
-    AlignmentFile,
-    VariantFile,
-    VariantRecord,
-)
+SCHEMA_PATH = Path(schema.__path__[0]) / "modos_schema.yaml"
 
 
 def class_from_name(name: str):
@@ -209,178 +212,76 @@ def is_uri(text: str):
         return False
 
 
-def parse_region(
-    region: Optional[str] = None,
-) -> tuple[str, Optional[int], Optional[int]]:
-    """Parses an input UCSC-format region string into
-    (reference_name, start, end).
+@lru_cache(1)
+def load_schema() -> SchemaView:
+    """Return a view over the schema structure."""
+    return SchemaView(SCHEMA_PATH)
+
+
+@lru_cache(1)
+def load_prefixmap() -> Any:
+    """Load the prefixmap."""
+    return SchemaView(SCHEMA_PATH, merge_imports=False).schema.prefixes
+
+
+def get_slots(target_class: type, required_only=False) -> list[str]:
+    """Return a list of required slots for a class."""
+    slots = []
+    class_slots = target_class.__match_args__
+
+    for slot_name in class_slots:
+        if not required_only or load_schema().get_slot(slot_name).required:
+            slots.append(slot_name)
+
+    return slots
+
+
+def instance_to_graph(instance) -> Graph:
+    # NOTE: This is a hack to get around the fact that the linkml
+    # stores strings instead of URIRefs for prefixes.
+    prefixes = {
+        p.prefix_prefix: URIRef(p.prefix_reference)
+        for p in load_prefixmap().values()
+    }
+    return rdflib_dumper.as_rdf_graph(
+        instance,
+        prefix_map=prefixes,
+        schemaview=load_schema(),
+    )
+
+
+def get_slot_range(slot_name: str) -> str:
+    """Return the class-independent range of a slot."""
+    return load_schema().get_slot(slot_name).range
+
+
+def get_enum_values(enum_name: str) -> Optional[list[str]]:
+    return list(load_schema().get_enum(enum_name).permissible_values.keys())
+
+
+def get_haspart_property(child_class: str) -> Optional[str]:
+    """Return the name of the "has_part" property for a target class.
+    If no such property is in the schema, return None.
 
     Examples
     --------
-    >>> parse_region('chr1:10-320')
-    ('chr1', 10, 320)
-    >>> parse_region('chr-1ba:10-320')
-    ('chr-1ba', 10, 320)
-    >>> parse_region('chr1:-320')
-    ('chr1', None, 320)
-    >>> parse_region('chr1:10-')
-    ('chr1', 10, None)
-    >>> parse_region('chr1:10')
-    ('chr1', 10, None)
-    >>> parse_region('chr1')
-    ('chr1', None, None)
-    >>> parse_region('*')
-    ('*', None, None)
-    >>> parse_region('')
-    (None, None, None)
+    >>> get_haspart_property('AlignmentSet')
+    'has_data'
+    >>> get_haspart_property('Assay')
+    'has_assay'
     """
 
-    if not region:
-        reference_name, start, end = None, None, None
-    else:
-        matches = re.match(r"^([^:]+)(:([0-9]+)?(-[0-9]*)?)?$", region.strip())
-        if not matches:
-            raise ValueError(
-                f"Invalid region format: {region}. Expected 'chr:start-end' (start/end optional)"
-            )
-
-        reference_name, _, start, end = matches.groups()
-        if start:
-            start = int(start)
-        if end:
-            end = end.replace("-", "")
-            end = None if end == "" else int(end)
-
-    return (reference_name, start, end)
-
-
-class GenomicFileSuffix(tuple, Enum):
-    """Enumeration of all supported genomic file suffixes."""
-
-    CRAM = (".cram",)
-    FASTA = (".fasta", ".fa")
-    FASTQ = (".fastq", ".fq")
-    BAM = (".bam",)
-    SAM = (".sam",)
-    VCF = (".vcf", ".vcf.gz")
-    BCF = (".bcf",)
-
-    @classmethod
-    def from_path(cls, path: Path):
-        for genome_ft in cls:
-            if "".join(path.suffixes) in genome_ft.value:
-                return genome_ft
-        supported = [fi_format for fi_format in cls]
-        raise ValueError(
-            f'Unsupported file format: {"".join(path.suffixes)}.\n'
-            f"Supported formats:{supported}"
-        )
-
-    def get_index_suffix(self):
-        """Return the supported index suffix related to a genomic filetype"""
-        match self.name:
-            case "BAM" | "SAM":
-                return ".bai"
-            case "BCF":
-                return ".csi"
-            case "CRAM":
-                return ".crai"
-            case "FASTA" | "FASTQ":
-                return ".fai"
-            case "VCF":
-                return ".tbi"
-
-
-def file_to_pysam_object(
-    path: str, fileformat: str, reference_filename: Optional[str] = None
-) -> VariantFile | AlignmentFile:
-    """Create a pysam AlignmentFile of VariantFile"""
-    if fileformat == "CRAM":
-        pysam_file = AlignmentFile(
-            path, "rc", reference_filename=reference_filename
-        )
-    elif fileformat in ("VCF", "BCF"):
-        pysam_file = VariantFile(path, "rb")
-    else:
-        raise ValueError(
-            "Unsupported input file type. Supported files: CRAM, VCF, BCF"
-        )
-    return pysam_file
-
-
-def bytesio_to_iterator(
-    bytesio_buffer: BytesIO,
-    file_format: str,
-    region: Optional[str],
-    reference_filename: Optional[str] = None,
-) -> Iterator[AlignedSegment | VariantRecord]:
-    """Takes a BytesIO buffer and returns a pysam
-    AlignedSegment or VariantRecord iterator"""
-    # Create a temporary file to write the bytesio data
-    with tempfile.NamedTemporaryFile() as temp_file:
-        # Write the contents of the BytesIO buffer to the temporary file
-        temp_file.write(bytesio_buffer.getvalue())
-
-        # Seek to the beginning of the temporary file
-        temp_file.seek(0)
-
-        # Open the temporary file as a pysam.AlignmentFile/VarianFile object
-        pysam_iter = file_to_pysam_object(
-            path=temp_file.name,
-            fileformat=file_format,
-            reference_filename=reference_filename,
-        )
-        chrom, start, end = parse_region(region)
-        if file_format in ("VCF", "BCF"):
-            get_chrom = lambda r: r.chrom
-            get_start = lambda r: r.start
-        else:
-            get_chrom = lambda r: r.reference_name
-            get_start = lambda r: r.reference_start
-
-        for record in pysam_iter:
-            if region is None:
-                yield record
-                continue
-
-            bad_chrom = get_chrom(record) != chrom
-            bad_start = start is not None and (get_start(record) < start)
-            bad_end = end is not None and (get_start(record) > end)
-
-            if any([bad_chrom, bad_start, bad_end]):
-                continue
-            yield record
-
-
-def iter_to_file(
-    gen_iter: Iterator[AlignedSegment | VariantRecord],
-    infile,  # [AlignmentFile | VariantFile]
-    output_filename: str,
-    reference_filename: Optional[str] = None,
-):
-    out_fileformat = GenomicFileSuffix.from_path(Path(output_filename)).name
-    if out_fileformat in ("CRAM", "BAM", "SAM"):
-        write_mode = (
-            "wc"
-            if out_fileformat == "CRAM"
-            else ("wb" if out_fileformat == "BAM" else "w")
-        )
-        output = AlignmentFile(
-            output_filename,
-            mode=write_mode,
-            template=infile,
-            reference_filename=reference_filename,
-        )
-    elif out_fileformat in ("VCF", "BCF"):
-        write_mode = "w" if out_fileformat == "VCF" else "wb"
-        output = VariantFile(
-            output_filename, mode=write_mode, header=infile.header
-        )
-    else:
-        raise ValueError(
-            "Unsupported output file type. Supported files: .cram, .bam, .sam, .vcf, .vcf.gz, .bcf."
-        )
-
-    for read in gen_iter:
-        output.write(read)
-    output.close()
+    # find all subproperties of has_part
+    prop_names = load_schema().slot_children("has_part")
+    for prop_name in prop_names:
+        targets = get_slot_range(prop_name)
+        if isinstance(targets, str):
+            targets = [targets]
+        # When considering the slot range,
+        # include subclasses or targets
+        sub_targets = map(load_schema().get_children, targets)
+        sub_targets = reduce(lambda x, y: x + y, sub_targets)
+        all_targets = targets + [t for t in sub_targets if t]
+        if child_class in all_targets:
+            return prop_name
+    return None

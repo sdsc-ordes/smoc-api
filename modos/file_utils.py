@@ -16,7 +16,9 @@ def extract_metadata(instance, base_path: Path) -> List:
         raise ValueError(f"{instance} is not a DataEntity, cannot extract")
     match str(instance.data_format):
         case "CRAM":
-            cramfile = AlignmentFile(base_path / instance.data_path, mode="rc")
+            cramfile = AlignmentFile(
+                str(base_path / instance.data_path), mode="rc"
+            )
             return extract_cram_metadata(cramfile)
         case _:
             raise ValueError(

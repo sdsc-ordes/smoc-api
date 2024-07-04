@@ -4,7 +4,6 @@
 
 from datetime import date
 from enum import Enum
-import json
 import os
 from pathlib import Path
 from typing import Any, List, Mapping, Optional
@@ -13,13 +12,12 @@ from typing_extensions import Annotated
 import click
 from linkml_runtime.loaders import json_loader
 import modos_schema.datamodel as model
-import s3fs
 import typer
 import zarr
 
 from .api import MODO
-from .helpers import UserElementType
-from .introspection import (
+from .helpers.schema import (
+    UserElementType,
     get_enum_values,
     get_slots,
     get_slot_range,
