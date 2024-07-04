@@ -17,6 +17,8 @@ class Region:
     end: int | float
 
     def __post_init__(self):
+        if not self.chrom:
+            raise ValueError("Chromosome must be specified")
         if self.start < 0:
             raise ValueError("Start must be non-negative")
         if self.end < self.start:
@@ -33,6 +35,7 @@ class Region:
         query = f"referenceName={self.chrom}&start={self.start}"
         if self.end != math.inf:
             query += f"&end={self.end}"
+
         return query
 
     def to_tuple(self) -> tuple[str, Optional[int], Optional[int]]:
@@ -78,8 +81,6 @@ class Region:
         Region(chrom='chr1', start=10, end=inf)
         >>> Region.from_ucsc('chr1:10')
         Region(chrom='chr1', start=10, end=inf)
-        >>> Region.from_ucsc('')
-        Region(chrom='', start=0, end=inf)
 
         Note
         ----
@@ -100,13 +101,23 @@ class Region:
         # Allow empty strings for start and end
         start = 0 if start == "" else int(start)
         end = math.inf if end == "" else int(end)
+
         return cls(chrom, start, end)
 
-    def __contains__(self, other: Region) -> bool:
+    def overlaps(self, other: Region) -> bool:
         """Checks if other in self.
         This check if any portion of other overlaps with self.
         """
         same_chrom = self.chrom == other.chrom
         starts_in = self.start <= other.start <= self.end
         ends_in = self.start <= other.end <= self.end
+
         return same_chrom and (starts_in or ends_in)
+
+    def contains(self, other: Region) -> bool:
+        """Checks if other is fully contained in self."""
+        same_chrom = self.chrom == other.chrom
+        starts_in = self.start <= other.start <= self.end
+        ends_in = self.start <= other.end <= self.end
+
+        return same_chrom and starts_in and ends_in

@@ -104,7 +104,7 @@ def bytesio_to_iterator(
             record_region = Region(
                 get_chrom(record), get_start(record), get_start(record)
             )
-            if not record_region in region:
+            if not record_region.overlaps(region):
                 continue
             yield record
 
