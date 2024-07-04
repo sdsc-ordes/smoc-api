@@ -193,7 +193,7 @@ def remove(
         typer.Option(
             "--force",
             "-f",
-            help="Remove the entire MODOS, including all files",
+            help="Skip confirmation for file deletion and allow deletion of the root object.",
         ),
     ] = False,
 ):
@@ -210,12 +210,13 @@ def remove(
         element = modo.zarr.get(element_id)
         rm_path = element.attrs.get("data_path", [])
         if isinstance(element, zarr.hierarchy.Group) and len(rm_path) > 0:
-            delete = typer.confirm(
-                f"Removing {element_id} will permanently delete {rm_path}.\n Please confirm that you want to continue?"
-            )
-            if not delete:
-                print(f"Stop removing element {element_id}!")
-                raise typer.Abort()
+            if not force:
+                delete = typer.confirm(
+                    f"Removing {element_id} will permanently delete {rm_path}.\n Please confirm that you want to continue?"
+                )
+                if not delete:
+                    print(f"Stop removing element {element_id}!")
+                    raise typer.Abort()
         modo.remove_element(element_id)
 
 
