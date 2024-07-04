@@ -1,5 +1,6 @@
 from datetime import date
 import json
+import os
 from pathlib import Path
 from typing import List, Optional, Union, Iterator
 import yaml
@@ -201,6 +202,16 @@ class MODO:
 
         self.update_date()
         zarr.consolidate_metadata(self.zarr.store)
+
+    def remove_object(self):
+        """Remove the complete modo object"""
+        for fi in self.list_files():
+            self.storage.remove(fi)
+        self.zarr.store.rmdir()
+        # NOTE: Locally remove the empty directory (does not affect remote).
+        if self.path.exists():
+            os.rmdir(self.path)
+        print(f"INFO: Permanently deleted {self.path}.")
 
     def add_element(
         self,
