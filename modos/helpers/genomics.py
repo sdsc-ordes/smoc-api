@@ -107,37 +107,3 @@ def bytesio_to_iterator(
             if not record_region in region:
                 continue
             yield record
-
-
-def iter_to_file(
-    gen_iter: Iterator[AlignedSegment | VariantRecord],
-    infile,  # [AlignmentFile | VariantFile]
-    output_filename: str,
-    reference_filename: Optional[str] = None,
-):
-    out_fileformat = GenomicFileSuffix.from_path(Path(output_filename)).name
-    if out_fileformat in ("CRAM", "BAM", "SAM"):
-        write_mode = (
-            "wc"
-            if out_fileformat == "CRAM"
-            else ("wb" if out_fileformat == "BAM" else "w")
-        )
-        output = AlignmentFile(
-            output_filename,
-            mode=write_mode,
-            template=infile,
-            reference_filename=reference_filename,
-        )
-    elif out_fileformat in ("VCF", "BCF"):
-        write_mode = "w" if out_fileformat == "VCF" else "wb"
-        output = VariantFile(
-            output_filename, mode=write_mode, header=infile.header
-        )
-    else:
-        raise ValueError(
-            "Unsupported output file type. Supported files: .cram, .bam, .sam, .vcf, .vcf.gz, .bcf."
-        )
-
-    for read in gen_iter:
-        output.write(read)
-    output.close()

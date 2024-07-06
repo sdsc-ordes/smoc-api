@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from urllib.parse import parse_qs, urlparse
 from typing import Optional
 
+import pysam
+
 
 @dataclass
 class Region:
@@ -65,7 +67,7 @@ class Region:
         return Region(chrom, start, end)
 
     @classmethod
-    def from_ucsc(cls, ucsc: str):
+    def from_ucsc(cls, ucsc: str) -> Region:
         """Instantiate from a UCSC-formatted region string.
 
         Example
@@ -100,7 +102,33 @@ class Region:
         # Allow empty strings for start and end
         start = 0 if start == "" else int(start)
         end = math.inf if end == "" else int(end)
+
         return cls(chrom, start, end)
+
+    @classmethod
+    def from_pysam(
+        cls, record: pysam.VariantRecord | pysam.AlignedSegment
+    ) -> Region:
+
+        match record:
+            case pysam.VariantRecord:
+                chrom = record.chrom
+                start = record.start
+                end = record.stop
+            case pysam.AlignedSegment:
+                chrom = record.reference_name
+                start = record.reference_start
+                end = record.reference_end
+            case _:
+                raise TypeError(
+                    "record must be a pysam.VariantRecord or pysam.AlignedSegment"
+                )
+
+        match (chrom, start, end):
+            case str(), int(), int():
+                return cls(chrom, start, end)
+            case _:
+                raise ValueError("Record must have coordinates")
 
     def __contains__(self, other: Region) -> bool:
         """Checks if other in self.
@@ -109,4 +137,5 @@ class Region:
         same_chrom = self.chrom == other.chrom
         starts_in = self.start <= other.start <= self.end
         ends_in = self.start <= other.end <= self.end
+
         return same_chrom and (starts_in or ends_in)

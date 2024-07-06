@@ -42,13 +42,13 @@ import io
 from pathlib import Path
 import re
 import tempfile
-from typing import BinaryIO, Optional, Iterator
+from typing import Optional, Iterator
 from urllib.parse import urlparse, parse_qs
 
 import pysam
 import requests
 
-from ..helpers.region import Region
+from .region import Region
 
 
 def build_htsget_url(host: str, path: Path, region: Optional[Region]) -> str:
@@ -232,7 +232,7 @@ class HtsgetConnection:
         host, path, region = parse_htsget_url(url)
         return cls(host, path, region=region)
 
-    def to_pysam(self) -> pysam.HTSFile:
+    def to_pysam(self) -> Iterator[pysam.AlignedSegment | pysam.VariantRecord]:
         """Convert the stream to a pysam object."""
 
         # NOTE: pysam needs a path or file descriptor,
@@ -245,8 +245,21 @@ class HtsgetConnection:
 
         match self.path.suffix.lstrip(".").upper():
             case "BAM" | "CRAM":
-                return pysam.AlignmentFile(buffer)
+                handle = pysam.AlignmentFile(buffer)
             case "VCF" | "BCF":
-                return pysam.VariantFile(buffer)
+                handle = pysam.VariantFile(buffer)
             case _:
                 raise ValueError(f"Unsupported format: {self.path.suffix}")
+
+        for record in handle:
+
+            if self.region is None:
+                yield record
+                continue
+
+            # htsget includes all returns in the bgzf block
+            # we filter out records outside requested region
+            record_region = Region.from_pysam(record)
+            if not record_region in self.region:
+                continue
+            yield record
