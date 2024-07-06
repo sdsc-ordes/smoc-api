@@ -41,7 +41,8 @@ from functools import cached_property
 import io
 from pathlib import Path
 import re
-from typing import Optional, Iterator
+import tempfile
+from typing import BinaryIO, Optional, Iterator
 from urllib.parse import urlparse, parse_qs
 
 import pysam
@@ -87,14 +88,11 @@ class _HtsgetBlockIter:
 
     Examples
     --------
-    >>> next(_HtsgetBlockIter(
-    ...   [
-    ...     {"url": "data:;base64,MTIzNDU2Nzg5Cg=="},
-    ...     {"url": "data:;base64,MTIzNDU2Nzg5Cg=="},
-    ...   ],
-    ...   chunk_size=4,
-    ...  ))
-    '1234'
+    >>> next(_HtsgetBlockIter([
+    ...     {"url": "data:;base64,MTIzNDU2Nzg5"},
+    ...     {"url": "data:;base64,MTIzNDU2Nzg5"},
+    ... ]))
+    b'123456789'
     """
 
     def __init__(self, blocks: list[dict], chunk_size=65536, timeout=60):
@@ -160,7 +158,7 @@ class HtsgetStream(io.RawIOBase):
     ...   {"url": "data:;base64,MTIzNDU2Nzg5Cg=="},
     ... ])
     >>> stream.read(4)
-    '1234'
+    b'1234'
     """
 
     def __init__(self, blocks: list[dict]):
@@ -236,12 +234,19 @@ class HtsgetConnection:
 
     def to_pysam(self) -> pysam.HTSFile:
         """Convert the stream to a pysam object."""
-        # NOTE: Broken: pysam does not support streaming from_url
-        # a file-like object unless it is a file on disk.
+
+        # NOTE: pysam needs a path or file descriptor,
+        # we have to stream from drive until this is addressed:
+        # ref: https://github.com/pysam-developers/pysam/blob/0787ca9da997b5911c00fd12584dad9741c82fb4/pysam/libcalignmentfile.pyx#L855
+        # TODO: when above addressed, replace temporary file with
+        # self.open() to stream directly from in-memory buffer.
+        buffer = tempfile.NamedTemporaryFile("w+b", delete=False).name
+        self.to_file(Path(buffer))
+
         match self.path.suffix.lstrip(".").upper():
-            case "BAM":
-                return pysam.AlignmentFile(self.open())
-            case "VCF":
-                return pysam.VariantFile(self.open())
+            case "BAM" | "CRAM":
+                return pysam.AlignmentFile(buffer)
+            case "VCF" | "BCF":
+                return pysam.VariantFile(buffer)
             case _:
                 raise ValueError(f"Unsupported format: {self.path.suffix}")
