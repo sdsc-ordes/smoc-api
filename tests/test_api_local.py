@@ -3,6 +3,7 @@
 
 from modos.api import MODO
 from modos.io import build_modo_from_file
+from pathlib import Path
 
 import modos_schema.datamodel as model
 import pysam
@@ -60,6 +61,23 @@ def test_remove_element_link_list(test_modo):
     assert ["sample/sample1"] not in test_modo.metadata[
         "assay/assay1"
     ].values()
+
+
+def test_remove_element_delete_file(test_modo):
+    data_fi = Path(test_modo.path / "demo1.cram")
+    assert data_fi.exists()
+    test_modo.remove_element("data/demo1")
+    assert not data_fi.exists()
+
+
+## Remove modos
+
+
+def test_remove_modo(test_modo):
+    modo_path = test_modo.path
+    assert modo_path.exists()
+    test_modo.remove_object()
+    assert not modo_path.exists()
 
 
 ## Update element
