@@ -30,7 +30,7 @@ from .helpers.schema import (
     update_haspart_id,
 )
 from .genomics.formats import GenomicFileSuffix, open_pysam
-from genomics.htsget import HtsgetConnection
+from .genomics.htsget import HtsgetConnection
 from .genomics.region import Region
 from .io import extract_metadata, parse_multiple_instances
 
@@ -379,7 +379,11 @@ class MODO:
 
     def enrich_metadata(self):
         """Enrich MODO metadata in place using content from associated data files."""
-        inst_names = {inst.name: id for id, inst in self.metadata.items()}
+        inst_names = {
+            inst["name"]: id
+            for id, inst in self.metadata.items()
+            if "name" in inst
+        }
         for id, entity in self.metadata.items():
             if entity.get("@type") != "DataEntity":
                 continue
