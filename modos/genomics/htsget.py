@@ -58,7 +58,7 @@ def build_htsget_url(host: str, path: Path, region: Optional[Region]) -> str:
     endpoint = format.to_htsget_endpoint()
     stem = path.with_suffix("")
 
-    url = f"{host}/{endpoint}/{stem}?format={format}"
+    url = f"{host}/{endpoint}/{stem}?format={format.name}"
     if region:
         url += f"&{region.to_htsget_query()}"
     return url
@@ -261,6 +261,6 @@ class HtsgetConnection:
             # htsget includes all returns in the bgzf block
             # we filter out records outside requested region
             record_region = Region.from_pysam(record)
-            if not record_region in self.region:
+            if not record_region.overlaps(self.region):
                 continue
             yield record
