@@ -29,10 +29,10 @@ from .helpers.schema import (
     UserElementType,
     update_haspart_id,
 )
-from .helpers.genomics import GenomicFileSuffix
-from .helpers.region import Region
-from .io import extract_metadata
-from .cram import slice_genomics, slice_remote_genomics
+from .genomics.formats import GenomicFileSuffix, open_pysam
+from genomics.htsget import HtsgetConnection
+from .genomics.region import Region
+from .io import extract_metadata, parse_multiple_instances
 
 
 class MODO:
@@ -405,7 +405,6 @@ class MODO:
         file_path: str,
         region: Optional[str] = None,
         reference_filename: Optional[str] = None,
-        output_filename: Optional[str] = None,
     ) -> Optional[Iterator[AlignedSegment | VariantRecord]]:
         """Slices both local and remote CRAM, VCF (.vcf.gz), and BCF
         files returning an iterator or saving to local file."""
@@ -416,39 +415,72 @@ class MODO:
             raise ValueError(f"{file_path} not found in {self.path}.")
 
         if self.htsget_endpoint:
-            match GenomicFileSuffix.from_path(Path(file_path)).name:
-                case "CRAM":
-                    endpoint_type = "/reads/"
-                case "VCF" | "BCF":
-                    endpoint_type = "/variants/"
-                case _:
-                    raise ValueError("Invalid file format.")
 
             # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
             # or               + bucket/modo/file.vcf.gz --> http://domain/htsget/variants/modo/file.vcf.gz
-            url = (
-                self.htsget_endpoint
-                + endpoint_type  # /reads/ or /variants/
-                + str(Path(*Path(file_path).parts[1:]))
-            )
-
-            gen_iter = slice_remote_genomics(
-                url=url,
+            con = HtsgetConnection(
+                self.htsget_endpoint,
+                Path(Path(file_path).parts[1]),
                 region=_region,
-                reference_filename=reference_filename,
-                output_filename=output_filename,
             )
+            stream = con.to_pysam()
+
         else:
-            # assuming user did not change directory, filepath should be the
-            # relative path to the file.
-            # for the time being, we do not check the validity of the supplied reference_filename, or
-            # the reference given in the CRAM header (used if reference not supplied by user).
-
-            gen_iter = slice_genomics(
-                path=file_path,
-                region=_region,
-                reference_filename=reference_filename,
-                output_filename=output_filename,
+            # filepath should be relative to __file__.
+            # defer validation check of the supplied reference_filename
+            # if missing, CRAM header reference is used instead
+            pysam_file = open_pysam(
+                Path(file_path), reference_filename=reference_filename
             )
+            stream = (rec for rec in pysam_file)
 
-        return gen_iter
+        return stream
+
+
+def build_modo_from_file(
+    path: Path,
+    object_directory: Path,
+    s3_endpoint: Optional[str] = None,
+    s3_kwargs: Optional[dict] = None,
+    htsget_endpoint: Optional[str] = None,
+) -> MODO:
+    """build a modo from a yaml or json file"""
+    instances = parse_multiple_instances(Path(path))
+    # check for unique ids and fail early
+    ids = [inst.id for inst in instances]
+    if len(ids) > len(set(ids)):
+        dup = {x for x in ids if ids.count(x) > 1}
+        raise ValueError(
+            f"Please specify a unique ID. Element(s) with ID(s) {dup} already exist."
+        )
+    # use full id for has_part attributes
+    instances = [update_haspart_id(inst) for inst in instances]
+
+    modo_inst = [
+        instance for instance in instances if isinstance(instance, model.MODO)
+    ]
+    if len(modo_inst) != 1:
+        raise ValueError(
+            f"There must be exactly 1 MODO in the input file. Found {len(modo_inst)}"
+        )
+    modo_dict = modo_inst[0]._as_dict
+    modo = MODO(
+        path=object_directory,
+        s3_endpoint=s3_endpoint,
+        s3_kwargs=s3_kwargs or {"anon": True},
+        htsget_endpoint=htsget_endpoint,
+        **modo_dict,
+    )
+    for instance in instances:
+        if not isinstance(instance, model.MODO):
+            # copy data-path into modo
+            if (
+                isinstance(instance, model.DataEntity)
+                and not modo.path in Path(instance.data_path).parents
+            ):
+                data_file = instance.data_path
+                instance.data_path = Path(data_file).name
+                modo.add_element(instance, data_file=data_file)
+            else:
+                modo.add_element(instance)
+    return modo

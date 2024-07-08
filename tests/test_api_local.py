@@ -1,8 +1,10 @@
 """Tests for the local use of multi-omics digital object (modo) API
 """
 
-from modos.api import MODO
-from modos.io import build_modo_from_file
+from modos.api import (
+    MODO,
+    build_modo_from_file,
+)
 from pathlib import Path
 
 import modos_schema.datamodel as model

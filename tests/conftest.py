@@ -4,8 +4,10 @@ import modos_schema.datamodel as model
 import pytest
 import shutil
 
-from modos.api import MODO
-from modos.io import build_modo_from_file
+from modos.api import (
+    build_modo_from_file,
+    MODO,
+)
 from pathlib import Path
 from testcontainers.minio import MinioContainer
 

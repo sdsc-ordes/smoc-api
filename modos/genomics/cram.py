@@ -8,39 +8,9 @@ from pysam import (
     AlignmentFile,
     VariantRecord,
 )
-from urllib.parse import urlparse
 import modos_schema.datamodel as model
 
-import re
-import htsget
-from .formats import (
-    GenomicFileSuffix,
-)
 from .region import Region
-from io import BytesIO
-
-
-def slice_genomics(
-    path: str,
-    region: Optional[Region] = None,
-    reference_filename: Optional[str] = None,
-    output_filename: Optional[str] = None,
-) -> Optional[Iterator[AlignedSegment | VariantRecord]]:
-    """Returns an iterable slice of the CRAM, VCF or BCF file,
-    or saves it to a local file."""
-
-    ...
-
-
-def slice_remote_genomics(
-    url: str,
-    region: Optional[Region] = None,
-    reference_filename: Optional[str] = None,
-    output_filename: Optional[str] = None,
-) -> Optional[Iterator[AlignedSegment | VariantRecord]]:
-    """Stream or write to a local file a slice of a remote CRAM or VCF/BCF file"""
-
-    ...
 
 
 def extract_cram_metadata(cram: AlignmentFile) -> List:

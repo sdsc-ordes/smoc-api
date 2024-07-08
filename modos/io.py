@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from typing import List, Optional
+from typing import List
 
 from linkml_runtime.loaders import (
     json_loader,
@@ -11,9 +11,8 @@ from linkml_runtime.loaders import (
 import modos_schema.datamodel as model
 import pysam
 
-from .api import MODO
 from .genomics.cram import extract_cram_metadata
-from .helpers.schema import dict_to_instance, update_haspart_id
+from .helpers.schema import dict_to_instance
 
 ext2loader = {
     "json": json_loader,
@@ -52,55 +51,6 @@ def parse_multiple_instances(path: Path) -> List:
     for elem in elems:
         instances.append(dict_to_instance(elem))
     return instances
-
-
-def build_modo_from_file(
-    path: Path,
-    object_directory: Path,
-    s3_endpoint: Optional[str] = None,
-    s3_kwargs: Optional[dict] = None,
-    htsget_endpoint: Optional[str] = None,
-) -> MODO:
-    """build a modo from a yaml or json file"""
-    instances = parse_multiple_instances(Path(path))
-    # check for unique ids and fail early
-    ids = [inst.id for inst in instances]
-    if len(ids) > len(set(ids)):
-        dup = {x for x in ids if ids.count(x) > 1}
-        raise ValueError(
-            f"Please specify a unique ID. Element(s) with ID(s) {dup} already exist."
-        )
-    # use full id for has_part attributes
-    instances = [update_haspart_id(inst) for inst in instances]
-
-    modo_inst = [
-        instance for instance in instances if isinstance(instance, model.MODO)
-    ]
-    if len(modo_inst) != 1:
-        raise ValueError(
-            f"There must be exactly 1 MODO in the input file. Found {len(modo_inst)}"
-        )
-    modo_dict = modo_inst[0]._as_dict
-    modo = MODO(
-        path=object_directory,
-        s3_endpoint=s3_endpoint,
-        s3_kwargs=s3_kwargs or {"anon": True},
-        htsget_endpoint=htsget_endpoint,
-        **modo_dict,
-    )
-    for instance in instances:
-        if not isinstance(instance, model.MODO):
-            # copy data-path into modo
-            if (
-                isinstance(instance, model.DataEntity)
-                and not modo.path in Path(instance.data_path).parents
-            ):
-                data_file = instance.data_path
-                instance.data_path = Path(data_file).name
-                modo.add_element(instance, data_file=data_file)
-            else:
-                modo.add_element(instance)
-    return modo
 
 
 def extract_metadata(instance, base_path: Path) -> List:

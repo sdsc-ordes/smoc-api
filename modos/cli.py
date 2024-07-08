@@ -15,7 +15,10 @@ import modos_schema.datamodel as model
 import typer
 import zarr
 
-from .api import MODO
+from .api import (
+    build_modo_from_file,
+    MODO,
+)
 from .helpers.schema import (
     UserElementType,
     get_enum_values,
@@ -23,7 +26,7 @@ from .helpers.schema import (
     get_slot_range,
     load_schema,
 )
-from .io import build_modo_from_file, parse_instance
+from .io import parse_instance
 from .storage import connect_s3
 
 

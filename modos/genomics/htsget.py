@@ -49,15 +49,16 @@ import pysam
 import requests
 
 from .region import Region
+from .formats import GenomicFileSuffix
 
 
 def build_htsget_url(host: str, path: Path, region: Optional[Region]) -> str:
     """Build an htsget URL from a host, path, and region."""
-    format = path.suffix.lstrip(".").upper()
-    endpoint = "/reads"
+    format = GenomicFileSuffix.from_path(path)
+    endpoint = format.to_htsget_endpoint()
     stem = path.with_suffix("")
 
-    url = f"{host}{endpoint}/{stem}?format={format}"
+    url = f"{host}/{endpoint}/{stem}?format={format}"
     if region:
         url += f"&{region.to_htsget_query()}"
     return url
@@ -68,8 +69,9 @@ def parse_htsget_url(url: str) -> tuple[str, Path, Optional[Region]]:
     parsed = urlparse(url)
     query = parse_qs(parsed.query)
     format = query.get("format", ["BAM"])[0]
-    endpoint = "/reads/" if "/reads/" in parsed.path else "/variants/"
-    pre_endpoint = re.sub(rf"{endpoint}.*", r"", parsed.path)
+    # TODO: handle additional endpoints (if any)
+    endpoint = "reads" if "reads" in parsed.path else "variants"
+    pre_endpoint = re.sub(rf"/{endpoint}.*", r"", parsed.path)
     host = f"{parsed.scheme}://{parsed.netloc}{pre_endpoint}"
     path = Path(re.sub(rf"^.*{endpoint}", r"", parsed.path)).with_suffix(
         f".{format.lower()}"

@@ -2,7 +2,6 @@
 """
 
 from modos.api import MODO
-from modos.io import build_modo_from_file
 
 import modos_schema.datamodel as model
 import pytest
