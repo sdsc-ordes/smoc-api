@@ -1,15 +1,16 @@
 """Tests for the local use of multi-omics digital object (modo) API
 """
+from typing import Iterator
+from pathlib import Path
+import re
+
+import modos_schema.datamodel as model
+import pysam
 
 from modos.api import (
     MODO,
     build_modo_from_file,
 )
-from pathlib import Path
-
-import modos_schema.datamodel as model
-import pysam
-import re
 
 ## Initialize modo
 
@@ -108,7 +109,8 @@ def test_stream_genomics_no_region(test_modo):
     modo_files = [str(fi) for fi in test_modo.list_files()]
     file_path = list(filter(lambda x: re.search(r"cram$", x), modo_files))
     seq = test_modo.stream_genomics(file_path=file_path[0])
-    assert isinstance(seq, pysam.libcalignmentfile.IteratorRowAllRefs)
+    assert isinstance(seq, Iterator)
+    assert isinstance(next(seq), pysam.AlignedSegment)
 
 
 def test_stream_genomics_region(test_modo):
@@ -119,4 +121,5 @@ def test_stream_genomics_region(test_modo):
         region="BA000007.3",
         reference_filename="data/ex/reference1.fa",
     )
-    assert isinstance(seq, pysam.libcalignmentfile.IteratorRowRegion)
+    assert isinstance(seq, Iterator)
+    assert isinstance(next(seq), pysam.AlignedSegment)
