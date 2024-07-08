@@ -423,7 +423,7 @@ class MODO:
             # or               + bucket/modo/file.vcf.gz --> http://domain/htsget/variants/modo/file.vcf.gz
             con = HtsgetConnection(
                 self.htsget_endpoint,
-                Path(Path(file_path).parts[1]),
+                Path(*Path(file_path).parts[1:]),
                 region=_region,
             )
             stream = con.to_pysam()
