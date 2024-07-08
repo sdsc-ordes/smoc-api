@@ -108,7 +108,9 @@ def test_enrich_metadata(test_modo):
 def test_stream_genomics_no_region(test_modo):
     modo_files = [str(fi) for fi in test_modo.list_files()]
     file_path = list(filter(lambda x: re.search(r"cram$", x), modo_files))
-    seq = test_modo.stream_genomics(file_path=file_path[0])
+    seq = test_modo.stream_genomics(
+        file_path=file_path[0], reference_filename="data/ex/reference1.fa"
+    )
     assert isinstance(seq, Iterator)
     assert isinstance(next(seq), pysam.AlignedSegment)
 

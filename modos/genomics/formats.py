@@ -73,4 +73,5 @@ def open_pysam(
             raise ValueError(
                 f"Unsupported output file type. Supported files: {pysam_mode.keys()}"
             )
+
     return pysam_file(str(path), **kwargs)
