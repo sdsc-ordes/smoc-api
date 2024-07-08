@@ -16,7 +16,7 @@ import htsget
 from .formats import (
     GenomicFileSuffix,
 )
-from ..helpers.region import Region
+from .region import Region
 from io import BytesIO
 
 
