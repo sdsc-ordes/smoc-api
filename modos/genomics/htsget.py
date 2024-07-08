@@ -254,7 +254,6 @@ class HtsgetConnection:
                 raise ValueError(f"Unsupported format: {self.path.suffix}")
 
         for record in handle:
-
             if self.region is None:
                 yield record
                 continue

@@ -110,7 +110,6 @@ class Region:
     def from_pysam(
         cls, record: pysam.VariantRecord | pysam.AlignedSegment
     ) -> Region:
-
         match record:
             case pysam.VariantRecord:
                 chrom = record.chrom

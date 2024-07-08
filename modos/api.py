@@ -419,7 +419,6 @@ class MODO:
             raise ValueError(f"{file_path} not found in {self.path}.")
 
         if self.htsget_endpoint:
-
             # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
             # or               + bucket/modo/file.vcf.gz --> http://domain/htsget/variants/modo/file.vcf.gz
             con = HtsgetConnection(
