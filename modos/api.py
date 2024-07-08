@@ -435,6 +435,8 @@ class MODO:
             pysam_file = open_pysam(
                 Path(file_path), reference_filename=reference_filename
             )
+            if _region is not None:
+                stream = pysam_file.fetch(*_region.to_tuple())
             stream = (rec for rec in pysam_file)
 
         return stream
