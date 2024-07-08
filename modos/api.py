@@ -21,7 +21,6 @@ from .storage import (
     LocalStorage,
     S3Storage,
 )
-from .file_utils import extract_metadata, extraction_formats
 from .helpers.schema import (
     class_from_name,
     dict_to_instance,
@@ -32,6 +31,7 @@ from .helpers.schema import (
 )
 from .helpers.genomics import GenomicFileSuffix
 from .helpers.region import Region
+from .io import extract_metadata
 from .cram import slice_genomics, slice_remote_genomics
 
 
@@ -378,27 +378,25 @@ class MODO:
         self.update_date()
 
     def enrich_metadata(self):
-        """Add metadata and corresponding elements extracted from object associated data to the MODO object"""
-        new_elements = []
-        instances = [
-            dict_to_instance(entity | {"id": id})
-            for id, entity in self.metadata.items()
-            if entity.get("@type") == "DataEntity"
-            and entity.get("data_format") in extraction_formats
-        ]
-        inst_names = {inst.name: inst.id for inst in instances}
-        for inst in instances:
-            elements = extract_metadata(inst, self.path)
+        """Enrich MODO metadata in place using content from associated data files."""
+        inst_names = {inst.name: id for id, inst in self.metadata.items()}
+        for id, entity in self.metadata.items():
+            if entity.get("@type") != "DataEntity":
+                continue
+            try:
+                data_inst = dict_to_instance(entity | {"id": id})
+                elements = extract_metadata(data_inst, self.path)
+            # skip entities whose format does not support enrich
+            except NotImplementedError:
+                continue
+
+            new_elements = []
             for ele in elements:
-                # NOTE: Need to compare names here as ids differ
-                if (
-                    ele.name not in inst_names.keys()
-                    and ele not in new_elements
-                ):
+                if ele.name in inst_names:
+                    self.update_element(inst_names[ele.name], ele)
+                elif ele not in new_elements:
                     new_elements.append(ele)
                     self._add_any_element(ele)
-                elif ele.name in inst_names.keys():
-                    self.update_element(inst_names[ele.name], ele)
                 else:
                     continue
 
