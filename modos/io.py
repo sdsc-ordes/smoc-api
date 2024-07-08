@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from typing import Any, List, Optional
+from typing import List, Optional
 
 from linkml_runtime.loaders import (
     json_loader,
@@ -9,7 +9,10 @@ from linkml_runtime.loaders import (
     rdf_loader,
 )
 import modos_schema.datamodel as model
+import pysam
+
 from .api import MODO
+from .genomics.cram import extract_cram_metadata
 from .helpers.schema import dict_to_instance, update_haspart_id
 
 ext2loader = {
@@ -98,3 +101,19 @@ def build_modo_from_file(
             else:
                 modo.add_element(instance)
     return modo
+
+
+def extract_metadata(instance, base_path: Path) -> List:
+    """Extract metadata from files associated to a model instance"""
+    if not isinstance(instance, model.DataEntity):
+        raise ValueError(f"{instance} is not a DataEntity, cannot extract")
+    match str(instance.data_format):
+        case "CRAM":
+            cramfile = pysam.AlignmentFile(
+                str(base_path / instance.data_path), mode="rc"
+            )
+            return extract_cram_metadata(cramfile)
+        case _:
+            raise NotImplementedError(
+                f"Metadata extraction not impolemented for this format: {instance.data_format}"
+            )
