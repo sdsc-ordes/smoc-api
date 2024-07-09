@@ -52,7 +52,7 @@ class GenomicFileSuffix(tuple, Enum):
                 raise ValueError(f"No htsget endpoint for format {self.name}")
 
 
-def open_pysam(
+def read_pysam(
     path: Path, **kwargs
 ) -> pysam.AlignmentFile | pysam.VariantFile:
     """Automatically instantiate a pysam file object from input path and passes any additional kwarg to it."""
@@ -63,8 +63,6 @@ def open_pysam(
         case "VCF" | "BCF":
             pysam_file = pysam.VariantFile
         case _:
-            raise ValueError(
-                f"Unsupported output file type."
-            )
+            raise ValueError(f"Unsupported output file type.")
 
     return pysam_file(str(path), **kwargs)

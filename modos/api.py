@@ -30,7 +30,7 @@ from .helpers.schema import (
     UserElementType,
     update_haspart_id,
 )
-from .genomics.formats import GenomicFileSuffix, open_pysam
+from .genomics.formats import GenomicFileSuffix, read_pysam
 from .genomics.htsget import HtsgetConnection
 from .genomics.region import Region
 from .io import extract_metadata, parse_multiple_instances
@@ -436,7 +436,7 @@ class MODO:
             # filepath should be relative to __file__.
             # defer validation check of the supplied reference_filename
             # if missing, CRAM header reference is used instead
-            pysam_file = open_pysam(
+            pysam_file = read_pysam(
                 Path(file_path), reference_filename=reference_filename
             )
             if _region is not None:
