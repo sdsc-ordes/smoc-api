@@ -143,8 +143,8 @@ Using this `example.yaml` a `MODO` and all specified associated elements can be 
 :::{tab-item} python
 :sync: python
 ```{code-block} python
-from modos.io import build_modo_from_file
-modo = build_modo_from_file(path = "path/to/example.yaml", object_directory = "data/ex")
+from modos.api import MODO
+modo = MODO.from_file(path = "path/to/example.yaml", object_directory = "data/ex")
 ```
 :::
 

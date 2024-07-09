@@ -99,7 +99,7 @@ from pathlib import Path
 config_ex = Path("path/to/ex.yaml")
 
 # Create a modo remotely
-modo = build_modo_from_file(config_ex, "modos-demo/ex", s3_endpoint= "http://localhost/s3")
+modo = MODO.from_file(config_ex, "modos-demo/ex", s3_endpoint= "http://localhost/s3")
 ```
 :::
 
