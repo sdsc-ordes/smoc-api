@@ -433,9 +433,6 @@ class MODO:
             stream = con.to_pysam()
 
         else:
-            # filepath should be relative to __file__.
-            # defer validation check of the supplied reference_filename
-            # if missing, CRAM header reference is used instead
             stream = read_pysam(
                 Path(file_path),
                 reference_filename=reference_filename,
