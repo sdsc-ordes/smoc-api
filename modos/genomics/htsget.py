@@ -57,7 +57,12 @@ def build_htsget_url(host: str, path: Path, region: Optional[Region]) -> str:
 
     Examples
     --------
-    >>> build_htsget_url("http://localhost:8000", Path("file.bam"), Region("chr1", 0, 1000))
+    >>> build_htsget_url(
+    ...   "http://localhost:8000",
+    ...   Path("file.bam"),
+    ...   Region("chr1", 0, 1000)
+    ... )
+    'http://localhost:8000/reads/file?format=BAM&referenceName=chr1&start=0&end=1000'
     """
     format = GenomicFileSuffix.from_path(path)
     endpoint = format.to_htsget_endpoint()
