@@ -81,13 +81,16 @@ def parse_htsget_url(url: str) -> tuple[str, Path, Optional[Region]]:
     """Given a URL to an htsget resource, extract the host, path, and region."""
     parsed = urlparse(url)
     query = parse_qs(parsed.query)
-    format = query.get("format", ["BAM"])[0]
-    # TODO: handle additional endpoints (if any)
-    endpoint = "reads" if "reads" in parsed.path else "variants"
+
+    if "format" not in query:
+        raise ValueError("Missing format in htsget URL")
+
+    format = GenomicFileSuffix[query["format"][0]]
+    endpoint = format.to_htsget_endpoint()
     pre_endpoint = re.sub(rf"/{endpoint}.*", r"", parsed.path)
     host = f"{parsed.scheme}://{parsed.netloc}{pre_endpoint}"
     path = Path(re.sub(rf"^.*{endpoint}", r"", parsed.path)).with_suffix(
-        f".{format.lower()}"
+        f".{format.name.lower()}"
     )
     try:
         region = Region.from_htsget_query(url)
