@@ -380,6 +380,9 @@ class MODO:
 
     def enrich_metadata(self):
         """Enrich MODO metadata in place using content from associated data files."""
+
+        # TODO: match using id instead of names -> safer
+        # NOTE: will require handling type prefix.
         inst_names = {
             inst["name"]: id
             for id, inst in self.metadata.items()
