@@ -1,8 +1,11 @@
 from __future__ import annotations
 from enum import Enum
 from pathlib import Path
+from typing import Iterator, Optional
 
 import pysam
+
+from .region import Region
 
 
 class GenomicFileSuffix(tuple, Enum):
@@ -53,16 +56,24 @@ class GenomicFileSuffix(tuple, Enum):
 
 
 def read_pysam(
-    path: Path, **kwargs
-) -> pysam.AlignmentFile | pysam.VariantFile:
+    path: Path,
+    region: Optional[Region] = None,
+    **kwargs,
+) -> Iterator[pysam.AlignedSegment | pysam.VariantRecord]:
     """Automatically instantiate a pysam file object from input path and passes any additional kwarg to it."""
     out_fileformat = GenomicFileSuffix.from_path(Path(path)).name
     match out_fileformat:
         case "CRAM" | "BAM":
-            pysam_file = pysam.AlignmentFile
+            pysam_func = pysam.AlignmentFile
         case "VCF" | "BCF":
-            pysam_file = pysam.VariantFile
+            pysam_func = pysam.VariantFile
         case _:
             raise ValueError(f"Unsupported output file type.")
 
-    return pysam_file(str(path), **kwargs)
+    pysam_handle = pysam_func(str(path), **kwargs)
+    if region is None:
+        stream = (rec for rec in pysam_handle)
+    else:
+        stream = pysam_handle.fetch(*region.to_tuple())
+
+    return stream

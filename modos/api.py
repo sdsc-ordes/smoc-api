@@ -436,12 +436,11 @@ class MODO:
             # filepath should be relative to __file__.
             # defer validation check of the supplied reference_filename
             # if missing, CRAM header reference is used instead
-            pysam_file = read_pysam(
-                Path(file_path), reference_filename=reference_filename
+            stream = read_pysam(
+                Path(file_path),
+                reference_filename=reference_filename,
+                region=_region,
             )
-            if _region is not None:
-                stream = pysam_file.fetch(*_region.to_tuple())
-            stream = (rec for rec in pysam_file)
 
         return stream
 
