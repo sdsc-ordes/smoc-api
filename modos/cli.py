@@ -15,10 +15,7 @@ import modos_schema.datamodel as model
 import typer
 import zarr
 
-from .api import (
-    build_modo_from_file,
-    MODO,
-)
+from .api import MODO
 from .helpers.schema import (
     UserElementType,
     get_enum_values,
@@ -156,7 +153,7 @@ def create(
     if from_file and meta:
         raise ValueError("Only one of --from-file or --data can be used.")
     elif from_file:
-        modo = build_modo_from_file(
+        modo = MODO.from_file(
             from_file, object_directory, s3_endpoint=s3_endpoint
         )
         return
