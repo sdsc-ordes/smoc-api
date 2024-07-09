@@ -7,10 +7,7 @@ import re
 import modos_schema.datamodel as model
 import pysam
 
-from modos.api import (
-    MODO,
-    build_modo_from_file,
-)
+from modos.api import MODO
 
 ## Initialize modo
 
@@ -24,7 +21,7 @@ def test_init_modo(tmp_path):
 
 
 def test_init_modo_from_yaml(tmp_path):
-    build_modo_from_file("data/ex_config.yaml", tmp_path)
+    MODO.from_file("data/ex_config.yaml", tmp_path)
 
 
 ## Add element
