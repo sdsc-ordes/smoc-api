@@ -53,10 +53,18 @@ from .formats import GenomicFileSuffix
 
 
 def build_htsget_url(host: str, path: Path, region: Optional[Region]) -> str:
-    """Build an htsget URL from a host, path, and region."""
+    """Build an htsget URL from a host, path, and region.
+
+    Examples
+    --------
+    >>> build_htsget_url("http://localhost:8000", Path("file.bam"), Region("chr1", 0, 1000))
+    """
     format = GenomicFileSuffix.from_path(path)
     endpoint = format.to_htsget_endpoint()
-    stem = path.with_suffix("")
+
+    # remove .gz suffix if present
+    stem = path.with_suffix("") if path.name.endswith("gz") else path
+    stem = stem.with_suffix("")
 
     url = f"{host}/{endpoint}/{stem}?format={format.name}"
     if region:
