@@ -49,7 +49,7 @@ import pysam
 import requests
 
 from .region import Region
-from .formats import GenomicFileSuffix
+from .formats import GenomicFileSuffix, read_pysam
 
 
 def build_htsget_url(host: str, path: Path, region: Optional[Region]) -> str:
@@ -250,7 +250,9 @@ class HtsgetConnection:
         host, path, region = parse_htsget_url(url)
         return cls(host, path, region=region)
 
-    def to_pysam(self) -> Iterator[pysam.AlignedSegment | pysam.VariantRecord]:
+    def to_pysam(
+        self, reference_filename: str = None
+    ) -> Iterator[pysam.AlignedSegment | pysam.VariantRecord]:
         """Convert the stream to a pysam object."""
 
         # NOTE: pysam needs a path or file descriptor,
@@ -258,18 +260,16 @@ class HtsgetConnection:
         # ref: https://github.com/pysam-developers/pysam/blob/0787ca9da997b5911c00fd12584dad9741c82fb4/pysam/libcalignmentfile.pyx#L855
         # TODO: when above addressed, replace temporary file with
         # self.open() to stream directly from in-memory buffer.
-        buffer = tempfile.NamedTemporaryFile("w+b", delete=False).name
+        buffer = tempfile.NamedTemporaryFile(
+            "w+b", delete=False, suffix=self.path.suffix
+        ).name
+
         self.to_file(Path(buffer))
+        buffer = read_pysam(
+            Path(buffer), reference_filename=reference_filename
+        )
 
-        match self.path.suffix.lstrip(".").upper():
-            case "BAM" | "CRAM":
-                handle = pysam.AlignmentFile(buffer)
-            case "VCF" | "BCF":
-                handle = pysam.VariantFile(buffer)
-            case _:
-                raise ValueError(f"Unsupported format: {self.path.suffix}")
-
-        for record in handle:
+        for record in buffer:
             if self.region is None:
                 yield record
                 continue
