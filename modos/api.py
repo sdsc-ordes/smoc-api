@@ -410,7 +410,7 @@ class MODO:
         file_path: str,
         region: Optional[str] = None,
         reference_filename: Optional[str] = None,
-    ) -> Optional[Iterator[AlignedSegment | VariantRecord]]:
+    ) -> Iterator[AlignedSegment | VariantRecord]:
         """Slices both local and remote CRAM, VCF (.vcf.gz), and BCF
         files returning an iterator or saving to local file."""
 
