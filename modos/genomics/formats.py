@@ -57,13 +57,6 @@ def open_pysam(
 ) -> pysam.AlignmentFile | pysam.VariantFile:
     """Automatically instantiate a pysam file object from input path and passes any additional kwarg to it."""
     out_fileformat = GenomicFileSuffix.from_path(Path(path)).name
-    pysam_mode = {
-        "CRAM": "wc",
-        "BAM": "wb",
-        "SAM": "w",
-        "BCF": "wb",
-        "VCF": "w",
-    }
     match out_fileformat:
         case "CRAM" | "BAM":
             pysam_file = pysam.AlignmentFile
@@ -71,7 +64,7 @@ def open_pysam(
             pysam_file = pysam.VariantFile
         case _:
             raise ValueError(
-                f"Unsupported output file type. Supported files: {pysam_mode.keys()}"
+                f"Unsupported output file type."
             )
 
     return pysam_file(str(path), **kwargs)
