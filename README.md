@@ -91,13 +91,14 @@ The user facing API is in `modos.api`. It provides full programmatic access to t
 >>> ex = MODO('./example-digital-object')
 >>> ex.list_samples()
 ['sample/sample1']
->>> files = {k: v for k, v in ex.metadata.items() if k.startswith("data/")}
->>> {
-...   d['data_path']: d['description']
-...   for d in files.values()
-...   if d['data_format'] == 'BCF'
-... }
-{'calls1.bcf': 'variant calls for tests'}
+>>> ex.metadata["data/calls1"]
+{'@type': 'DataEntity',
+ 'data_format': 'BCF',
+ 'data_path': 'calls1.bcf',
+ 'description': 'variant calls for tests',
+ 'has_reference': ['reference/reference1'],
+ 'has_sample': ['sample/sample1'],
+ 'name': 'Calls 1'}
 >>> next(ex.stream_genomics("calls1.bcf", "chr1:103-1321"))
 <pysam.VariantRecord>
 ```
