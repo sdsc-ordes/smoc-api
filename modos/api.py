@@ -430,7 +430,7 @@ class MODO:
                 Path(*Path(file_path).parts[1:]),
                 region=_region,
             )
-            stream = con.to_pysam()
+            stream = con.to_pysam(reference_filename=reference_filename)
 
         else:
             stream = read_pysam(
