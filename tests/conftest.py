@@ -5,7 +5,6 @@ import pytest
 import shutil
 
 from modos.api import MODO
-from modos.io import build_modo_from_file
 from pathlib import Path
 from testcontainers.minio import MinioContainer
 
@@ -39,7 +38,7 @@ def pytest_collection_modifyitems(config, items):
 # A test MODO
 @pytest.fixture
 def test_modo(tmp_path):
-    modo = build_modo_from_file(Path("data", "ex_config.yaml"), tmp_path)
+    modo = MODO.from_file(Path("data", "ex_config.yaml"), tmp_path)
     return modo
 
 

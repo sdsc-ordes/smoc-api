@@ -1,13 +1,13 @@
 """Tests for the local use of multi-omics digital object (modo) API
 """
-
-from modos.api import MODO
-from modos.io import build_modo_from_file
+from typing import Iterator
 from pathlib import Path
+import re
 
 import modos_schema.datamodel as model
 import pysam
-import re
+
+from modos.api import MODO
 
 ## Initialize modo
 
@@ -21,7 +21,7 @@ def test_init_modo(tmp_path):
 
 
 def test_init_modo_from_yaml(tmp_path):
-    build_modo_from_file("data/ex_config.yaml", tmp_path)
+    MODO.from_file("data/ex_config.yaml", tmp_path)
 
 
 ## Add element
@@ -105,8 +105,11 @@ def test_enrich_metadata(test_modo):
 def test_stream_genomics_no_region(test_modo):
     modo_files = [str(fi) for fi in test_modo.list_files()]
     file_path = list(filter(lambda x: re.search(r"cram$", x), modo_files))
-    seq = test_modo.stream_genomics(file_path=file_path[0])
-    assert isinstance(seq, pysam.libcalignmentfile.IteratorRowAllRefs)
+    seq = test_modo.stream_genomics(
+        file_path=file_path[0], reference_filename="data/ex/reference1.fa"
+    )
+    assert isinstance(seq, Iterator)
+    assert isinstance(next(seq), pysam.AlignedSegment)
 
 
 def test_stream_genomics_region(test_modo):
@@ -117,4 +120,5 @@ def test_stream_genomics_region(test_modo):
         region="BA000007.3",
         reference_filename="data/ex/reference1.fa",
     )
-    assert isinstance(seq, pysam.libcalignmentfile.IteratorRowRegion)
+    assert isinstance(seq, Iterator)
+    assert isinstance(next(seq), pysam.AlignedSegment)

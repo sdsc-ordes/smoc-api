@@ -23,7 +23,7 @@ from .helpers.schema import (
     get_slot_range,
     load_schema,
 )
-from .io import build_modo_from_file, parse_instance
+from .io import parse_instance
 from .storage import connect_s3
 
 
@@ -153,7 +153,7 @@ def create(
     if from_file and meta:
         raise ValueError("Only one of --from-file or --data can be used.")
     elif from_file:
-        modo = build_modo_from_file(
+        modo = MODO.from_file(
             from_file, object_directory, s3_endpoint=s3_endpoint
         )
         return

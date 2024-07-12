@@ -1,5 +1,5 @@
 import pytest
-from modos.helpers.region import Region
+from modos.genomics.region import Region
 
 
 def test_invalid_region():
