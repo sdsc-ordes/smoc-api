@@ -115,7 +115,7 @@ class Region:
                 chrom = record.chrom
                 start = record.start
                 end = record.stop
-            case pysam.AlignedSegment:
+            case pysam.AlignedSegment():
                 chrom = record.reference_name
                 start = record.reference_start
                 end = record.reference_end
