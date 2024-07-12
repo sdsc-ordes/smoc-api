@@ -1,29 +1,50 @@
+<p align="center">
+  <img src="./docs/img/modos.svg" alt="modos logo" width="250">
+</p>
+
+<p align="center">
+</p>
+<p align="center">
+  <a href="https://github.com/sdsc-ordes/modos-api/releases/latest">
+    <img src="https://img.shields.io/github/release/sdsc-ordes/modos-api.svg?style=for-the-badge" alt="Current Release label" /></a>
+  <a href="https://github.com/sdsc-ordes/modos-api/actions/workflows/poetry-pytest.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/sdsc-ordes/modos-api/poetry-pytest.yml?label=tests&style=for-the-badge" alt="Test Status label" /></a>
+  <a href="http://www.apache.org/licenses/LICENSE-2.0.html">
+    <img src="https://img.shields.io/badge/LICENSE-Apache2.0-ff69b4.svg?style=for-the-badge" alt="License label" /></a>
+</p>
+
 # modos-api
 
-API for managing and serving Multi-Omics Digital Object System (MODOS).
+Access and manage Multi-Omics Digital Objects (MODOs).
 
 ## Context
 
-### Motivation
+### Goals
 
 Provide a digital object and system to process, store and serve multi-omics data with their metadata such that:
 
 - Traceability and reproducibility is ensured by rich metadata
 - The different omics layers are processed and distributed together
 - Common operations such as liftover can be automated easily and ensure that omics layers are kept in sync
+- Data can be accessed, sliced and streamed over the network without downloading the dataset.
 
 ### Architecture
 
 The digital object is composed of a folder with:
 
-- Genomic data files (CRAM, FASTA)
-- A zarr archive for metadata and array-based database
+- Genomic data files (CRAM, BCF, ...)
+- A zarr archive for metadata and array-based data
 
-The metadata links the different files using the [modos-schema](https://sdsc-ordes.github.io/modos-schema).
+The metadata links to the different files using the [modos-schema](https://sdsc-ordes.github.io/modos-schema) and provides context.
 
 ## Installation
 
-The development version of the library can be installed from github using pip:
+The library can be installed with pip:
+```sh
+pip install modos
+```
+
+The development version can be installed directly from github:
 
 ```sh
 pip install git+https://github.com/sdsc-ordes/modos-api.git@main
@@ -31,51 +52,76 @@ pip install git+https://github.com/sdsc-ordes/modos-api.git@main
 
 ## Usage
 
-The user facing API is in `modos.api`. It allows to interact with existing digital objects:
-
-```py
-from modos.api import MODO
-
-ex = MODO('./example-digital-object')
-ex.list_files()
-ex.list_samples()
-```
-
-## Development
-
-The development environment can be set up as follows:
+The CLI is convenient for quickly managing modos (creation, edition, deletion) and quick inspections:
 
 ```sh
-git clone https://github.com/sdsc-ordes/modos-api && cd modos-api
-make install
+modos show  --zarr data/ex
+/
+ ├── assay
+ │   └── assay1
+ ├── data
+ │   ├── calls1
+ │   └── demo1
+ ├── reference
+ │   └── reference1
+ └── sample
+     └── sample1
+modos show --files data/ex
+data/ex/reference1.fa.fai
+data/ex/demo1.cram
+data/ex/reference1.fa
+data/ex/calls1.bcf
+data/ex/demo1.cram.crai
+data/ex/calls1.bcf.csi
 ```
 
-This will install dependencies and create the python virtual environment using [poetry](https://python-poetry.org/) and setup pre-commit hooks with [pre-commit](https://pre-commit.com/).
+The user facing API is in `modos.api`. It provides full programmatic access to the object's [meta]data:
 
-The tests can be run with `make test`, it will execute pytest with the doctest module.
+```ipython
+>>> from modos.api import MODO
 
-### Using Nix Package Manager
-
-If you are using [`nix`](https://nixos.org/download) package manager with [flakes enabled](https://nixos.wiki/wiki/Flakes),
-you can enter a development shell with all requirements installed by doing:
-
-```shell
-nix develop ./nix#default
+>>> ex = MODO('./example-digital-object')
+>>> ex.list_samples()
+['sample/sample1']
+>>> files = {k: v for k, v in ex.metadata.items() if k.startswith("data/")}
+>>> {
+...   d['data_path']: d['description']
+...   for d in files.values()
+...   if d['data_format'] == 'BCF'
+... }
+{'calls1.bcf': 'variant calls for tests'}
+>>> next(ex.stream_genomics("calls1.bcf", "chr1:103-1321"))
+<pysam.VariantRecord>
 ```
 
-## Implementation details
+For advanced use cases, the object's metadata can be queried with SPARQL!
+```ipython
+>>> # Build a table with all files from male samples
+>>> ex.query("""
+...   SELECT ?assay ?sample ?file
+...   WHERE {
+...     [] schema1:name ?assay ;
+...       modos:has_data [
+...         modos:data_path ?file ;
+...         modos:has_sample [
+...           schema1:name ?sample ;
+...           modos:sex ?sex .
+...         ]
+...       ] .
+...     FILTER(?sex = "Male")
+...   }
+... """).serialize(format="csv").decode())
+assay,sample,file
+Assay 1,Sample 1,file://ex/calls1.bcf
+Assay 1,Sample 1,file://ex/demo1.cram
+```
 
-- To allow faster horizontal traversal of digital objects in the catalogue (e.g. for listing), the metadata should be exported in a central database/knowledge-graph on the server side.
-- Metadata can be either embedded in the array file, or stored in a separate file
-- Each digital object needs a unique identifier
-- The paths of individual files in the digital object must be referenced in a consistent way.
-  - Absolute paths are a no-go (machine/system dependent)
-  - Relative paths in the digital object could work, but need to be OS-independent
+## Contributing
 
-## Status and limitations
+First, read the [Contribution Guidelines](./CONTRIBUTING.md).
 
-- Focusing on data retrieval, remote object creation not yet implemented
-- The htsget protocol supports streaming CRAM files, but it is currently only implemented for BAM in major genome browsers (igv.js, jbrowse)
+For technical documentation on setup and development, see the [Development Guide](docs/development_guide.md)
+
 
 ## Acknowledgements and Funding
 
