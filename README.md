@@ -32,6 +32,12 @@ Provide a digital object and system to process, store and serve multi-omics data
 
 ### Architecture
 
+The client library by itsel can be used to work with local MODOs, or connect to a server to access objects over s3.
+
+The server configuration and setup insructions can be found in [deploy](deploy). It consists of a reverse proxy, an s3 server and an htsget server to stream CRAM/BCF over the network. The aim is to provide transparent remote access to MODOs without storing the data locally.
+
+### Format
+
 The digital object is composed of a folder with:
 
 - Genomic data files (CRAM, BCF, ...)
