@@ -62,8 +62,8 @@ pip install git+https://github.com/sdsc-ordes/modos-api.git@main
 
 The CLI is convenient for quickly managing modos (creation, edition, deletion) and quick inspections:
 
-```bash
-modos show  --zarr data/ex
+```sh
+$ modos show  --zarr data/ex
 /
  ├── assay
  │   └── assay1
@@ -74,7 +74,8 @@ modos show  --zarr data/ex
  │   └── reference1
  └── sample
      └── sample1
-modos show --files data/ex
+
+$ modos show --files data/ex
 data/ex/reference1.fa.fai
 data/ex/demo1.cram
 data/ex/reference1.fa
