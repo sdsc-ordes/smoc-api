@@ -54,7 +54,7 @@ pip install git+https://github.com/sdsc-ordes/modos-api.git@main
 
 The CLI is convenient for quickly managing modos (creation, edition, deletion) and quick inspections:
 
-```sh
+```bash
 modos show  --zarr data/ex
 /
  ├── assay
@@ -77,7 +77,7 @@ data/ex/calls1.bcf.csi
 
 The user facing API is in `modos.api`. It provides full programmatic access to the object's [meta]data:
 
-```ipython
+```python
 >>> from modos.api import MODO
 
 >>> ex = MODO('./example-digital-object')
@@ -95,7 +95,7 @@ The user facing API is in `modos.api`. It provides full programmatic access to t
 ```
 
 For advanced use cases, the object's metadata can be queried with SPARQL!
-```ipython
+```python
 >>> # Build a table with all files from male samples
 >>> ex.query("""
 ...   SELECT ?assay ?sample ?file
