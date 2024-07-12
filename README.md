@@ -100,8 +100,9 @@ The user facing API is in `modos.api`. It provides full programmatic access to t
  'has_reference': ['reference/reference1'],
  'has_sample': ['sample/sample1'],
  'name': 'Calls 1'}
->>> next(ex.stream_genomics("calls1.bcf", "chr1:103-1321"))
-<pysam.VariantRecord>
+>>> rec = next(ex.stream_genomics("calls1.bcf", "chr1:103-1321"))
+>>> rec.alleles
+('A', 'C')
 ```
 
 For advanced use cases, the object's metadata can be queried with SPARQL!
