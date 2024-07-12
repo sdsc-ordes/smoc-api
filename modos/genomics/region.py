@@ -111,7 +111,7 @@ class Region:
         cls, record: pysam.VariantRecord | pysam.AlignedSegment
     ) -> Region:
         match record:
-            case pysam.VariantRecord:
+            case pysam.VariantRecord():
                 chrom = record.chrom
                 start = record.start
                 end = record.stop
