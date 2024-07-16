@@ -258,11 +258,11 @@ def add(
             help="Include a data file associated with the instance. The file must be in json or yaml format.",
         ),
     ] = None,
-    data_file: Annotated[
+    source_file: Annotated[
         Optional[Path],
         typer.Option(
-            "--data-file",
-            "-d",
+            "--source-file",
+            "-s",
             help="Specify a data file (if any) to copy into the digital object and associate with the instance.",
         ),
     ] = None,
@@ -284,7 +284,7 @@ def add(
         filled = prompt_for_slots(target_class, exclude)
         obj = target_class(**filled)
 
-    modo.add_element(obj, data_file=data_file, part_of=parent)
+    modo.add_element(obj, source_file=source_file, part_of=parent)
 
 
 @cli.command()

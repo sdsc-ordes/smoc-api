@@ -32,7 +32,7 @@ def test_add_element(assay, remote_modo):
 
 @pytest.mark.slow
 def test_add_data(data_entity, remote_modo):
-    remote_modo.add_element(data_entity, data_file="data/ex/demo1.cram")
+    remote_modo.add_element(data_entity, source_file="data/ex/demo1.cram")
     assert "demo1.cram" in [fi.name for fi in remote_modo.list_files()]
     assert "demo1.cram.crai" in [fi.name for fi in remote_modo.list_files()]
 

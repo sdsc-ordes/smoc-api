@@ -39,14 +39,20 @@ def parse_instance(path: Path, target_class):
     return loader.load(str(path), target_class)
 
 
-def parse_multiple_instances(path: Path) -> List:
-    """Load one or more model from file. Model types must be specified as @type"""
+def parse_attributes(path: Path) -> List[dict]:
+    """Load model specification from file into a list of dictionaries. Model types must be specified as @type"""
     loader = get_loader(path)
     if not loader:
         raise ValueError(f"Unsupported file format: {path}")
     elems = loader.load_as_dict(str(path))
     if not isinstance(elems, list):
         elems = [elems]
+    return elems
+
+
+def parse_multiple_instances(path: Path) -> List:
+    """Load one or more model from file. Model types must be specified as @type"""
+    elems = parse_attributes(path)
     instances = []
     for elem in elems:
         instances.append(dict_to_instance(elem))

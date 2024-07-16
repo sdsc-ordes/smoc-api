@@ -53,7 +53,7 @@ def test_add_data(tmp_path, data_entity):
             "add",
             "-m",
             json_dumper.dumps(data_entity),
-            "-d",
+            "-s",
             "data/ex/demo1.cram",
             str(tmp_path),
             "data",
