@@ -69,26 +69,26 @@ modo = MODO(path = "data/ex")
 data = model.DataEntity(id="genomics1", name= "demo_genomics", description = "A tiny cram file for demos", data_format="CRAM", data_path = "/internal/path/to/store/cram_file")
 
 # Add element to modo
-modo.add_element(element = data, data_file="path/to/cram_file.cram")
+modo.add_element(element = data, source_file="path/to/cram_file.cram")
 ```
 :::
 
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modos add --data-file path/to/cram_file.cram data/ex data
+modos add --source-file path/to/cram_file.cram data/ex data
 ```
 :::
 
 ::::
 
 :::{note}
-To specify a file that should be associated with this object the `data-file` option can be used.
+To specify a file that should be associated with this object the `source-file` option can be used.
 In addition elements can be linked with each other, e.g. a `VariantSet` to a `ReferenceGenome` or a `DataEntity` to a `Sample` by using the `parent`/`part-of` option.
 :::
 
 :::{warning}
-Files associated through the `data-file` option will be copied into the `MODO` at the path specified in the `data_path` attribute. For large files this can take some time.
+Files associated through the `source-file` option will be copied into the `MODO` at the path specified in the `data_path` attribute. For large files this can take some time.
 :::
 
 (file)=
@@ -99,42 +99,53 @@ Alternatively, a MODO and all associated elements can be specified in a `yaml-fi
 ```{code-block} yaml
 # An example yaml file to generate a MODO.
 
-- id: ex
-  "@type": MODO
-  description: "Example modo for tests"
-  creation_date: "2024-01-17T00:00:00"
-  last_update_date: "2024-01-17T00:00:00"
-  has_assay: assay1
+- metadata:
+    id: ex
+    "@type": MODO
+    description: "Example modo for tests"
+    creation_date: "2024-01-17T00:00:00"
+    last_update_date: "2024-01-17T00:00:00"
+    has_assay: assay1
 
-- id: assay1
-  "@type": Assay
-  name: Assay 1
-  description: Example assay for tests
-  has_sample: sample1
-  omics_type: GENOMICS
+- metadata:
+    id: assay1
+    "@type": Assay
+    name: Assay 1
+    description: Example assay for tests
+    has_sample: sample1
+    omics_type: GENOMICS
 
-- id: demo1
-  "@type": DataEntity
-  name: Demo 1
-  description: Demo CRAM file for tests.
-  data_format: CRAM
-  data_path: data/ex/demo1.cram
-  has_reference: reference1
+- metadata:
+    id: demo1
+    "@type": DataEntity
+    name: Demo 1
+    description: Demo CRAM file for tests.
+    data_format: CRAM
+    data_path: demo1.cram
+    has_reference: reference1
+  args:
+    source_file: data/ex/demo1.cram
 
-- id: reference1
-  "@type": ReferenceGenome
-  name: Reference 1
-  data_path: data/ex/reference.fa
+- metadata:
+    id: reference1
+    "@type": ReferenceGenome
+    name: Reference 1
+    data_path: reference1.fa
+  args:
+    source_file: data/ex/reference1.fa
 
-- id: sample1
-  "@type": Sample
-  name: Sample 1
-  description: An example sample for tests.
-  collector: Foo university
-  sex: Male
+
+- metadata:
+    id: sample1
+    "@type": Sample
+    name: Sample 1
+    description: An example sample for tests.
+    collector: Foo university
+    sex: Male
 ```
-
+In this yaml-file each element is a separate list entry. Within each list entry the `metadata` section specifies all relevant metadata as well as the `element type` (using `@type: ELEMENT_TYPE` as syntax).
 All valid element types, their fields and potential links can be found in the <a href="https://sdsc-ordes.github.io/modos-schema/" target="_blank">modos-schema</a>.
+The `args` section provides additional arguments that are valid for adding an element to modo (see [Add elements to the object](add_scratch)), e.g. `args: source_file:` provides the path to the file that should be added into modo.
 
 Using this `example.yaml` a `MODO` and all specified associated elements can be generated in one command:
 
@@ -191,6 +202,6 @@ import modos_schema.datamodel as model
 # Fields that are not changed will be kept
 data = model.DataEntity(id="genomics1", name="genomics_example", data_format="CRAM", data_path = "/internal/path/to/store/cram_file")
 
-# Add element to modo
-modo.add_element(element = data, data_file="path/to/cram_file.cram")
+# Update element to modo
+modo.update_element(element_id = "data/genomics1", new = data)
 ```
