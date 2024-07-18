@@ -83,12 +83,18 @@ def test_remove_modo(test_modo):
 ## Update element
 
 
-def test_update_element(test_modo):
+def test_update_element_new_attribute(test_modo):
     sample1 = model.Sample(id="sample/sample1", cell_type="Leukocytes")
     test_modo.update_element("sample/sample1", sample1)
     assert (
         test_modo.metadata["sample/sample1"].get("cell_type") == "Leukocytes"
     )
+
+
+def test_update_element_existing_attribute(test_modo):
+    sample1 = model.Sample(id="sample/sample1", sex="Female")
+    test_modo.update_element("sample/sample1", sample1)
+    assert test_modo.metadata["sample/sample1"].get("sex") == "Female"
 
 
 ## Enrich metadata
