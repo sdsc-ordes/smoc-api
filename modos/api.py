@@ -24,6 +24,7 @@ from .storage import (
 )
 from .helpers.schema import (
     class_from_name,
+    convert_to_basetype,
     dict_to_instance,
     ElementType,
     set_haspart_relationship,
@@ -368,9 +369,9 @@ class MODO:
         # in the zarr store, empty properties are not stored
         # in the linkml model, they present as empty lists/None.
         new_items = {
-            field: value
+            field: convert_to_basetype(value)
             for field, value in new._items()
-            if field not in attrs.keys()
+            if (field, convert_to_basetype(value)) not in attrs.items()
             and field != "id"
             and value is not None
             and value != []
