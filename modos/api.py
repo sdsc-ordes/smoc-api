@@ -24,7 +24,6 @@ from .storage import (
 )
 from .helpers.schema import (
     class_from_name,
-    convert_to_basetype,
     dict_to_instance,
     ElementType,
     set_haspart_relationship,
