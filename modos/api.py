@@ -365,17 +365,20 @@ class MODO:
             )
 
         new = update_haspart_id(new)
+        new = json.loads(json_dumper.dumps(new))
 
         # in the zarr store, empty properties are not stored
         # in the linkml model, they present as empty lists/None.
         new_items = {
-            field: convert_to_basetype(value)
-            for field, value in new._items()
-            if (field, convert_to_basetype(value)) not in attrs.items()
+            field: value
+            for field, value in new.items()
+            if (field, value) not in attrs.items()
             and field != "id"
             and value is not None
             and value != []
         }
+        if not len(new_items):
+            return
         attrs.update(**new_items)
         self.update_date()
 

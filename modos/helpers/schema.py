@@ -285,15 +285,3 @@ def get_haspart_property(child_class: str) -> Optional[str]:
         if child_class in all_targets:
             return prop_name
     return None
-
-
-def convert_to_basetype(inst: Any) -> Union[str, list[str], None]:
-    match inst:
-        case str():
-            return inst
-        case list():
-            return [str(ele) for ele in inst]
-        case None:
-            return None
-        case _:
-            return str(inst)
