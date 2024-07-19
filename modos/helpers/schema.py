@@ -6,7 +6,7 @@ and for converting instances to different representations.
 from enum import Enum
 from functools import lru_cache, reduce
 from pathlib import Path
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping, Optional, Union
 from urllib.parse import urlparse
 
 import zarr
