@@ -143,7 +143,7 @@ Alternatively, a MODO and all associated elements can be specified in a `yaml-fi
     collector: Foo university
     sex: Male
 ```
-In this yaml-file each element is a separate list entry. Within each list entry the `element` section specifies all relevant metadata as well as the `element type` (using `@type: ELEMENT_TYPE` as syntax).
+In this yaml file each element is a separate list entry. Within each list entry the `element` section specifies all relevant metadata as well as the `element type` (using `@type: ELEMENT_TYPE` as syntax).
 All valid element types, their fields and potential links can be found in the <a href="https://sdsc-ordes.github.io/modos-schema/" target="_blank">modos-schema</a>.
 The `args` section provides additional arguments that are valid for adding an element to modo (see [Add elements to the object](add_scratch)), e.g. `args: source_file:` provides the path to the file that should be added into modo.
 
