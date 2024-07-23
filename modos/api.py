@@ -26,6 +26,7 @@ from .helpers.schema import (
     class_from_name,
     dict_to_instance,
     ElementType,
+    set_data_path,
     set_haspart_relationship,
     UserElementType,
     update_haspart_id,
@@ -477,6 +478,7 @@ class MODO:
                     **args,
                 )
             else:
+                metadata = set_data_path(metadata, args.get("source_file"))
                 inst = dict_to_instance(metadata)
                 instance_list.append((inst, args))
 

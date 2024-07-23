@@ -22,7 +22,6 @@
     name: Demo 1
     description: Demo CRAM file for tests.
     data_format: CRAM
-    data_path: demo1.cram
     has_reference: reference1
   args:
     source_file: data/ex/demo1.cram
