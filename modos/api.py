@@ -456,6 +456,8 @@ class MODO:
     ) -> MODO:
         """build a modo from a yaml or json file"""
         element_list = parse_attributes(Path(path))
+
+        # checks
         modo_count = sum(
             [ele["element"].get("@type") == "MODO" for ele in element_list]
         )
@@ -463,6 +465,13 @@ class MODO:
             raise ValueError(
                 f"There must be exactly one MODO in the input file. Found {modo_count}"
             )
+        ids = [ele["element"].get("id") for ele in element_list]
+        if len(ids) > len(set(ids)):
+            dup = {x for x in ids if ids.count(x) > 1}
+            raise ValueError(
+                f"Please specify unique IDs. Element(s) with ID(s) {dup} already exist."
+            )
+
         instance_list = []
         for element in element_list:
             metadata = element.get("element")
