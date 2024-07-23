@@ -7,11 +7,13 @@ from enum import Enum
 import os
 from pathlib import Path
 from typing import Any, List, Mapping, Optional
+from numpy import source
 from typing_extensions import Annotated
 
 import click
 from linkml_runtime.loaders import json_loader
 import modos_schema.datamodel as model
+import sys
 import typer
 import zarr
 
@@ -23,6 +25,8 @@ from .helpers.schema import (
     get_slot_range,
     load_schema,
 )
+from .genomics.htsget import HtsgetConnection
+from .genomics.region import Region
 from .io import parse_instance
 from .storage import connect_s3
 
@@ -175,7 +179,7 @@ def remove(
         str,
         typer.Argument(
             ...,
-            help="The identifying path within the digital object. Use modo show to check it.",
+            help="The identifier within the modo. Use modos show to check it.",
         ),
     ],
     s3_endpoint: Annotated[
@@ -352,6 +356,61 @@ def publish(
             format=output_format
         )
     )
+
+
+@cli.command()
+def stream(
+    object_directory: Annotated[Path, typer.Argument(...)],
+    element_id: Annotated[
+        str,
+        typer.Argument(
+            ...,
+            help="The identifier within the modo. Use modos show to check it.",
+        ),
+    ],
+    s3_endpoint: Annotated[
+        str,
+        typer.Option(
+            "--s3-endpoint",
+            "-s3",
+            help="Url to S3 endpoint that stores the digital object.",
+        ),
+    ],
+    htsget_endpoint: Annotated[
+        Optional[str],
+        typer.Option(
+            "--htsget-endpoint",
+            "-h",
+            help="Url to HTSGet endpoint. Inferred from s3 endpoint by default.",
+        ),
+    ] = None,
+    region: Annotated[
+        Optional[str],
+        typer.Option(
+            "--region",
+            "-r",
+            help="Restrict stream to genomic region (chr:start-end).",
+        ),
+    ] = None,
+):
+    """Stream genomic file from a remote modo into stdout.
+
+
+    Example:
+    modos stream -s3 http://localhost/s3 modos-demo/ex data/demo1
+    """
+    obj = MODO(object_directory, s3_endpoint=s3_endpoint)
+    _region = Region.from_ucsc(region) if region else None
+    file = obj.metadata[element_id]["data_path"]
+
+    # NOTE: bucket is not included in htsget paths
+    source = Path(*Path(object_directory).parts[1:]) / file
+    htsget_endpoint = htsget_endpoint or s3_endpoint.replace("s3", "htsget")
+
+    con = HtsgetConnection(htsget_endpoint, source, _region)
+    with con.open() as f:
+        for chunk in f:
+            sys.stdout.buffer.write(chunk)
 
 
 # Generate a click group to autogenerate docs via sphinx-click:
