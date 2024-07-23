@@ -455,20 +455,16 @@ class MODO:
     ) -> MODO:
         """build a modo from a yaml or json file"""
         element_list = parse_attributes(Path(path))
-        modo_count = len(
-            [
-                ele
-                for ele in element_list
-                if ele["metadata"].get("@type") == "MODO"
-            ]
+        modo_count = sum(
+            [ele["element"].get("@type") == "MODO" for ele in element_list]
         )
         if modo_count != 1:
             raise ValueError(
-                f"There must be exactly one MODO in the input file. Found {len(modo_inst)}"
+                f"There must be exactly one MODO in the input file. Found {modo_count}"
             )
         instance_list = []
         for element in element_list:
-            metadata = element.get("metadata")
+            metadata = element.get("element")
             args = element.get("args", {})
             if metadata.get("@type") == "MODO":
                 del metadata["@type"]

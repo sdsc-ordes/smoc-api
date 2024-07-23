@@ -39,7 +39,7 @@ def test_add_element(tmp_path, assay):
     modo = MODO(tmp_path)
     assay_json = json_dumper.dumps(assay)
     result = runner.invoke(
-        cli, ["add", "-m", assay_json, str(tmp_path), "assay"]
+        cli, ["add", "-e", assay_json, str(tmp_path), "assay"]
     )
     assert result.exit_code == 0
     assert "assay/test_assay" in modo.metadata.keys()
@@ -51,7 +51,7 @@ def test_add_data(tmp_path, data_entity):
         cli,
         [
             "add",
-            "-m",
+            "-e",
             json_dumper.dumps(data_entity),
             "-s",
             "data/ex/demo1.cram",
@@ -69,7 +69,7 @@ def test_add_to_parent(tmp_path, test_modo, sample):
         cli,
         [
             "add",
-            "-m",
+            "-e",
             sample._as_json,
             "-p",
             "assay/assay1",

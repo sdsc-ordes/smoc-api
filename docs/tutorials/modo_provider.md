@@ -99,7 +99,7 @@ Alternatively, a MODO and all associated elements can be specified in a `yaml-fi
 ```{code-block} yaml
 # An example yaml file to generate a MODO.
 
-- metadata:
+- element:
     id: ex
     "@type": MODO
     description: "Example modo for tests"
@@ -107,7 +107,7 @@ Alternatively, a MODO and all associated elements can be specified in a `yaml-fi
     last_update_date: "2024-01-17T00:00:00"
     has_assay: assay1
 
-- metadata:
+- element:
     id: assay1
     "@type": Assay
     name: Assay 1
@@ -115,7 +115,7 @@ Alternatively, a MODO and all associated elements can be specified in a `yaml-fi
     has_sample: sample1
     omics_type: GENOMICS
 
-- metadata:
+- element:
     id: demo1
     "@type": DataEntity
     name: Demo 1
@@ -126,7 +126,7 @@ Alternatively, a MODO and all associated elements can be specified in a `yaml-fi
   args:
     source_file: data/ex/demo1.cram
 
-- metadata:
+- element:
     id: reference1
     "@type": ReferenceGenome
     name: Reference 1
@@ -135,7 +135,7 @@ Alternatively, a MODO and all associated elements can be specified in a `yaml-fi
     source_file: data/ex/reference1.fa
 
 
-- metadata:
+- element:
     id: sample1
     "@type": Sample
     name: Sample 1
@@ -143,7 +143,7 @@ Alternatively, a MODO and all associated elements can be specified in a `yaml-fi
     collector: Foo university
     sex: Male
 ```
-In this yaml-file each element is a separate list entry. Within each list entry the `metadata` section specifies all relevant metadata as well as the `element type` (using `@type: ELEMENT_TYPE` as syntax).
+In this yaml-file each element is a separate list entry. Within each list entry the `element` section specifies all relevant metadata as well as the `element type` (using `@type: ELEMENT_TYPE` as syntax).
 All valid element types, their fields and potential links can be found in the <a href="https://sdsc-ordes.github.io/modos-schema/" target="_blank">modos-schema</a>.
 The `args` section provides additional arguments that are valid for adding an element to modo (see [Add elements to the object](add_scratch)), e.g. `args: source_file:` provides the path to the file that should be added into modo.
 
@@ -180,14 +180,14 @@ All elements of a `MODO` can be added (see [Add elements to the object](add_scra
 :sync: python
 ```{code-block} python
 # Remove an associated element
-modo.remove_element("/data/genomics1")
+modo.remove_element("data/genomics1")
 ```
 :::
 
 :::{tab-item} cli
 :sync: cli
 ```{code-block} console
-modos remove data/ex /data/genomics
+modos remove data/ex data/genomics
 ```
 :::
 

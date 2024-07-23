@@ -1,6 +1,6 @@
 # A modo with multiple elements. Example GIAB.
 
-- metadata:
+- element:
     id: ex
     "@type": MODO
     description: "Example modo for tests"
@@ -8,7 +8,7 @@
     last_update_date: "2024-01-17T00:00:00"
     has_assay: assay1
 
-- metadata:
+- element:
     id: assay1
     "@type": Assay
     name: Assay 1
@@ -16,7 +16,7 @@
     has_sample: sample1
     omics_type: GENOMICS
 
-- metadata:
+- element:
     id: demo1
     "@type": DataEntity
     name: Demo 1
@@ -27,7 +27,7 @@
   args:
     source_file: data/ex/demo1.cram
 
-- metadata:
+- element:
     id: reference1
     "@type": ReferenceGenome
     name: Reference 1
@@ -35,18 +35,10 @@
   args:
     source_file: data/ex/reference1.fa
 
-- metadata:
+- element:
     id: sample1
     "@type": Sample
     name: Sample 1
-    description: A dummy sample for tests.
-    collector: Foo university
-    sex: Female
-
-- metadata:
-    id: sample2
-    "@type": Sample
-    name: Sample 2
     description: A dummy sample for tests.
     collector: Foo university
     sex: Male
