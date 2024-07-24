@@ -101,6 +101,15 @@ def update_haspart_id(
     return element
 
 
+def set_data_path(
+    element: dict, source_file: Optional[Union[Path, str]] = None
+) -> dict:
+    """Set the data_path attribute, if it is not specified to the modo root."""
+    if source_file and not element.get("data_path"):
+        element["data_path"] = Path(source_file).name
+    return element
+
+
 class UserElementType(str, Enum):
     """Enumeration of element types exposed to the user."""
 

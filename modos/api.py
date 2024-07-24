@@ -26,6 +26,7 @@ from .helpers.schema import (
     class_from_name,
     dict_to_instance,
     ElementType,
+    set_data_path,
     set_haspart_relationship,
     UserElementType,
     update_haspart_id,
@@ -33,7 +34,7 @@ from .helpers.schema import (
 from .genomics.formats import GenomicFileSuffix, read_pysam
 from .genomics.htsget import HtsgetConnection
 from .genomics.region import Region
-from .io import extract_metadata, parse_multiple_instances
+from .io import extract_metadata, parse_attributes
 
 
 class MODO:
@@ -222,7 +223,7 @@ class MODO:
             | model.Assay
             | model.ReferenceGenome
         ),
-        data_file: Optional[Path] = None,
+        source_file: Optional[Path] = None,
         part_of: Optional[str] = None,
     ):
         """Add an element to the archive.
@@ -234,7 +235,7 @@ class MODO:
         ----------
         element
             Element to add to the archive.
-        data_file
+        source_file
             File to associate with the element.
         part_of
             Id of the parent element. It must be scoped to the type.
@@ -247,8 +248,8 @@ class MODO:
             )
 
         # Copy data file to storage and update data_path in metadata
-        if data_file:
-            source_path = Path(data_file)
+        if source_file:
+            source_path = Path(source_file)
             target_path = Path(element._get("data_path"))
             self.storage.put(source_path, target_path)
             try:
@@ -294,7 +295,7 @@ class MODO:
             | model.ReferenceSequence
             | model.ReferenceGenome
         ),
-        data_file: Optional[Path] = None,
+        source_file: Optional[Path] = None,
         part_of: Optional[str] = None,
     ):
         """Add an element of any type to the storage."""
@@ -305,8 +306,8 @@ class MODO:
             )
 
         # Copy data file to storage and update data_path in metadata
-        if data_file:
-            source_path = Path(data_file)
+        if source_file:
+            source_path = Path(source_file)
             target_path = Path(element._get("data_path"))
             self.storage.put(source_path, target_path)
             try:
@@ -454,44 +455,46 @@ class MODO:
         htsget_endpoint: Optional[str] = None,
     ) -> MODO:
         """build a modo from a yaml or json file"""
-        instances = parse_multiple_instances(Path(path))
-        # check for unique ids and fail early
-        ids = [inst.id for inst in instances]
+        element_list = parse_attributes(Path(path))
+
+        # checks
+        modo_count = sum(
+            [ele["element"].get("@type") == "MODO" for ele in element_list]
+        )
+        if modo_count != 1:
+            raise ValueError(
+                f"There must be exactly one MODO in the input file. Found {modo_count}"
+            )
+        ids = [ele["element"].get("id") for ele in element_list]
         if len(ids) > len(set(ids)):
             dup = {x for x in ids if ids.count(x) > 1}
             raise ValueError(
-                f"Please specify a unique ID. Element(s) with ID(s) {dup} already exist."
+                f"Please specify unique IDs. Element(s) with ID(s) {dup} already exist."
             )
-        # use full id for has_part attributes
-        instances = [update_haspart_id(inst) for inst in instances]
 
-        modo_inst = [
-            instance
-            for instance in instances
-            if isinstance(instance, model.MODO)
-        ]
-        if len(modo_inst) != 1:
-            raise ValueError(
-                f"There must be exactly 1 MODO in the input file. Found {len(modo_inst)}"
-            )
-        modo_dict = modo_inst[0]._as_dict
-        modo = cls(
-            path=object_directory,
-            s3_endpoint=s3_endpoint,
-            s3_kwargs=s3_kwargs or {"anon": True},
-            htsget_endpoint=htsget_endpoint,
-            **modo_dict,
-        )
-        for instance in instances:
-            if not isinstance(instance, model.MODO):
-                # copy data-path into modo
-                if (
-                    isinstance(instance, model.DataEntity)
-                    and not modo.path in Path(instance.data_path).parents
-                ):
-                    data_file = instance.data_path
-                    instance.data_path = Path(data_file).name
-                    modo.add_element(instance, data_file=data_file)
-                else:
-                    modo.add_element(instance)
+        instance_list = []
+        for element in element_list:
+            metadata = element.get("element")
+            args = element.get("args", {})
+            if metadata.get("@type") == "MODO":
+                del metadata["@type"]
+                modo = cls(
+                    path=object_directory,
+                    s3_endpoint=s3_endpoint,
+                    s3_kwargs=s3_kwargs or {"anon": True},
+                    htsget_endpoint=htsget_endpoint,
+                    **metadata,
+                    **args,
+                )
+            else:
+                metadata = set_data_path(metadata, args.get("source_file"))
+                inst = dict_to_instance(metadata)
+                instance_list.append((inst, args))
+
+        modo_ids = {Path(id).name: id for id in modo.metadata.keys()}
+        for inst, args in instance_list:
+            if inst.id in modo_ids.keys():
+                modo.update_element(modo_ids[inst.id], inst)
+            else:
+                modo.add_element(inst, **args)
         return modo

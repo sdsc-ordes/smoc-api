@@ -242,12 +242,12 @@ def add(
             "--parent", "-p", help="Parent object in the zarr store."
         ),
     ] = None,
-    meta: Annotated[
+    element: Annotated[
         Optional[str],
         typer.Option(
-            "--meta",
-            "-m",
-            help="Create instance from metadata provided as a json string.",
+            "--element",
+            "-e",
+            help="Create instance from element metadata provided as a json string.",
         ),
     ] = None,
     from_file: Annotated[
@@ -258,11 +258,11 @@ def add(
             help="Include a data file associated with the instance. The file must be in json or yaml format.",
         ),
     ] = None,
-    data_file: Annotated[
+    source_file: Annotated[
         Optional[Path],
         typer.Option(
-            "--data-file",
-            "-d",
+            "--source-file",
+            "-s",
             help="Specify a data file (if any) to copy into the digital object and associate with the instance.",
         ),
     ] = None,
@@ -273,18 +273,18 @@ def add(
     modo = MODO(object_directory, s3_endpoint=s3_endpoint)
     target_class = element_type.get_target_class()
 
-    if from_file and meta:
-        raise ValueError("Only one of --from-file or --meta can be used.")
+    if from_file and element:
+        raise ValueError("Only one of --from-file or --element can be used.")
     elif from_file:
         obj = parse_instance(from_file, target_class=target_class)
-    elif meta:
-        obj = json_loader.loads(meta, target_class=target_class)
+    elif element:
+        obj = json_loader.loads(element, target_class=target_class)
     else:
         exclude = {"id": [Path(id).name for id in modo.metadata.keys()]}
         filled = prompt_for_slots(target_class, exclude)
         obj = target_class(**filled)
 
-    modo.add_element(obj, data_file=data_file, part_of=parent)
+    modo.add_element(obj, source_file=source_file, part_of=parent)
 
 
 @cli.command()
