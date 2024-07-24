@@ -360,12 +360,11 @@ def publish(
 
 @cli.command()
 def stream(
-    object_directory: Annotated[Path, typer.Argument(...)],
-    element_id: Annotated[
+    file_path: Annotated[
         str,
         typer.Argument(
             ...,
-            help="The identifier within the modo. Use modos show to check it.",
+            help="The path to the file to stream . Use modos show --files to check it.",
         ),
     ],
     s3_endpoint: Annotated[
@@ -397,14 +396,12 @@ def stream(
 
 
     Example:
-    modos stream -s3 http://localhost/s3 modos-demo/ex data/demo1
+    modos stream -s3 http://localhost/s3 my-bucket/ex-modo/demo1.cram
     """
-    obj = MODO(object_directory, s3_endpoint=s3_endpoint)
     _region = Region.from_ucsc(region) if region else None
-    file = obj.metadata[element_id]["data_path"]
 
     # NOTE: bucket is not included in htsget paths
-    source = Path(*Path(object_directory).parts[1:]) / file
+    source = Path(*Path(file_path).parts[1:])
     htsget_endpoint = htsget_endpoint or s3_endpoint.replace("s3", "htsget")
 
     con = HtsgetConnection(htsget_endpoint, source, _region)
