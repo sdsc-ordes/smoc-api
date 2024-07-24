@@ -453,6 +453,7 @@ class MODO:
         s3_endpoint: Optional[str] = None,
         s3_kwargs: Optional[dict] = None,
         htsget_endpoint: Optional[str] = None,
+        no_remove: bool = False,
     ) -> MODO:
         """build a modo from a yaml or json file"""
         element_list = parse_attributes(Path(path))
@@ -461,9 +462,9 @@ class MODO:
         modo_count = sum(
             [ele["element"].get("@type") == "MODO" for ele in element_list]
         )
-        if modo_count != 1:
+        if modo_count > 1:
             raise ValueError(
-                f"There must be exactly one MODO in the input file. Found {modo_count}"
+                f"There can not be more than one modo. Found {modo_count}"
             )
         ids = [ele["element"].get("id") for ele in element_list]
         if len(ids) > len(set(ids)):
@@ -473,23 +474,27 @@ class MODO:
             )
 
         instance_list = []
+        modo_dict = {}
         for element in element_list:
             metadata = element.get("element")
             args = element.get("args", {})
             if metadata.get("@type") == "MODO":
                 del metadata["@type"]
-                modo = cls(
-                    path=object_directory,
-                    s3_endpoint=s3_endpoint,
-                    s3_kwargs=s3_kwargs or {"anon": True},
-                    htsget_endpoint=htsget_endpoint,
-                    **metadata,
-                    **args,
-                )
+                modo_dict["meta"] = metadata
+                modo_dict["args"] = args
             else:
                 metadata = set_data_path(metadata, args.get("source_file"))
                 inst = dict_to_instance(metadata)
                 instance_list.append((inst, args))
+
+        modo = cls(
+            path=object_directory,
+            s3_endpoint=s3_endpoint,
+            s3_kwargs=s3_kwargs or {"anon": True},
+            htsget_endpoint=htsget_endpoint,
+            **modo_dict.get("meta", {}),
+            **modo_dict.get("args", {}),
+        )
 
         modo_ids = {Path(id).name: id for id in modo.metadata.keys()}
         for inst, args in instance_list:
@@ -497,4 +502,11 @@ class MODO:
                 modo.update_element(modo_ids[inst.id], inst)
             else:
                 modo.add_element(inst, **args)
+        if not no_remove:
+            modo_id = modo_dict.get("meta", {}).get("id") or modo.path.name
+            old_ids = [
+                id for id in modo_ids.keys() if id not in ids and id != modo_id
+            ]
+            for old_id in old_ids:
+                modo.remove_element(modo_ids[old_id])
         return modo
