@@ -410,6 +410,45 @@ def stream(
             sys.stdout.buffer.write(chunk)
 
 
+@cli.command()
+def update(
+    object_directory: Annotated[Path, typer.Argument(...)],
+    config_file: Annotated[
+        Path,
+        typer.Option(
+            "--config",
+            "-c",
+            help="File defining the updated modo. The file must be in json or yaml format.",
+        ),
+    ],
+    s3_endpoint: Annotated[
+        Optional[str],
+        typer.Option(
+            "--s3-endpoint",
+            "-s3",
+            help="Url to S3 endpoint that stores the modo.",
+        ),
+    ] = None,
+    no_remove: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--no-remove",
+            "-n",
+            help="Do not remove elements that are missing in the config_file.",
+        ),
+    ] = False,
+):
+    """Update a modo based on a yaml file."""
+
+    typer.echo(f"Updating {object_directory}.", err=True)
+    modo = MODO.from_file(
+        path=config_file,
+        object_directory=object_directory,
+        s3_endpoint=s3_endpoint,
+        no_remove=no_remove,
+    )
+
+
 # Generate a click group to autogenerate docs via sphinx-click:
 # https://github.com/tiangolo/typer/issues/200#issuecomment-795873331
 
