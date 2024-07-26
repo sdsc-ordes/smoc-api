@@ -502,11 +502,12 @@ class MODO:
                 modo.update_element(modo_ids[inst.id], inst)
             else:
                 modo.add_element(inst, **args)
-        if not no_remove:
-            modo_id = modo_dict.get("meta", {}).get("id") or modo.path.name
-            old_ids = [
-                id for id in modo_ids.keys() if id not in ids and id != modo_id
-            ]
-            for old_id in old_ids:
-                modo.remove_element(modo_ids[old_id])
+        if no_remove:
+            return modo
+        modo_id = modo_id = modo.zarr["/"].attrs["id"]
+        old_ids = [
+            id for id in modo_ids.keys() if id not in ids and id != modo_id
+        ]
+        for old_id in old_ids:
+            modo.remove_element(modo_ids[old_id])
         return modo

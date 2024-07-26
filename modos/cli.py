@@ -415,11 +415,12 @@ def update(
     object_directory: Annotated[Path, typer.Argument(...)],
     config_file: Annotated[
         Path,
-        typer.Argument(
-            ...,
+        typer.Option(
+            "--config",
+            "-c",
             help="File defining the updated modo. The file must be in json or yaml format.",
         ),
-    ] = None,
+    ],
     s3_endpoint: Annotated[
         Optional[str],
         typer.Option(
