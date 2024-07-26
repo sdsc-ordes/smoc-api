@@ -4,6 +4,7 @@ from pathlib import Path
 import shutil
 from typing import Any, Generator, Optional
 
+from pydantic import HttpUrl
 import s3fs
 import zarr
 import zarr.hierarchy as zh
@@ -93,8 +94,8 @@ class S3Storage(Storage):
     def __init__(
         self,
         path: Path,
-        s3_endpoint: str,
-        s3_kwargs: dict[str, Any],
+        s3_endpoint: HttpUrl,
+        s3_kwargs: Optional[dict[str, Any]] = None,
     ):
         self._path = Path(path)
         self.endpoint = s3_endpoint
@@ -162,7 +163,9 @@ def init_zarr(zarr_store: zarr.storage.Store) -> zh.Group:
     return data
 
 
-def connect_s3(endpoint: str, s3_kwargs: dict[str, Any]) -> s3fs.S3FileSystem:
+def connect_s3(
+    endpoint: HttpUrl, s3_kwargs: dict[str, Any]
+) -> s3fs.S3FileSystem:
     return s3fs.S3FileSystem(
         endpoint_url=endpoint,
         config_kwargs={"s3": {"addressing_style": S3_ADDRESSING_STYLE}},
