@@ -3,7 +3,7 @@ from datetime import date
 import json
 import os
 from pathlib import Path
-from typing import List, Optional, Union, Iterator
+from typing import Any, List, Optional, Union, Iterator
 import yaml
 
 from linkml_runtime.dumpers import json_dumper
@@ -11,8 +11,8 @@ import rdflib
 import modos_schema.datamodel as model
 import zarr.hierarchy
 import zarr
-import re
 
+from pydantic import HttpUrl
 from pysam import AlignedSegment, VariantRecord
 
 from .rdf import attrs_to_graph
@@ -35,6 +35,7 @@ from .genomics.formats import GenomicFileSuffix, read_pysam
 from .genomics.htsget import HtsgetConnection
 from .genomics.region import Region
 from .io import extract_metadata, parse_attributes
+from .remote import list_endpoints
 
 
 class MODO:
@@ -62,9 +63,8 @@ class MODO:
     def __init__(
         self,
         path: Union[Path, str],
-        s3_endpoint: Optional[str] = None,
-        s3_kwargs: Optional[dict] = None,
-        htsget_endpoint: Optional[str] = None,
+        endpoint: Optional[HttpUrl] = None,
+        s3_kwargs: Optional[dict[str, Any]] = None,
         id: Optional[str] = None,
         name: Optional[str] = None,
         description: Optional[str] = None,
@@ -73,15 +73,14 @@ class MODO:
         has_assay: List = [],
         source_uri: Optional[str] = None,
     ):
-        self.htsget_endpoint = htsget_endpoint
 
-        if s3_endpoint and not htsget_endpoint:
-            htsget_endpoint = re.sub(r"s3$", "htsget", s3_endpoint)
-
-        if s3_endpoint:
-            self.storage = S3Storage(path, s3_endpoint, s3_kwargs)
+        self.endpoint = endpoint
+        if endpoint:
+            self.storage = S3Storage(
+                Path(path), list_endpoints(endpoint)["s3"], s3_kwargs
+            )
         else:
-            self.storage = LocalStorage(path)
+            self.storage = LocalStorage(Path(path))
         # Opening existing object
         if self.storage.empty():
             self.id = id or self.path.name
@@ -426,11 +425,11 @@ class MODO:
         if Path(file_path) not in self.list_files():
             raise ValueError(f"{file_path} not found in {self.path}.")
 
-        if self.htsget_endpoint:
+        if self.endpoint:
             # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
             # or               + bucket/modo/file.vcf.gz --> http://domain/htsget/variants/modo/file.vcf.gz
             con = HtsgetConnection(
-                self.htsget_endpoint,
+                list_endpoints(self.endpoint)["htsget"],
                 Path(*Path(file_path).parts[1:]),
                 region=_region,
             )
@@ -450,9 +449,8 @@ class MODO:
         cls,
         path: Path,
         object_directory: Path,
-        s3_endpoint: Optional[str] = None,
+        endpoint: Optional[HttpUrl] = None,
         s3_kwargs: Optional[dict] = None,
-        htsget_endpoint: Optional[str] = None,
     ) -> MODO:
         """build a modo from a yaml or json file"""
         element_list = parse_attributes(Path(path))
@@ -474,15 +472,14 @@ class MODO:
 
         instance_list = []
         for element in element_list:
-            metadata = element.get("element")
+            metadata = element["element"]
             args = element.get("args", {})
             if metadata.get("@type") == "MODO":
                 del metadata["@type"]
                 modo = cls(
                     path=object_directory,
-                    s3_endpoint=s3_endpoint,
+                    endpoint=endpoint,
                     s3_kwargs=s3_kwargs or {"anon": True},
-                    htsget_endpoint=htsget_endpoint,
                     **metadata,
                     **args,
                 )
