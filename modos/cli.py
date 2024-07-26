@@ -12,8 +12,10 @@ from typing_extensions import Annotated
 import click
 from linkml_runtime.loaders import json_loader
 import modos_schema.datamodel as model
+from pydantic import validate_call, HttpUrl
 import sys
 import typer
+from types import SimpleNamespace
 import zarr
 
 from .api import MODO
@@ -24,6 +26,8 @@ from .helpers.schema import (
     get_slot_range,
     load_schema,
 )
+
+from . import __version__
 from .remote import list_endpoints
 from .genomics.htsget import HtsgetConnection
 from .genomics.region import Region
@@ -114,6 +118,7 @@ def prompt_for_slots(
 # Create command
 @cli.command()
 def create(
+    ctx: typer.Context,
     object_directory: Annotated[Path, typer.Argument(...)],
     endpoint: Annotated[
         Optional[str],
@@ -142,10 +147,9 @@ def create(
 ):
     """Create a modo interactively or from a file."""
     typer.echo("Creating a digital object.", err=True)
-    # Initialize object's directory
-    if object_directory.exists():
-        raise ValueError(f"Directory already exists: {object_directory}")
 
+    endpoint = ctx.obj.endpoint
+    # Initialize object's directory
     if endpoint:
         s3 = list_endpoints(endpoint)["s3"]  # type: ignore
         fs = connect_s3(s3, {"anon": True})  # type: ignore
@@ -153,12 +157,14 @@ def create(
             raise ValueError(
                 f"Remote directory already exists: {object_directory}"
             )
+    elif object_directory.exists():
+        raise ValueError(f"Directory already exists: {object_directory}")
 
     # Obtain object's metadata and create object
     if from_file and meta:
         raise ValueError("Only one of --from-file or --data can be used.")
     elif from_file:
-        modo = MODO.from_file(from_file, object_directory, endpoint=endpoint)
+        _ = MODO.from_file(from_file, object_directory, endpoint=endpoint)
         return
     elif meta:
         obj = json_loader.loads(meta, target_class=model.MODO)
@@ -173,6 +179,7 @@ def create(
 
 @cli.command()
 def remove(
+    ctx: typer.Context,
     object_directory: Annotated[Path, typer.Argument(...)],
     element_id: Annotated[
         str,
@@ -199,7 +206,7 @@ def remove(
     ] = False,
 ):
     """Removes an element and its files from the modo."""
-    modo = MODO(object_directory, endpoint=endpoint)
+    modo = MODO(object_directory, endpoint=ctx.obj.endpoint)
     if element_id == modo.path.name:
         if force:
             modo.remove_object()
@@ -223,6 +230,7 @@ def remove(
 
 @cli.command()
 def add(
+    ctx: typer.Context,
     object_directory: Annotated[Path, typer.Argument(...)],
     element_type: Annotated[
         UserElementType,
@@ -273,7 +281,7 @@ def add(
     """Add elements to a modo."""
 
     typer.echo(f"Updating {object_directory}.", err=True)
-    modo = MODO(object_directory, endpoint=endpoint)
+    modo = MODO(object_directory, endpoint=ctx.obj.endpoint)
     target_class = element_type.get_target_class()
 
     if from_file and element:
@@ -292,6 +300,7 @@ def add(
 
 @cli.command()
 def show(
+    ctx: typer.Context,
     object_directory: Annotated[Path, typer.Argument(...)],
     endpoint: Annotated[
         Optional[str],
@@ -319,6 +328,7 @@ def show(
     ] = False,
 ):
     """Show the contents of a modo."""
+    endpoint = ctx.obj.endpoint
     if endpoint:
         obj = MODO(object_directory, endpoint=endpoint)
     elif os.path.exists(object_directory):
@@ -336,6 +346,7 @@ def show(
 
 @cli.command()
 def publish(
+    ctx: typer.Context,
     object_directory: Annotated[Path, typer.Argument(...)],
     output_format: Annotated[RdfFormat, typer.Option(...)] = RdfFormat.TURTLE,
     base_uri: Annotated[Optional[str], typer.Option(...)] = None,
@@ -349,7 +360,7 @@ def publish(
     ] = None,
 ):
     """Export a modo as linked data. Turns all paths into URIs."""
-    obj = MODO(object_directory, endpoint=endpoint)
+    obj = MODO(object_directory, endpoint=ctx.obj.endpoint)
     print(
         obj.knowledge_graph(uri_prefix=base_uri).serialize(
             format=output_format
@@ -359,6 +370,7 @@ def publish(
 
 @cli.command()
 def stream(
+    ctx: typer.Context,
     file_path: Annotated[
         str,
         typer.Argument(
@@ -393,12 +405,49 @@ def stream(
 
     # NOTE: bucket is not included in htsget paths
     source = Path(*Path(file_path).parts[1:])
-    htsget_endpoint = ...
+    endpoint = ctx.obj.endpoint
+
+    if not endpoint:
+        raise ValueError("Streaming requires a remote endpoint.")
+
+    htsget_endpoint = list_endpoints(endpoint)["htsget"]  # type: ignore
 
     con = HtsgetConnection(htsget_endpoint, source, _region)
     with con.open() as f:
         for chunk in f:
             sys.stdout.buffer.write(chunk)
+
+
+def version_callback(value: bool):
+    """Prints version and exits"""
+    if value:
+        print(f"modos {__version__}")
+        # Exits successfully
+        raise typer.Exit()
+
+
+def endpoint_callback(ctx: typer.Context, url: HttpUrl):
+    """Validates modos server url"""
+    ctx.obj = SimpleNamespace(endpoint=url)
+
+
+@cli.callback()
+def callback(
+    ctx: typer.Context,
+    endpoint: Optional[str] = typer.Option(
+        None,
+        callback=endpoint_callback,
+        envvar="MODOS_ENDPOINT",
+        help="URL of modos server.",
+    ),
+    version: Optional[bool] = typer.Option(
+        None,
+        "--version",
+        callback=version_callback,
+        help="Print version of modos client",
+    ),
+):
+    """Multi-Omics Digital Objects command line interface."""
 
 
 # Generate a click group to autogenerate docs via sphinx-click:
