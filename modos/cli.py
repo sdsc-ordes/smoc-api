@@ -438,7 +438,7 @@ def update(
         ),
     ] = False,
 ):
-    """Update an modo based on a yaml file."""
+    """Update a modo based on a yaml file."""
 
     typer.echo(f"Updating {object_directory}.", err=True)
     modo = MODO.from_file(
