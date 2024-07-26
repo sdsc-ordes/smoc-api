@@ -256,7 +256,7 @@ class HtsgetConnection:
         return cls(host, path, region=region)
 
     def to_pysam(
-        self, reference_filename: str = None
+        self, reference_filename: Optional[str] = None
     ) -> Iterator[pysam.AlignedSegment | pysam.VariantRecord]:
         """Convert the stream to a pysam object."""
 

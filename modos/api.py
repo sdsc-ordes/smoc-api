@@ -81,9 +81,9 @@ class MODO:
         self._s3_endpoint = _s3_endpoint
         self._htsget_endpoint = _htsget_endpoint
 
-        try:
+        if self.s3_endpoint:
             self.storage = S3Storage(Path(path), self.s3_endpoint, s3_kwargs)
-        except ValueError:
+        else:
             self.storage = LocalStorage(Path(path))
         # Opening existing object
         if self.storage.empty():
@@ -110,7 +110,7 @@ class MODO:
         elif self._s3_endpoint:
             return self._s3_endpoint
         else:
-            raise ValueError("No S3 endpoint provided.")
+            return None
 
     @property
     def htsget_endpoint(self):
@@ -119,7 +119,7 @@ class MODO:
         elif self._htsget_endpoint:
             return self._htsget_endpoint
         else:
-            raise ValueError("No htsget endpoint provided.")
+            return None
 
     @property
     def zarr(self) -> zarr.hierarchy.Group:
@@ -440,23 +440,20 @@ class MODO:
         reference_filename: Optional[str] = None,
     ) -> Iterator[AlignedSegment | VariantRecord]:
         """Slices both local and remote CRAM, VCF (.vcf.gz), and BCF
-        files returning an iterator or saving to local file."""
+        files returning an iterator over records."""
 
         _region = Region.from_ucsc(region) if region else None
         # check requested genomics file exists in MODO
         if Path(file_path) not in self.list_files():
             raise ValueError(f"{file_path} not found in {self.path}.")
 
-        if self.htsget_endpoint:
-            # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
-            # or               + bucket/modo/file.vcf.gz --> http://domain/htsget/variants/modo/file.vcf.gz
+        if self.s3_endpoint and self.htsget_endpoint:
             con = HtsgetConnection(
                 self.htsget_endpoint,
                 Path(*Path(file_path).parts[1:]),
                 region=_region,
             )
             stream = con.to_pysam(reference_filename=reference_filename)
-
         else:
             stream = read_pysam(
                 Path(file_path),
