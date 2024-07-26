@@ -7,7 +7,6 @@ from enum import Enum
 import os
 from pathlib import Path
 from typing import Any, List, Mapping, Optional
-from numpy import source
 from typing_extensions import Annotated
 
 import click
@@ -25,6 +24,7 @@ from .helpers.schema import (
     get_slot_range,
     load_schema,
 )
+from .remote import list_endpoints
 from .genomics.htsget import HtsgetConnection
 from .genomics.region import Region
 from .io import parse_instance
@@ -115,12 +115,12 @@ def prompt_for_slots(
 @cli.command()
 def create(
     object_directory: Annotated[Path, typer.Argument(...)],
-    s3_endpoint: Annotated[
+    endpoint: Annotated[
         Optional[str],
         typer.Option(
-            "--s3-endpoint",
-            "-s3",
-            help="Create instance at S3 endpoint. Must point to a valid url",
+            "--endpoint",
+            "-e",
+            help="Create remote instance on modos endpoint. Must point to a valid url",
         ),
     ] = None,
     from_file: Annotated[
@@ -146,8 +146,9 @@ def create(
     if object_directory.exists():
         raise ValueError(f"Directory already exists: {object_directory}")
 
-    if s3_endpoint:
-        fs = connect_s3(s3_endpoint, {"anon": True})
+    if endpoint:
+        s3 = list_endpoints(endpoint)["s3"]  # type: ignore
+        fs = connect_s3(s3, {"anon": True})  # type: ignore
         if fs.exists(object_directory):
             raise ValueError(
                 f"Remote directory already exists: {object_directory}"
@@ -157,9 +158,7 @@ def create(
     if from_file and meta:
         raise ValueError("Only one of --from-file or --data can be used.")
     elif from_file:
-        modo = MODO.from_file(
-            from_file, object_directory, s3_endpoint=s3_endpoint
-        )
+        modo = MODO.from_file(from_file, object_directory, endpoint=endpoint)
         return
     elif meta:
         obj = json_loader.loads(meta, target_class=model.MODO)
@@ -169,7 +168,7 @@ def create(
 
     attrs = obj.__dict__
     # Dump object to zarr metadata
-    MODO(path=object_directory, s3_endpoint=s3_endpoint, **attrs)
+    MODO(path=object_directory, endpoint=endpoint, **attrs)
 
 
 @cli.command()
@@ -182,12 +181,12 @@ def remove(
             help="The identifier within the modo. Use modos show to check it.",
         ),
     ],
-    s3_endpoint: Annotated[
+    endpoint: Annotated[
         Optional[str],
         typer.Option(
-            "--s3-endpoint",
-            "-s3",
-            help="Url to S3 endpoint that stores the digital object.",
+            "--endpoint",
+            "-e",
+            help="Url to modos endpoint managing the digital object.",
         ),
     ] = None,
     force: Annotated[
@@ -200,7 +199,7 @@ def remove(
     ] = False,
 ):
     """Removes an element and its files from the modo."""
-    modo = MODO(object_directory, s3_endpoint=s3_endpoint)
+    modo = MODO(object_directory, endpoint=endpoint)
     if element_id == modo.path.name:
         if force:
             modo.remove_object()
@@ -209,7 +208,7 @@ def remove(
                 "Cannot delete root object. If you want to delete the entire MODOS, use --force."
             )
     else:
-        element = modo.zarr.get(element_id)
+        element = modo.zarr[element_id]
         rm_path = element.attrs.get("data_path", [])
         if isinstance(element, zarr.hierarchy.Group) and len(rm_path) > 0:
             if not force:
@@ -232,12 +231,12 @@ def add(
             help="Type of element to add to the digital object.",
         ),
     ],
-    s3_endpoint: Annotated[
+    endpoint: Annotated[
         Optional[str],
         typer.Option(
-            "--s3-endpoint",
-            "-s3",
-            help="Url to S3 endpoint that stores the digital object.",
+            "--endpoint",
+            "-e",
+            help="Url to modos endpoint managing the digital object.",
         ),
     ] = None,
     parent: Annotated[
@@ -274,7 +273,7 @@ def add(
     """Add elements to a modo."""
 
     typer.echo(f"Updating {object_directory}.", err=True)
-    modo = MODO(object_directory, s3_endpoint=s3_endpoint)
+    modo = MODO(object_directory, endpoint=endpoint)
     target_class = element_type.get_target_class()
 
     if from_file and element:
@@ -294,12 +293,12 @@ def add(
 @cli.command()
 def show(
     object_directory: Annotated[Path, typer.Argument(...)],
-    s3_endpoint: Annotated[
+    endpoint: Annotated[
         Optional[str],
         typer.Option(
-            "--s3-endpoint",
-            "-s3",
-            help="Url to S3 endpoint that stores the digital object.",
+            "--endpoint",
+            "-e",
+            help="Url to modos endpoint managing the digital object.",
         ),
     ] = None,
     zarr: Annotated[
@@ -320,8 +319,8 @@ def show(
     ] = False,
 ):
     """Show the contents of a modo."""
-    if s3_endpoint:
-        obj = MODO(object_directory, s3_endpoint=s3_endpoint)
+    if endpoint:
+        obj = MODO(object_directory, endpoint=endpoint)
     elif os.path.exists(object_directory):
         obj = MODO(object_directory)
     else:
@@ -340,17 +339,17 @@ def publish(
     object_directory: Annotated[Path, typer.Argument(...)],
     output_format: Annotated[RdfFormat, typer.Option(...)] = RdfFormat.TURTLE,
     base_uri: Annotated[Optional[str], typer.Option(...)] = None,
-    s3_endpoint: Annotated[
+    endpoint: Annotated[
         Optional[str],
         typer.Option(
-            "--s3-endpoint",
-            "-s3",
-            help="Url to S3 endpoint that stores the digital object.",
+            "--endpoint",
+            "-e",
+            help="Url to modos endpoint managing the digital object.",
         ),
     ] = None,
 ):
     """Export a modo as linked data. Turns all paths into URIs."""
-    obj = MODO(object_directory, s3_endpoint=s3_endpoint)
+    obj = MODO(object_directory, endpoint=endpoint)
     print(
         obj.knowledge_graph(uri_prefix=base_uri).serialize(
             format=output_format
@@ -367,22 +366,14 @@ def stream(
             help="The path to the file to stream . Use modos show --files to check it.",
         ),
     ],
-    s3_endpoint: Annotated[
+    endpoint: Annotated[
         str,
         typer.Option(
-            "--s3-endpoint",
-            "-s3",
-            help="Url to S3 endpoint that stores the digital object.",
+            "--endpoint",
+            "-e",
+            help="Url to modos endpoint managing the digital object.",
         ),
     ],
-    htsget_endpoint: Annotated[
-        Optional[str],
-        typer.Option(
-            "--htsget-endpoint",
-            "-h",
-            help="Url to HTSGet endpoint. Inferred from s3 endpoint by default.",
-        ),
-    ] = None,
     region: Annotated[
         Optional[str],
         typer.Option(
@@ -402,7 +393,7 @@ def stream(
 
     # NOTE: bucket is not included in htsget paths
     source = Path(*Path(file_path).parts[1:])
-    htsget_endpoint = htsget_endpoint or s3_endpoint.replace("s3", "htsget")
+    htsget_endpoint = ...
 
     con = HtsgetConnection(htsget_endpoint, source, _region)
     with con.open() as f:
