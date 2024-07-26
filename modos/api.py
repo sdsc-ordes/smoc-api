@@ -72,14 +72,19 @@ class MODO:
         last_update_date: date = date.today(),
         has_assay: List = [],
         source_uri: Optional[str] = None,
+        _s3_endpoint: Optional[HttpUrl] = None,
+        _htsget_endpoint: Optional[HttpUrl] = None,
     ):
 
         self.endpoint = endpoint
-        if endpoint:
-            self.storage = S3Storage(
-                Path(path), list_endpoints(endpoint)["s3"], s3_kwargs
-            )
-        else:
+
+        # manually specify endpoints (test/debug)
+        self._s3_endpoint = _s3_endpoint
+        self._htsget_endpoint = _htsget_endpoint
+
+        try:
+            self.storage = S3Storage(Path(path), self.s3_endpoint, s3_kwargs)
+        except ValueError:
             self.storage = LocalStorage(Path(path))
         # Opening existing object
         if self.storage.empty():
@@ -98,6 +103,24 @@ class MODO:
                 if val:
                     self.zarr["/"].attrs[key] = val
             zarr.consolidate_metadata(self.zarr.store)
+
+    @property
+    def s3_endpoint(self):
+        if self.endpoint:
+            return list_endpoints(self.endpoint)["s3"]
+        elif self._s3_endpoint:
+            return self._s3_endpoint
+        else:
+            raise ValueError("No S3 endpoint provided.")
+
+    @property
+    def htsget_endpoint(self):
+        if self.endpoint:
+            return list_endpoints(self.endpoint)["htsget"]
+        elif self._htsget_endpoint:
+            return self._htsget_endpoint
+        else:
+            raise ValueError("No htsget endpoint provided.")
 
     @property
     def zarr(self) -> zarr.hierarchy.Group:
@@ -429,7 +452,7 @@ class MODO:
             # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
             # or               + bucket/modo/file.vcf.gz --> http://domain/htsget/variants/modo/file.vcf.gz
             con = HtsgetConnection(
-                list_endpoints(self.endpoint)["htsget"],
+                self.htsget_endpoint,
                 Path(*Path(file_path).parts[1:]),
                 region=_region,
             )
