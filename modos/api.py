@@ -75,7 +75,6 @@ class MODO:
         _s3_endpoint: Optional[HttpUrl] = None,
         _htsget_endpoint: Optional[HttpUrl] = None,
     ):
-
         self.endpoint = endpoint
 
         # manually specify endpoints (test/debug)
