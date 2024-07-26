@@ -6,11 +6,7 @@ volumes:
 
 networks:
   modos-network:
-    external: false
-    ipam:
-      config:
-        - subnet: 172.23.0.0/16
-          gateway: 172.23.0.1
+    driver: bridge
 
 services:
 
@@ -29,8 +25,7 @@ services:
     ports:
       - "80:80"
     networks:
-      modos-network:
-        ipv4_address: 172.23.0.5
+      - modos-network
 
   minio:
     image: docker.io/bitnami/minio:2024
@@ -41,8 +36,7 @@ services:
     volumes:
       - minio-data:/bitnami/minio/data
     networks:
-      modos-network:
-        ipv4_address: 172.23.0.2
+      - modos-network
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minio}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-miniosecret}
@@ -62,10 +56,9 @@ services:
       - "8080" # ticket server
       - "8081" # data block server
     networks:
-      modos-network:
-        ipv4_address: 172.23.0.3
+      - modos-network
     environment:
-      - ENDPOINT=${S3_LOCAL_URL:-http://172.23.0.2:9000}
+      - ENDPOINT=${S3_PUBLIC_URL:-http://localhost/s3}
       - BUCKET=${S3_BUCKET:-modos-demo}
       - S3_ADDRESSING_STYLE=${S3_ADDRESSING_STYLE:-auto}
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minio}
@@ -79,8 +72,7 @@ services:
     expose:
       - "8000"
     networks:
-      modos-network:
-        ipv4_address: 172.23.0.4
+      - modos-network
     environment:
       - S3_LOCAL_URL=${S3_LOCAL_URL:-http://minio:9000}
       - S3_PUBLIC_URL=${S3_PUBLIC_URL:-http://localhost/s3}
