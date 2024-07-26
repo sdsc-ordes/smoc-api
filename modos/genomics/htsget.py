@@ -75,7 +75,7 @@ def build_htsget_url(
     stem = path.with_suffix("") if path.name.endswith("gz") else path
     stem = stem.with_suffix("")
 
-    url = f"{host}/{endpoint}/{stem}?format={format.name}"
+    url = f"{host}{endpoint}/{stem}?format={format.name}"
     if region:
         url += f"&{region.to_htsget_query()}"
     return url
