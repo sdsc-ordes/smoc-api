@@ -1,14 +1,22 @@
 """Functions related to server storage handling"""
 
-from pydantic import HttpUrl
+from pydantic import HttpUrl, validate_call
 import requests
 from typing import Mapping, Optional
 
 
+@validate_call
+def list_endpoints(url: HttpUrl) -> dict[str, HttpUrl]:
+    """List all available endpoints on a remote modo server"""
+    return requests.get(url=f"{url}/endpoints").json()
+
+
+@validate_call
 def list_remote_items(remote_url: HttpUrl) -> list[HttpUrl]:
-    return requests.get(url=remote_url + "/list").json()
+    return requests.get(url=f"{remote_url}/list").json()
 
 
+@validate_call
 def get_metadata_from_remote(
     remote_url: HttpUrl, modo_id: Optional[str] = None
 ) -> Mapping:
@@ -21,7 +29,7 @@ def get_metadata_from_remote(
     id
         id of the modo to retrieve metadata from. Will return all if not specified (default).
     """
-    meta = requests.get(url=remote_url + "/meta").json()
+    meta = requests.get(url=f"{remote_url}/meta").json()
     if modo_id is not None:
         try:
             return meta[modo_id]
@@ -33,6 +41,7 @@ def get_metadata_from_remote(
         return meta
 
 
+@validate_call
 def get_s3_path(
     remote_url: HttpUrl, query: str, exact_match: bool = False
 ) -> list:
@@ -47,6 +56,6 @@ def get_s3_path(
         if True only modos with exactly that id will be returned, otherwise (default) all matching modos
     """
     return requests.get(
-        url=remote_url + "/get",
+        url=f"{remote_url}/get",
         params={"query": query, "exact_match": exact_match},
     ).json()
