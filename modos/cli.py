@@ -28,10 +28,10 @@ from .helpers.schema import (
 )
 
 from . import __version__
-from .remote import list_endpoints
 from .genomics.htsget import HtsgetConnection
 from .genomics.region import Region
 from .io import parse_instance
+from .remote import EndpointManager
 from .storage import connect_s3
 
 
@@ -399,7 +399,7 @@ def stream(
 
 
     Example:
-    modos stream -s3 http://localhost/s3 my-bucket/ex-modo/demo1.cram
+    modos -e http://modos.example.org stream  my-bucket/ex-modo/demo1.cram
     """
     _region = Region.from_ucsc(region) if region else None
 
@@ -410,7 +410,9 @@ def stream(
     if not endpoint:
         raise ValueError("Streaming requires a remote endpoint.")
 
-    htsget_endpoint = list_endpoints(endpoint)["htsget"]  # type: ignore
+    htsget_endpoint = EndpointManager(endpoint).htsget #type: ignore
+    if not htsget_endpoint:
+        raise ValueError("No htsget service found.")
 
     con = HtsgetConnection(htsget_endpoint, source, _region)
     with con.open() as f:

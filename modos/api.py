@@ -105,7 +105,6 @@ class MODO:
         s3_kwargs: Optional[dict[str, Any]] = None,
         services: Optional[dict[str, HttpUrl]] = None 
     ):
-        # manually specify endpoints (test/debug)
         self.endpoint = EndpointManager(endpoint, services or {})
 
 
