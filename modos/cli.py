@@ -410,7 +410,7 @@ def stream(
     if not endpoint:
         raise ValueError("Streaming requires a remote endpoint.")
 
-    htsget_endpoint = EndpointManager(endpoint).htsget #type: ignore
+    htsget_endpoint = EndpointManager(endpoint).htsget  # type: ignore
     if not htsget_endpoint:
         raise ValueError("No htsget service found.")
 

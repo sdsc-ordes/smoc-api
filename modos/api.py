@@ -103,10 +103,9 @@ class MODO:
         source_uri: Optional[str] = None,
         endpoint: Optional[HttpUrl] = None,
         s3_kwargs: Optional[dict[str, Any]] = None,
-        services: Optional[dict[str, HttpUrl]] = None 
+        services: Optional[dict[str, HttpUrl]] = None,
     ):
         self.endpoint = EndpointManager(endpoint, services or {})
-
 
         if self.endpoint.s3:
             self.storage = S3Storage(Path(path), self.endpoint.s3, s3_kwargs)

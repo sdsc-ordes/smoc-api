@@ -6,6 +6,7 @@ from pydantic.dataclasses import dataclass
 import requests
 from typing import Mapping, Optional
 
+
 @dataclass(frozen=True)
 class EndpointManager:
     """Handle modos server endpoints.
@@ -19,7 +20,7 @@ class EndpointManager:
         URL to the modos server.
     services
         Mapping of services to their urls.
-    
+
     Examples
     --------
     >>> ex = EndpointManager(modos="http://modos.example.org") # doctest: +SKIP
@@ -35,6 +36,7 @@ class EndpointManager:
     Url('http://s3.example.org/')
 
     """
+
     modos: Optional[HttpUrl] = None
     services: dict[str, HttpUrl] = field(default_factory=dict)
 
@@ -54,7 +56,6 @@ class EndpointManager:
     @property
     def htsget(self) -> Optional[HttpUrl]:
         return self.list().get("htsget")
-
 
 
 @validate_call
