@@ -1,7 +1,8 @@
 """Functions related to server storage handling"""
 
+from dataclasses import field
 from pydantic import HttpUrl, validate_call
-from pydantic.dataclasses import dataclass, field
+from pydantic.dataclasses import dataclass
 import requests
 from typing import Mapping, Optional
 
@@ -24,22 +25,18 @@ class EndpointManager:
     >>> ex = EndpointManager(modos="http://modos.example.org") # doctest: +SKIP
     >>> ex.list() # doctest: +SKIP
     {
-      "s3": "http://s3.example.org",
-      "htsget": "http://htsget.example.org"
+      's3: Url('http://s3.example.org/'),
+      'htsget': Url('http://htsget.example.org/')
     }
-    >>> ex.s3 # doctest: +SKIP
-    http://htsget.example.org 
+    >>> ex.htsget # doctest: +SKIP
+    Url('http://htsget.example.org/')
     >>> ex = EndpointManager(services={"s3": "http://s3.example.org"})
     >>> ex.s3
-    {"s3": "http://s3.example.org"}
+    Url('http://s3.example.org/')
 
     """
     modos: Optional[HttpUrl] = None
     services: dict[str, HttpUrl] = field(default_factory=dict)
-
-    def __post_init__(self):
-        if self.modos is None and not self.services:
-            raise ValueError("Either modos or services must be provided")
 
     def list(self) -> dict[str, HttpUrl]:
         """List available endpoints."""
