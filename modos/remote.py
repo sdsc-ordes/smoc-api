@@ -1,14 +1,63 @@
 """Functions related to server storage handling"""
 
 from pydantic import HttpUrl, validate_call
+from pydantic.dataclasses import dataclass, field
 import requests
 from typing import Mapping, Optional
 
+@dataclass(frozen=True)
+class EndpointManager:
+    """Handle modos server endpoints.
+    If a modos server url is provided, it is used to detect
+    available service urls. Alternatively, service urls can
+    be provided explicitely if no modos server is available.
 
-@validate_call
-def list_endpoints(url: HttpUrl) -> dict[str, HttpUrl]:
-    """List all available endpoints on a remote modo server"""
-    return requests.get(url=str(url)).json()
+    Parameters
+    ----------
+    modos
+        URL to the modos server.
+    services
+        Mapping of services to their urls.
+    
+    Examples
+    --------
+    >>> ex = EndpointManager(modos="http://modos.example.org") # doctest: +SKIP
+    >>> ex.list() # doctest: +SKIP
+    {
+      "s3": "http://s3.example.org",
+      "htsget": "http://htsget.example.org"
+    }
+    >>> ex.s3 # doctest: +SKIP
+    http://htsget.example.org 
+    >>> ex = EndpointManager(services={"s3": "http://s3.example.org"})
+    >>> ex.s3
+    {"s3": "http://s3.example.org"}
+
+    """
+    modos: Optional[HttpUrl] = None
+    services: dict[str, HttpUrl] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if self.modos is None and not self.services:
+            raise ValueError("Either modos or services must be provided")
+
+    def list(self) -> dict[str, HttpUrl]:
+        """List available endpoints."""
+        if self.modos:
+            return requests.get(url=str(self.modos)).json()
+        elif self.services:
+            return self.services
+        else:
+            return {}
+
+    @property
+    def s3(self) -> Optional[HttpUrl]:
+        return self.list().get("s3")
+
+    @property
+    def htsget(self) -> Optional[HttpUrl]:
+        return self.list().get("htsget")
+
 
 
 @validate_call
