@@ -102,7 +102,7 @@ class S3Storage(Storage):
         s3_opts = s3_kwargs or {"anon": True}
         fs = connect_s3(s3_endpoint, s3_opts)
         if fs.exists(str(self.path / ZARR_ROOT)):
-            zarr_s3_opts = s3_opts | {"endpoint_url": s3_endpoint}
+            zarr_s3_opts = s3_opts | {"endpoint_url": str(s3_endpoint)}
 
             self._zarr = zarr.convenience.open(
                 f"s3://{path}/{ZARR_ROOT}",
@@ -167,7 +167,7 @@ def connect_s3(
     endpoint: HttpUrl, s3_kwargs: dict[str, Any]
 ) -> s3fs.S3FileSystem:
     return s3fs.S3FileSystem(
-        endpoint_url=endpoint,
+        endpoint_url=str(endpoint),
         config_kwargs={"s3": {"addressing_style": S3_ADDRESSING_STYLE}},
         **s3_kwargs,
     )
