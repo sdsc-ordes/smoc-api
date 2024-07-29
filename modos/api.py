@@ -515,10 +515,9 @@ class MODO:
 
         modo = cls(
             path=object_directory,
-            s3_endpoint=s3_endpoint,
-            s3_kwargs=s3_kwargs or {"anon": True},
             endpoint=endpoint,
             services=services,
+            s3_kwargs=s3_kwargs or {"anon": True},
             **modo_dict.get("meta", {}),
             **modo_dict.get("args", {}),
         )
