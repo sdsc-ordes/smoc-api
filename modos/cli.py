@@ -120,14 +120,6 @@ def prompt_for_slots(
 def create(
     ctx: typer.Context,
     object_directory: Annotated[Path, typer.Argument(...)],
-    endpoint: Annotated[
-        Optional[str],
-        typer.Option(
-            "--endpoint",
-            "-e",
-            help="Create remote instance on modos endpoint. Must point to a valid url",
-        ),
-    ] = None,
     from_file: Annotated[
         Optional[Path],
         typer.Option(
@@ -188,14 +180,6 @@ def remove(
             help="The identifier within the modo. Use modos show to check it.",
         ),
     ],
-    endpoint: Annotated[
-        Optional[str],
-        typer.Option(
-            "--endpoint",
-            "-e",
-            help="Url to modos endpoint managing the digital object.",
-        ),
-    ] = None,
     force: Annotated[
         bool,
         typer.Option(
@@ -239,14 +223,6 @@ def add(
             help="Type of element to add to the digital object.",
         ),
     ],
-    endpoint: Annotated[
-        Optional[str],
-        typer.Option(
-            "--endpoint",
-            "-e",
-            help="Url to modos endpoint managing the digital object.",
-        ),
-    ] = None,
     parent: Annotated[
         Optional[str],
         typer.Option(
@@ -302,14 +278,6 @@ def add(
 def show(
     ctx: typer.Context,
     object_directory: Annotated[Path, typer.Argument(...)],
-    endpoint: Annotated[
-        Optional[str],
-        typer.Option(
-            "--endpoint",
-            "-e",
-            help="Url to modos endpoint managing the digital object.",
-        ),
-    ] = None,
     zarr: Annotated[
         bool,
         typer.Option(
@@ -350,14 +318,6 @@ def publish(
     object_directory: Annotated[Path, typer.Argument(...)],
     output_format: Annotated[RdfFormat, typer.Option(...)] = RdfFormat.TURTLE,
     base_uri: Annotated[Optional[str], typer.Option(...)] = None,
-    endpoint: Annotated[
-        Optional[str],
-        typer.Option(
-            "--endpoint",
-            "-e",
-            help="Url to modos endpoint managing the digital object.",
-        ),
-    ] = None,
 ):
     """Export a modo as linked data. Turns all paths into URIs."""
     obj = MODO(object_directory, endpoint=ctx.obj.endpoint)
@@ -376,14 +336,6 @@ def stream(
         typer.Argument(
             ...,
             help="The path to the file to stream . Use modos show --files to check it.",
-        ),
-    ],
-    endpoint: Annotated[
-        str,
-        typer.Option(
-            "--endpoint",
-            "-e",
-            help="Url to modos endpoint managing the digital object.",
         ),
     ],
     region: Annotated[
@@ -420,6 +372,39 @@ def stream(
             sys.stdout.buffer.write(chunk)
 
 
+@cli.command()
+def update(
+    ctx: typer.Context,
+    object_directory: Annotated[Path, typer.Argument(...)],
+    config_file: Annotated[
+        Path,
+        typer.Option(
+            "--config",
+            "-c",
+            help="File defining the updated modo. The file must be in json or yaml format.",
+        ),
+    ],
+    no_remove: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--no-remove",
+            "-n",
+            help="Do not remove elements that are missing in the config_file.",
+        ),
+    ] = False,
+):
+    """Update a modo based on a yaml file."""
+
+    typer.echo(f"Updating {object_directory}.", err=True)
+    endpoint = ctx.obj.endpoint
+    modo = MODO.from_file(
+        path=config_file,
+        object_directory=object_directory,
+        endpoint=endpoint,
+        no_remove=no_remove,
+    )
+
+
 def version_callback(value: bool):
     """Prints version and exits"""
     if value:
@@ -450,7 +435,7 @@ def callback(
     ),
 ):
     """Multi-Omics Digital Objects command line interface."""
-
+    ...
 
 # Generate a click group to autogenerate docs via sphinx-click:
 # https://github.com/tiangolo/typer/issues/200#issuecomment-795873331
