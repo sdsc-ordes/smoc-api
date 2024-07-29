@@ -437,6 +437,7 @@ def callback(
     """Multi-Omics Digital Objects command line interface."""
     ...
 
+
 # Generate a click group to autogenerate docs via sphinx-click:
 # https://github.com/tiangolo/typer/issues/200#issuecomment-795873331
 
