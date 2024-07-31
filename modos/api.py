@@ -3,6 +3,7 @@ from datetime import date
 import json
 import os
 from pathlib import Path
+import sys
 from typing import Any, List, Optional, Union, Iterator
 import yaml
 
@@ -35,7 +36,7 @@ from .genomics.formats import GenomicFileSuffix, read_pysam
 from .genomics.htsget import HtsgetConnection
 from .genomics.region import Region
 from .io import extract_metadata, parse_attributes
-from .remote import EndpointManager
+from .remote import EndpointManager, is_s3_path
 
 
 class MODO:
@@ -107,9 +108,17 @@ class MODO:
     ):
         self.endpoint = EndpointManager(endpoint, services or {})
 
-        if self.endpoint.s3:
-            self.storage = S3Storage(Path(path), self.endpoint.s3, s3_kwargs)
+        if is_s3_path(str(path)):
+            if not self.endpoint.s3:
+                raise ValueError("S3 path requires an endpoint.")
+            print(
+                f"INFO: Using remote endpoint {endpoint} for {path}.",
+                file=sys.stderr,
+            )
+            self.storage = S3Storage(str(path), self.endpoint.s3, s3_kwargs)
         else:
+            # log to stderr
+            print(f"INFO: Using local storage for {path}.", file=sys.stderr)
             self.storage = LocalStorage(Path(path))
         # Opening existing object
         if self.storage.empty():
@@ -474,15 +483,15 @@ class MODO:
     @classmethod
     def from_file(
         cls,
-        path: Path,
-        object_directory: Path,
+        config_path: Path,
+        object_path: Path,
         endpoint: Optional[HttpUrl] = None,
         s3_kwargs: Optional[dict] = None,
         services: Optional[dict[str, HttpUrl]] = None,
         no_remove: bool = False,
     ) -> MODO:
         """build a modo from a yaml or json file"""
-        element_list = parse_attributes(Path(path))
+        element_list = parse_attributes(Path(config_path))
 
         # checks
         modo_count = sum(
@@ -514,7 +523,7 @@ class MODO:
                 instance_list.append((inst, args))
 
         modo = cls(
-            path=object_directory,
+            path=object_path,
             endpoint=endpoint,
             services=services,
             s3_kwargs=s3_kwargs or {"anon": True},
