@@ -94,7 +94,7 @@ def remote_modo(setup):
     minio_endpoint = setup["minio"].get_config()["endpoint"]
     minio_creds = {"secret": "minioadmin", "key": "minioadmin"}
     return MODO(
-        "test/ex",
+        "s3://test/ex",
         services={"s3": f"http://{minio_endpoint}"},
         s3_kwargs=minio_creds,
     )
