@@ -143,7 +143,7 @@ def create(
     endpoint = ctx.obj.endpoint
     # Initialize object's directory
     if endpoint:
-        s3 = list_endpoints(endpoint)["s3"]  # type: ignore
+        s3 = EndpointManager(endpoint).s3
         fs = connect_s3(s3, {"anon": True})  # type: ignore
         if fs.exists(object_directory):
             raise ValueError(
