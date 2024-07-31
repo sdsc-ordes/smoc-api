@@ -119,7 +119,7 @@ def prompt_for_slots(
 @cli.command()
 def create(
     ctx: typer.Context,
-    object_directory: Annotated[Path, typer.Argument(...)],
+    object_path: Annotated[Path, typer.Argument(...)],
     from_file: Annotated[
         Optional[Path],
         typer.Option(
@@ -145,18 +145,16 @@ def create(
     if endpoint:
         s3 = EndpointManager(endpoint).s3
         fs = connect_s3(s3, {"anon": True})  # type: ignore
-        if fs.exists(object_directory):
-            raise ValueError(
-                f"Remote directory already exists: {object_directory}"
-            )
-    elif object_directory.exists():
-        raise ValueError(f"Directory already exists: {object_directory}")
+        if fs.exists(object_path):
+            raise ValueError(f"Remote directory already exists: {object_path}")
+    elif object_path.exists():
+        raise ValueError(f"Directory already exists: {object_path}")
 
     # Obtain object's metadata and create object
     if from_file and meta:
         raise ValueError("Only one of --from-file or --data can be used.")
     elif from_file:
-        _ = MODO.from_file(from_file, object_directory, endpoint=endpoint)
+        _ = MODO.from_file(from_file, object_path, endpoint=endpoint)
         return
     elif meta:
         obj = json_loader.loads(meta, target_class=model.MODO)
@@ -166,13 +164,13 @@ def create(
 
     attrs = obj.__dict__
     # Dump object to zarr metadata
-    MODO(path=object_directory, endpoint=endpoint, **attrs)
+    MODO(path=object_path, endpoint=endpoint, **attrs)
 
 
 @cli.command()
 def remove(
     ctx: typer.Context,
-    object_directory: Annotated[Path, typer.Argument(...)],
+    object_path: Annotated[Path, typer.Argument(...)],
     element_id: Annotated[
         str,
         typer.Argument(
@@ -190,7 +188,7 @@ def remove(
     ] = False,
 ):
     """Removes an element and its files from the modo."""
-    modo = MODO(object_directory, endpoint=ctx.obj.endpoint)
+    modo = MODO(object_path, endpoint=ctx.obj.endpoint)
     if element_id == modo.path.name:
         if force:
             modo.remove_object()
@@ -215,7 +213,7 @@ def remove(
 @cli.command()
 def add(
     ctx: typer.Context,
-    object_directory: Annotated[Path, typer.Argument(...)],
+    object_path: Annotated[Path, typer.Argument(...)],
     element_type: Annotated[
         UserElementType,
         typer.Argument(
@@ -256,8 +254,8 @@ def add(
 ):
     """Add elements to a modo."""
 
-    typer.echo(f"Updating {object_directory}.", err=True)
-    modo = MODO(object_directory, endpoint=ctx.obj.endpoint)
+    typer.echo(f"Updating {object_path}.", err=True)
+    modo = MODO(object_path, endpoint=ctx.obj.endpoint)
     target_class = element_type.get_target_class()
 
     if from_file and element:
@@ -277,7 +275,7 @@ def add(
 @cli.command()
 def show(
     ctx: typer.Context,
-    object_directory: Annotated[Path, typer.Argument(...)],
+    object_path: Annotated[Path, typer.Argument(...)],
     zarr: Annotated[
         bool,
         typer.Option(
@@ -298,11 +296,11 @@ def show(
     """Show the contents of a modo."""
     endpoint = ctx.obj.endpoint
     if endpoint:
-        obj = MODO(object_directory, endpoint=endpoint)
-    elif os.path.exists(object_directory):
-        obj = MODO(object_directory)
+        obj = MODO(object_path, endpoint=endpoint)
+    elif os.path.exists(object_path):
+        obj = MODO(object_path)
     else:
-        raise ValueError(f"{object_directory} does not exists")
+        raise ValueError(f"{object_path} does not exists")
     if zarr:
         out = obj.list_arrays()
     elif files:
@@ -315,12 +313,12 @@ def show(
 @cli.command()
 def publish(
     ctx: typer.Context,
-    object_directory: Annotated[Path, typer.Argument(...)],
+    object_path: Annotated[Path, typer.Argument(...)],
     output_format: Annotated[RdfFormat, typer.Option(...)] = RdfFormat.TURTLE,
     base_uri: Annotated[Optional[str], typer.Option(...)] = None,
 ):
     """Export a modo as linked data. Turns all paths into URIs."""
-    obj = MODO(object_directory, endpoint=ctx.obj.endpoint)
+    obj = MODO(object_path, endpoint=ctx.obj.endpoint)
     print(
         obj.knowledge_graph(uri_prefix=base_uri).serialize(
             format=output_format
@@ -375,7 +373,7 @@ def stream(
 @cli.command()
 def update(
     ctx: typer.Context,
-    object_directory: Annotated[Path, typer.Argument(...)],
+    object_path: Annotated[Path, typer.Argument(...)],
     config_file: Annotated[
         Path,
         typer.Option(
@@ -385,7 +383,7 @@ def update(
         ),
     ],
     no_remove: Annotated[
-        Optional[bool],
+        bool,
         typer.Option(
             "--no-remove",
             "-n",
@@ -395,11 +393,11 @@ def update(
 ):
     """Update a modo based on a yaml file."""
 
-    typer.echo(f"Updating {object_directory}.", err=True)
+    typer.echo(f"Updating {object_path}.", err=True)
     endpoint = ctx.obj.endpoint
-    modo = MODO.from_file(
-        path=config_file,
-        object_directory=object_directory,
+    _ = MODO.from_file(
+        config_path=config_file,
+        object_path=object_path,
         endpoint=endpoint,
         no_remove=no_remove,
     )
