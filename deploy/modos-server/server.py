@@ -21,7 +21,7 @@ BUCKET = os.environ["S3_BUCKET"]
 HTSGET_LOCAL_URL = os.environ["HTSGET_LOCAL_URL"]
 
 app = FastAPI()
-minio = connect_s3(S3_LOCAL_URL, {"anon": True})
+minio = connect_s3(S3_LOCAL_URL, {"anon": True})  # type: ignore
 
 
 @app.get("/list")
@@ -38,7 +38,7 @@ def gather_metadata():
     meta = {}
 
     for modo in minio.ls(BUCKET, refresh=True):
-        meta.update(MODO(path=modo, s3_endpoint=S3_LOCAL_URL).metadata)
+        meta.update(MODO(path=modo, endpoint=S3_LOCAL_URL).metadata)  # type: ignore
 
     return meta
 
