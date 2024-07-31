@@ -1,10 +1,11 @@
 """Functions related to server storage handling"""
 
 from dataclasses import field
+from typing import Mapping, Optional
+
 from pydantic import HttpUrl, validate_call
 from pydantic.dataclasses import dataclass
 import requests
-from typing import Mapping, Optional
 
 
 @dataclass(frozen=True)
@@ -86,6 +87,11 @@ def get_metadata_from_remote(
             ) from e
     else:
         return meta
+
+
+def is_s3_path(path: str):
+    """Check if a path is an S3 path"""
+    return path.startswith("s3://")
 
 
 @validate_call
