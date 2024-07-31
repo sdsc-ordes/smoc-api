@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 import os
 from pathlib import Path
+import re
 import shutil
-from typing import Any, Generator, Optional
+from typing import Any, ClassVar, Generator, Optional
 
-from pydantic import HttpUrl
+from pydantic import Field, HttpUrl
+from pydantic.dataclasses import dataclass
 import s3fs
 import zarr
 import zarr.hierarchy as zh
@@ -90,14 +92,66 @@ class LocalStorage(Storage):
         shutil.copy(source, self.path / target)
 
 
+@dataclass
+class S3Path:
+    """Pydantic Model for S3 URLs. Performs validation against amazon's official naming rules [1]_ [2]_
+
+    .. [1] https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
+    .. [2] https://gist.github.com/rajivnarayan/c38f01b89de852b3e7d459cfde067f3f
+
+
+    Examples
+    --------
+    >>> S3Path(url="s3://test/ex")
+    S3Path(url='s3://test/ex')
+    >>> S3Path(url='s3://?invalid-bucket-name!/def') # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+      ...
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for S3Path
+    """
+
+    _s3_pattern: ClassVar[re.Pattern[str]] = re.compile(
+        r"^s3://"
+        r"(?=[a-z0-9])"  # Bucket name must start with a letter or digit
+        r"(?!(^xn--|sthree-|sthree-configurator|.+-s3alias$))"  # Bucket name must not start with xn--, sthree-, sthree-configurator or end with -s3alias
+        r"(?!.*\.\.)"  # Bucket name must not contain two adjacent periods
+        r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]"  # Bucket naming constraints
+        r"(?<!\.-$)"  # Bucket name must not end with a period followed by a hyphen
+        r"(?<!\.$)"  # Bucket name must not end with a period
+        r"(?<!-$)"  # Bucket name must not end with a hyphen
+        r"(/([a-zA-Z0-9._-]+/?)*)?$"  # key naming constraints
+    )
+    url: str = Field(
+        ...,
+        strip_whitespace=True,  # type: ignore
+        pattern=_s3_pattern,
+        min_length=8,
+        max_length=1023,
+    )
+
+    def s3_url_parts(self):
+        path_parts = self.url[5:].split("/")
+        bucket = path_parts.pop(0)
+        key = "/".join(path_parts)
+        return (bucket, key)
+
+    @property
+    def bucket(self) -> str:
+        return self.s3_url_parts()[0]
+
+    @property
+    def key(self) -> str:
+        return self.s3_url_parts()[1]
+
+
 class S3Storage(Storage):
     def __init__(
         self,
-        path: Path,
+        path: str,
         s3_endpoint: HttpUrl,
         s3_kwargs: Optional[dict[str, Any]] = None,
     ):
-        self._path = Path(path)
+        self._path = S3Path(url=path)
         self.endpoint = s3_endpoint
         s3_opts = s3_kwargs or {"anon": True}
         fs = connect_s3(s3_endpoint, s3_opts)
@@ -105,7 +159,7 @@ class S3Storage(Storage):
             zarr_s3_opts = s3_opts | {"endpoint_url": str(s3_endpoint)}
 
             self._zarr = zarr.convenience.open(
-                f"s3://{path}/{ZARR_ROOT}",
+                f"{self._path.url}/{ZARR_ROOT}",
                 storage_options=zarr_s3_opts,
             )
         else:
@@ -117,7 +171,7 @@ class S3Storage(Storage):
 
     @property
     def path(self) -> Path:
-        return self._path
+        return Path(f"{self._path.bucket}/{self._path.key}")
 
     @property
     def zarr(self) -> zh.Group:
