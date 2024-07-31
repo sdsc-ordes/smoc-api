@@ -45,6 +45,14 @@ class RdfFormat(str, Enum):
 
 cli = typer.Typer(add_completion=False)
 
+OBJECT_PATH_ARG = Annotated[
+    Path,
+    typer.Argument(
+        ...,
+        help="Path to the digital object. Remote paths should have format s3://bucket/path",
+    ),
+]
+
 
 def prompt_for_slot(slot_name: str, prefix: str = "", optional: bool = False):
     """Prompt for a slot value."""
@@ -119,7 +127,7 @@ def prompt_for_slots(
 @cli.command()
 def create(
     ctx: typer.Context,
-    object_path: Annotated[Path, typer.Argument(...)],
+    object_path: OBJECT_PATH_ARG,
     from_file: Annotated[
         Optional[Path],
         typer.Option(
@@ -170,7 +178,7 @@ def create(
 @cli.command()
 def remove(
     ctx: typer.Context,
-    object_path: Annotated[Path, typer.Argument(...)],
+    object_path: OBJECT_PATH_ARG,
     element_id: Annotated[
         str,
         typer.Argument(
@@ -213,7 +221,7 @@ def remove(
 @cli.command()
 def add(
     ctx: typer.Context,
-    object_path: Annotated[Path, typer.Argument(...)],
+    object_path: OBJECT_PATH_ARG,
     element_type: Annotated[
         UserElementType,
         typer.Argument(
@@ -275,7 +283,7 @@ def add(
 @cli.command()
 def show(
     ctx: typer.Context,
-    object_path: Annotated[Path, typer.Argument(...)],
+    object_path: OBJECT_PATH_ARG,
     zarr: Annotated[
         bool,
         typer.Option(
@@ -313,7 +321,7 @@ def show(
 @cli.command()
 def publish(
     ctx: typer.Context,
-    object_path: Annotated[Path, typer.Argument(...)],
+    object_path: OBJECT_PATH_ARG,
     output_format: Annotated[RdfFormat, typer.Option(...)] = RdfFormat.TURTLE,
     base_uri: Annotated[Optional[str], typer.Option(...)] = None,
 ):
@@ -373,7 +381,7 @@ def stream(
 @cli.command()
 def update(
     ctx: typer.Context,
-    object_path: Annotated[Path, typer.Argument(...)],
+    object_path: OBJECT_PATH_ARG,
     config_file: Annotated[
         Path,
         typer.Option(
