@@ -1,0 +1,19 @@
+name: Publish on Pypi
+
+on:
+  release:
+    types: [published]
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@v4
+      # https://github.com/JRubics/poetry-publish
+      - name: Build and publish to pypi
+        uses: JRubics/poetry-publish@v2.0
+        with:
+          pypi_token: ${{ secrets.PYPI_API_TOKEN }}
+          poetry_install_options: "--only-root"
