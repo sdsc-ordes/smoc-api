@@ -484,7 +484,7 @@ class MODO:
     def from_file(
         cls,
         config_path: Path,
-        object_path: Path,
+        object_path: str,
         endpoint: Optional[HttpUrl] = None,
         s3_kwargs: Optional[dict] = None,
         services: Optional[dict[str, HttpUrl]] = None,
