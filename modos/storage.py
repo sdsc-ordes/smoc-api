@@ -123,7 +123,7 @@ class S3Path:
     )
     url: str = Field(
         ...,
-        json_schema_extra = {"strip_whitespace":True},  # type: ignore
+        json_schema_extra={"strip_whitespace": True},  # type: ignore
         pattern=_s3_pattern,
         min_length=8,
         max_length=1023,
