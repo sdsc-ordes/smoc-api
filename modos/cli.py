@@ -155,7 +155,7 @@ def create(
         fs = connect_s3(s3, {"anon": True})  # type: ignore
         if fs.exists(object_path):
             raise ValueError(f"Remote directory already exists: {object_path}")
-    elif object_path.exists():
+    elif Path(object_path).exists():
         raise ValueError(f"Directory already exists: {object_path}")
 
     # Obtain object's metadata and create object
