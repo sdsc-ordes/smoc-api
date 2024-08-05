@@ -15,8 +15,8 @@ def test_multi_modos(setup):
     minio_creds = {"secret": "minioadmin", "key": "minioadmin"}
     for _ in range(3):
         MODO(
-            "test/ex",
-            s3_endpoint=f"http://{minio_endpoint}",
+            "s3://test/ex",
+            services={"s3": f"http://{minio_endpoint}"},
             s3_kwargs=minio_creds,
         )
 
@@ -59,8 +59,8 @@ def test_remove_modo(setup):
     minio_endpoint = setup["minio"].get_config()["endpoint"]
     minio_creds = {"secret": "minioadmin", "key": "minioadmin"}
     modo = MODO(
-        "test/remove_ex",
-        s3_endpoint=f"http://{minio_endpoint}",
+        "s3://test/remove_ex",
+        services={"s3": f"http://{minio_endpoint}"},
         s3_kwargs=minio_creds,
     )
     objects = minio_client.list_objects("test")

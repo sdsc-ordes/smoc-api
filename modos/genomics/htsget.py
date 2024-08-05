@@ -36,7 +36,6 @@ References
 
 import base64
 from collections import deque
-from dataclasses import dataclass
 from functools import cached_property
 import io
 from pathlib import Path
@@ -45,6 +44,8 @@ import tempfile
 from typing import Optional, Iterator
 from urllib.parse import urlparse, parse_qs
 
+from pydantic import HttpUrl, validate_call
+from pydantic.dataclasses import dataclass
 import pysam
 import requests
 
@@ -52,7 +53,10 @@ from .region import Region
 from .formats import GenomicFileSuffix, read_pysam
 
 
-def build_htsget_url(host: str, path: Path, region: Optional[Region]) -> str:
+@validate_call
+def build_htsget_url(
+    host: HttpUrl, path: Path, region: Optional[Region]
+) -> str:
     """Build an htsget URL from a host, path, and region.
 
     Examples
@@ -71,13 +75,14 @@ def build_htsget_url(host: str, path: Path, region: Optional[Region]) -> str:
     stem = path.with_suffix("") if path.name.endswith("gz") else path
     stem = stem.with_suffix("")
 
-    url = f"{host}/{endpoint}/{stem}?format={format.name}"
+    url = f"{host}{endpoint}/{stem}?format={format.name}"
     if region:
         url += f"&{region.to_htsget_query()}"
     return url
 
 
-def parse_htsget_url(url: str) -> tuple[str, Path, Optional[Region]]:
+@validate_call
+def parse_htsget_url(url: HttpUrl) -> tuple[str, Path, Optional[Region]]:
     """Given a URL to an htsget resource, extract the host, path, and region."""
     parsed = urlparse(url)
     query = parse_qs(parsed.query)
@@ -217,7 +222,7 @@ class HtsgetConnection:
     It allows to open a stream to the resource and lazily fetch data from it.
     """
 
-    host: str
+    host: HttpUrl
     path: Path
     region: Optional[Region]
 
@@ -251,7 +256,7 @@ class HtsgetConnection:
         return cls(host, path, region=region)
 
     def to_pysam(
-        self, reference_filename: str = None
+        self, reference_filename: Optional[str] = None
     ) -> Iterator[pysam.AlignedSegment | pysam.VariantRecord]:
         """Convert the stream to a pysam object."""
 

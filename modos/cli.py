@@ -7,14 +7,15 @@ from enum import Enum
 import os
 from pathlib import Path
 from typing import Any, List, Mapping, Optional
-from numpy import source
 from typing_extensions import Annotated
 
 import click
 from linkml_runtime.loaders import json_loader
 import modos_schema.datamodel as model
+from pydantic import validate_call, HttpUrl
 import sys
 import typer
+from types import SimpleNamespace
 import zarr
 
 from .api import MODO
@@ -25,9 +26,12 @@ from .helpers.schema import (
     get_slot_range,
     load_schema,
 )
+
+from . import __version__
 from .genomics.htsget import HtsgetConnection
 from .genomics.region import Region
 from .io import parse_instance
+from .remote import EndpointManager
 from .storage import connect_s3
 
 
@@ -40,6 +44,14 @@ class RdfFormat(str, Enum):
 
 
 cli = typer.Typer(add_completion=False)
+
+OBJECT_PATH_ARG = Annotated[
+    str,
+    typer.Argument(
+        ...,
+        help="Path to the digital object. Remote paths should have format s3://bucket/path",
+    ),
+]
 
 
 def prompt_for_slot(slot_name: str, prefix: str = "", optional: bool = False):
@@ -114,15 +126,8 @@ def prompt_for_slots(
 # Create command
 @cli.command()
 def create(
-    object_directory: Annotated[Path, typer.Argument(...)],
-    s3_endpoint: Annotated[
-        Optional[str],
-        typer.Option(
-            "--s3-endpoint",
-            "-s3",
-            help="Create instance at S3 endpoint. Must point to a valid url",
-        ),
-    ] = None,
+    ctx: typer.Context,
+    object_path: OBJECT_PATH_ARG,
     from_file: Annotated[
         Optional[Path],
         typer.Option(
@@ -142,24 +147,22 @@ def create(
 ):
     """Create a modo interactively or from a file."""
     typer.echo("Creating a digital object.", err=True)
-    # Initialize object's directory
-    if object_directory.exists():
-        raise ValueError(f"Directory already exists: {object_directory}")
 
-    if s3_endpoint:
-        fs = connect_s3(s3_endpoint, {"anon": True})
-        if fs.exists(object_directory):
-            raise ValueError(
-                f"Remote directory already exists: {object_directory}"
-            )
+    endpoint = ctx.obj.endpoint
+    # Initialize object's directory
+    if endpoint:
+        s3 = EndpointManager(endpoint).s3
+        fs = connect_s3(s3, {"anon": True})  # type: ignore
+        if fs.exists(object_path):
+            raise ValueError(f"Remote directory already exists: {object_path}")
+    elif Path(object_path).exists():
+        raise ValueError(f"Directory already exists: {object_path}")
 
     # Obtain object's metadata and create object
     if from_file and meta:
         raise ValueError("Only one of --from-file or --data can be used.")
     elif from_file:
-        modo = MODO.from_file(
-            from_file, object_directory, s3_endpoint=s3_endpoint
-        )
+        _ = MODO.from_file(from_file, object_path, endpoint=endpoint)
         return
     elif meta:
         obj = json_loader.loads(meta, target_class=model.MODO)
@@ -169,12 +172,13 @@ def create(
 
     attrs = obj.__dict__
     # Dump object to zarr metadata
-    MODO(path=object_directory, s3_endpoint=s3_endpoint, **attrs)
+    MODO(path=object_path, endpoint=endpoint, **attrs)
 
 
 @cli.command()
 def remove(
-    object_directory: Annotated[Path, typer.Argument(...)],
+    ctx: typer.Context,
+    object_path: OBJECT_PATH_ARG,
     element_id: Annotated[
         str,
         typer.Argument(
@@ -182,14 +186,6 @@ def remove(
             help="The identifier within the modo. Use modos show to check it.",
         ),
     ],
-    s3_endpoint: Annotated[
-        Optional[str],
-        typer.Option(
-            "--s3-endpoint",
-            "-s3",
-            help="Url to S3 endpoint that stores the digital object.",
-        ),
-    ] = None,
     force: Annotated[
         bool,
         typer.Option(
@@ -200,7 +196,7 @@ def remove(
     ] = False,
 ):
     """Removes an element and its files from the modo."""
-    modo = MODO(object_directory, s3_endpoint=s3_endpoint)
+    modo = MODO(object_path, endpoint=ctx.obj.endpoint)
     if element_id == modo.path.name:
         if force:
             modo.remove_object()
@@ -209,7 +205,7 @@ def remove(
                 "Cannot delete root object. If you want to delete the entire MODOS, use --force."
             )
     else:
-        element = modo.zarr.get(element_id)
+        element = modo.zarr[element_id]
         rm_path = element.attrs.get("data_path", [])
         if isinstance(element, zarr.hierarchy.Group) and len(rm_path) > 0:
             if not force:
@@ -224,7 +220,8 @@ def remove(
 
 @cli.command()
 def add(
-    object_directory: Annotated[Path, typer.Argument(...)],
+    ctx: typer.Context,
+    object_path: OBJECT_PATH_ARG,
     element_type: Annotated[
         UserElementType,
         typer.Argument(
@@ -232,14 +229,6 @@ def add(
             help="Type of element to add to the digital object.",
         ),
     ],
-    s3_endpoint: Annotated[
-        Optional[str],
-        typer.Option(
-            "--s3-endpoint",
-            "-s3",
-            help="Url to S3 endpoint that stores the digital object.",
-        ),
-    ] = None,
     parent: Annotated[
         Optional[str],
         typer.Option(
@@ -273,8 +262,8 @@ def add(
 ):
     """Add elements to a modo."""
 
-    typer.echo(f"Updating {object_directory}.", err=True)
-    modo = MODO(object_directory, s3_endpoint=s3_endpoint)
+    typer.echo(f"Updating {object_path}.", err=True)
+    modo = MODO(object_path, endpoint=ctx.obj.endpoint)
     target_class = element_type.get_target_class()
 
     if from_file and element:
@@ -293,15 +282,8 @@ def add(
 
 @cli.command()
 def show(
-    object_directory: Annotated[Path, typer.Argument(...)],
-    s3_endpoint: Annotated[
-        Optional[str],
-        typer.Option(
-            "--s3-endpoint",
-            "-s3",
-            help="Url to S3 endpoint that stores the digital object.",
-        ),
-    ] = None,
+    ctx: typer.Context,
+    object_path: OBJECT_PATH_ARG,
     zarr: Annotated[
         bool,
         typer.Option(
@@ -320,12 +302,13 @@ def show(
     ] = False,
 ):
     """Show the contents of a modo."""
-    if s3_endpoint:
-        obj = MODO(object_directory, s3_endpoint=s3_endpoint)
-    elif os.path.exists(object_directory):
-        obj = MODO(object_directory)
+    endpoint = ctx.obj.endpoint
+    if endpoint:
+        obj = MODO(object_path, endpoint=endpoint)
+    elif os.path.exists(object_path):
+        obj = MODO(object_path)
     else:
-        raise ValueError(f"{object_directory} does not exists")
+        raise ValueError(f"{object_path} does not exists")
     if zarr:
         out = obj.list_arrays()
     elif files:
@@ -337,20 +320,13 @@ def show(
 
 @cli.command()
 def publish(
-    object_directory: Annotated[Path, typer.Argument(...)],
+    ctx: typer.Context,
+    object_path: OBJECT_PATH_ARG,
     output_format: Annotated[RdfFormat, typer.Option(...)] = RdfFormat.TURTLE,
     base_uri: Annotated[Optional[str], typer.Option(...)] = None,
-    s3_endpoint: Annotated[
-        Optional[str],
-        typer.Option(
-            "--s3-endpoint",
-            "-s3",
-            help="Url to S3 endpoint that stores the digital object.",
-        ),
-    ] = None,
 ):
     """Export a modo as linked data. Turns all paths into URIs."""
-    obj = MODO(object_directory, s3_endpoint=s3_endpoint)
+    obj = MODO(object_path, endpoint=ctx.obj.endpoint)
     print(
         obj.knowledge_graph(uri_prefix=base_uri).serialize(
             format=output_format
@@ -360,6 +336,7 @@ def publish(
 
 @cli.command()
 def stream(
+    ctx: typer.Context,
     file_path: Annotated[
         str,
         typer.Argument(
@@ -367,22 +344,6 @@ def stream(
             help="The path to the file to stream . Use modos show --files to check it.",
         ),
     ],
-    s3_endpoint: Annotated[
-        str,
-        typer.Option(
-            "--s3-endpoint",
-            "-s3",
-            help="Url to S3 endpoint that stores the digital object.",
-        ),
-    ],
-    htsget_endpoint: Annotated[
-        Optional[str],
-        typer.Option(
-            "--htsget-endpoint",
-            "-h",
-            help="Url to HTSGet endpoint. Inferred from s3 endpoint by default.",
-        ),
-    ] = None,
     region: Annotated[
         Optional[str],
         typer.Option(
@@ -396,13 +357,20 @@ def stream(
 
 
     Example:
-    modos stream -s3 http://localhost/s3 my-bucket/ex-modo/demo1.cram
+    modos -e http://modos.example.org stream  my-bucket/ex-modo/demo1.cram
     """
     _region = Region.from_ucsc(region) if region else None
 
     # NOTE: bucket is not included in htsget paths
     source = Path(*Path(file_path).parts[1:])
-    htsget_endpoint = htsget_endpoint or s3_endpoint.replace("s3", "htsget")
+    endpoint = ctx.obj.endpoint
+
+    if not endpoint:
+        raise ValueError("Streaming requires a remote endpoint.")
+
+    htsget_endpoint = EndpointManager(endpoint).htsget  # type: ignore
+    if not htsget_endpoint:
+        raise ValueError("No htsget service found.")
 
     con = HtsgetConnection(htsget_endpoint, source, _region)
     with con.open() as f:
@@ -412,7 +380,8 @@ def stream(
 
 @cli.command()
 def update(
-    object_directory: Annotated[Path, typer.Argument(...)],
+    ctx: typer.Context,
+    object_path: OBJECT_PATH_ARG,
     config_file: Annotated[
         Path,
         typer.Option(
@@ -421,16 +390,8 @@ def update(
             help="File defining the updated modo. The file must be in json or yaml format.",
         ),
     ],
-    s3_endpoint: Annotated[
-        Optional[str],
-        typer.Option(
-            "--s3-endpoint",
-            "-s3",
-            help="Url to S3 endpoint that stores the modo.",
-        ),
-    ] = None,
     no_remove: Annotated[
-        Optional[bool],
+        bool,
         typer.Option(
             "--no-remove",
             "-n",
@@ -440,13 +401,47 @@ def update(
 ):
     """Update a modo based on a yaml file."""
 
-    typer.echo(f"Updating {object_directory}.", err=True)
-    modo = MODO.from_file(
-        path=config_file,
-        object_directory=object_directory,
-        s3_endpoint=s3_endpoint,
+    typer.echo(f"Updating {object_path}.", err=True)
+    endpoint = ctx.obj.endpoint
+    _ = MODO.from_file(
+        config_path=config_file,
+        object_path=object_path,
+        endpoint=endpoint,
         no_remove=no_remove,
     )
+
+
+def version_callback(value: bool):
+    """Prints version and exits"""
+    if value:
+        print(f"modos {__version__}")
+        # Exits successfully
+        raise typer.Exit()
+
+
+def endpoint_callback(ctx: typer.Context, url: HttpUrl):
+    """Validates modos server url"""
+    ctx.obj = SimpleNamespace(endpoint=url)
+
+
+@cli.callback()
+def callback(
+    ctx: typer.Context,
+    endpoint: Optional[str] = typer.Option(
+        None,
+        callback=endpoint_callback,
+        envvar="MODOS_ENDPOINT",
+        help="URL of modos server.",
+    ),
+    version: Optional[bool] = typer.Option(
+        None,
+        "--version",
+        callback=version_callback,
+        help="Print version of modos client",
+    ),
+):
+    """Multi-Omics Digital Objects command line interface."""
+    ...
 
 
 # Generate a click group to autogenerate docs via sphinx-click:

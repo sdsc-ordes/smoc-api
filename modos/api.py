@@ -3,7 +3,8 @@ from datetime import date
 import json
 import os
 from pathlib import Path
-from typing import List, Optional, Union, Iterator
+import sys
+from typing import Any, List, Optional, Union, Iterator
 import yaml
 
 from linkml_runtime.dumpers import json_dumper
@@ -11,8 +12,8 @@ import rdflib
 import modos_schema.datamodel as model
 import zarr.hierarchy
 import zarr
-import re
 
+from pydantic import HttpUrl
 from pysam import AlignedSegment, VariantRecord
 
 from .rdf import attrs_to_graph
@@ -35,14 +36,46 @@ from .genomics.formats import GenomicFileSuffix, read_pysam
 from .genomics.htsget import HtsgetConnection
 from .genomics.region import Region
 from .io import extract_metadata, parse_attributes
+from .remote import EndpointManager, is_s3_path
 
 
 class MODO:
     """Multi-Omics Digital Object
-    A digital archive containing several multi-omics data and records.
-    The archive contains:
-    * A zarr file, array-based data and metadata pointing to arrays and data files
-    * CRAM files, with genomic-alignments data
+    A digital archive containing several multi-omics data and records
+    connected by zarr-backed metadata.
+
+    Parameters
+    ----------
+    path
+        Path to the archive directory.
+    id
+        MODO identifier.
+        Defaults to the directory name.
+    name
+        Human-readable name.
+    description
+        Human readable description.
+    creation_date
+        When the MODO was created.
+    last_update_date
+        When the MODO was last updated.
+    has_assay
+        Existing assay identifiers to attach to MODO.
+    source_uri
+        URI of the source data.
+    endpoint
+        URL to the modos server.
+    s3_kwargs
+        Keyword arguments for the S3 storage.
+    services
+        Optional dictionary of service endpoints.
+
+    Attributes
+    ----------
+    storage: Storage
+        Storage backend for the archive.
+    endpoint: EndpointManager
+        Server endpoint manager.
 
     Examples
     --------
@@ -62,9 +95,6 @@ class MODO:
     def __init__(
         self,
         path: Union[Path, str],
-        s3_endpoint: Optional[str] = None,
-        s3_kwargs: Optional[dict] = None,
-        htsget_endpoint: Optional[str] = None,
         id: Optional[str] = None,
         name: Optional[str] = None,
         description: Optional[str] = None,
@@ -72,16 +102,24 @@ class MODO:
         last_update_date: date = date.today(),
         has_assay: List = [],
         source_uri: Optional[str] = None,
+        endpoint: Optional[HttpUrl] = None,
+        s3_kwargs: Optional[dict[str, Any]] = None,
+        services: Optional[dict[str, HttpUrl]] = None,
     ):
-        self.htsget_endpoint = htsget_endpoint
+        self.endpoint = EndpointManager(endpoint, services or {})
 
-        if s3_endpoint and not htsget_endpoint:
-            htsget_endpoint = re.sub(r"s3$", "htsget", s3_endpoint)
-
-        if s3_endpoint:
-            self.storage = S3Storage(path, s3_endpoint, s3_kwargs)
+        if is_s3_path(str(path)):
+            if not self.endpoint.s3:
+                raise ValueError("S3 path requires an endpoint.")
+            print(
+                f"INFO: Using remote endpoint {endpoint} for {path}.",
+                file=sys.stderr,
+            )
+            self.storage = S3Storage(str(path), self.endpoint.s3, s3_kwargs)
         else:
-            self.storage = LocalStorage(path)
+            # log to stderr
+            print(f"INFO: Using local storage for {path}.", file=sys.stderr)
+            self.storage = LocalStorage(Path(path))
         # Opening existing object
         if self.storage.empty():
             self.id = id or self.path.name
@@ -419,23 +457,20 @@ class MODO:
         reference_filename: Optional[str] = None,
     ) -> Iterator[AlignedSegment | VariantRecord]:
         """Slices both local and remote CRAM, VCF (.vcf.gz), and BCF
-        files returning an iterator or saving to local file."""
+        files returning an iterator over records."""
 
         _region = Region.from_ucsc(region) if region else None
         # check requested genomics file exists in MODO
         if Path(file_path) not in self.list_files():
             raise ValueError(f"{file_path} not found in {self.path}.")
 
-        if self.htsget_endpoint:
-            # http://domain/s3 + bucket/modo/file.cram --> http://domain/htsget/reads/modo/file.cram
-            # or               + bucket/modo/file.vcf.gz --> http://domain/htsget/variants/modo/file.vcf.gz
+        if self.endpoint.s3 and self.endpoint.htsget:
             con = HtsgetConnection(
-                self.htsget_endpoint,
+                self.endpoint.htsget,
                 Path(*Path(file_path).parts[1:]),
                 region=_region,
             )
             stream = con.to_pysam(reference_filename=reference_filename)
-
         else:
             stream = read_pysam(
                 Path(file_path),
@@ -448,15 +483,15 @@ class MODO:
     @classmethod
     def from_file(
         cls,
-        path: Path,
-        object_directory: Path,
-        s3_endpoint: Optional[str] = None,
+        config_path: Path,
+        object_path: str,
+        endpoint: Optional[HttpUrl] = None,
         s3_kwargs: Optional[dict] = None,
-        htsget_endpoint: Optional[str] = None,
+        services: Optional[dict[str, HttpUrl]] = None,
         no_remove: bool = False,
     ) -> MODO:
         """build a modo from a yaml or json file"""
-        element_list = parse_attributes(Path(path))
+        element_list = parse_attributes(Path(config_path))
 
         # checks
         modo_count = sum(
@@ -476,7 +511,7 @@ class MODO:
         instance_list = []
         modo_dict = {}
         for element in element_list:
-            metadata = element.get("element")
+            metadata = element["element"]
             args = element.get("args", {})
             if metadata.get("@type") == "MODO":
                 del metadata["@type"]
@@ -488,10 +523,10 @@ class MODO:
                 instance_list.append((inst, args))
 
         modo = cls(
-            path=object_directory,
-            s3_endpoint=s3_endpoint,
+            path=object_path,
+            endpoint=endpoint,
+            services=services,
             s3_kwargs=s3_kwargs or {"anon": True},
-            htsget_endpoint=htsget_endpoint,
             **modo_dict.get("meta", {}),
             **modo_dict.get("args", {}),
         )
