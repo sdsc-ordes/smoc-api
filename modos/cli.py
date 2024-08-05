@@ -46,7 +46,7 @@ class RdfFormat(str, Enum):
 cli = typer.Typer(add_completion=False)
 
 OBJECT_PATH_ARG = Annotated[
-    Path,
+    str,
     typer.Argument(
         ...,
         help="Path to the digital object. Remote paths should have format s3://bucket/path",
