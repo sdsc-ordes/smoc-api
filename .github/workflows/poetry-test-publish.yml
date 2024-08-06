@@ -12,6 +12,8 @@ permissions:
   contents: read
 
 jobs:
+  run-tests:
+    uses: ./.github/workflows/poetry-publish.yml
   test-build:
     name: Build python wheels
     runs-on: ubuntu-latest
