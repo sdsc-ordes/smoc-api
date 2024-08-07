@@ -1,8 +1,6 @@
 name: tests
 
-on:
-  push:
-  workflow_call:
+on: [push, workflow_call]
 
 jobs:
 
