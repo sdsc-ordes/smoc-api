@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   run-tests:
-    uses: ./.github/workflows/poetry-publish.yml
+    uses: ./.github/workflows/poetry-pytest.yml
   test-build:
     name: Build python wheels
     runs-on: ubuntu-latest
