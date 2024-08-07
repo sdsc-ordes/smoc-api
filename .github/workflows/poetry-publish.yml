@@ -18,6 +18,8 @@ jobs:
 
   release-build:
     name: Build python wheels
+    needs:
+      - run-tests
     runs-on: ubuntu-latest
     steps:
       # https://github.com/actions/checkout

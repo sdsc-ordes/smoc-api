@@ -16,6 +16,8 @@ jobs:
     uses: ./.github/workflows/poetry-pytest.yml
   test-build:
     name: Build python wheels
+    needs:
+      - run-tests
     runs-on: ubuntu-latest
     steps:
       # https://github.com/actions/checkout
