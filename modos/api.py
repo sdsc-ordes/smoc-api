@@ -176,9 +176,11 @@ class MODO:
         kg = attrs_to_graph(self.metadata, uri_prefix=uri_prefix)
         return kg
 
-    def show_contents(self):
+    def show_contents(self, element_id: Optional[str] = None):
         """human-readable print of the object's contents"""
         meta = self.metadata
+        if element_id:
+            meta = {element_id: meta[element_id]}
         # Pretty print metadata contents as yaml
 
         return yaml.dump(meta, sort_keys=False)
