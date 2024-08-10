@@ -33,5 +33,5 @@ modos --endpoint http://localhost stream --region BA000007.3 s3://modos-demo/ex/
 ::::
 
 :::{warning}
-We highly recommend using the `MODOs` CLI for streaming. The output can directly be parsed to tools like <a href="https://www.htslib.org/" target="_blank">samtools</a>. Streaming using the `MODOs` python api will return a <a href="https://pysam.readthedocs.io/en/stable/" target="_blank">pysam</a> object. `pysam` does not allow reading from byte-streams and thus the streamed region will be written into an temporary file before parsing to `pysam`. For large files/regions this can cause issues.
+We highly recommend using the `MODOs` CLI for streaming. The output can directly be passed to tools like <a href="https://www.htslib.org/" target="_blank">samtools</a>. Streaming using the `MODOs` python api will return a <a href="https://pysam.readthedocs.io/en/stable/" target="_blank">pysam</a> object. `pysam` does not allow reading from byte-streams and thus the streamed region will be written into an temporary file before parsing to `pysam`. For large files/regions this can cause issues.
 :::
