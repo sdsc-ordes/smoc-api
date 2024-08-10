@@ -79,7 +79,7 @@ modos --endpoint http://localhost show s3://modos-demo/ex
 ::::
 
 :::{warning}
-The __bucket name__ and the __endpoint url__ are specified separatly. The __bucket name__ is part of the `object_path` and needs to be written as s3 scheme followed by the `MODO`'s name (e.g. `s3://bucket_name/modo_name`), while the __endpoint url__ needs to be specified separately. Only paths that follow the s3 scheme will be considered as remote independent of `--endpoint` being specified or not.
+The __bucket name__ and the __endpoint url__ are specified separatly. The __bucket name__ is part of the `object_path` and needs to be included in the s3 path, followed by the `MODO`'s name (e.g. `s3://bucket_name/modo_name`), while the __endpoint url__ needs to be specified separately. Only paths that follow the s3 scheme will be considered as remote independent of `--endpoint` being specified or not.
 :::
 
 :::{note}
