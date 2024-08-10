@@ -83,7 +83,7 @@ The __bucket name__ and the __endpoint url__ are specified separatly. The __buck
 :::
 
 :::{note}
-To avoid repetition the endpoint can also be read from an ENVIRONMENT variable. The syntax then follows the same as for local objects, except that the `object_path` needs to be provided as s3 scheme:
+To avoid repetition the endpoint can also be read from the `MODOS_ENDPOINT` environment variable. The syntax then follows the same as for local objects, except that the `object_path` needs to be provided as s3 scheme:
 
 ```{code-block} console
 export MODOS_ENDPOINT='http://localhost'
