@@ -257,6 +257,8 @@ def instance_to_graph(instance) -> Graph:
         prefix_map=prefixes,
         schemaview=load_schema(),
     )
+    # NOTE: This is a hack to get around the fact that the linkml's
+    # rdf dumper does not iunclude schema:identifier in the graph.
     # Patch schema -> http://schema.org (rdflib's default is https)
     g.bind("schema", "http://schema.org/", replace=True)
     try:
