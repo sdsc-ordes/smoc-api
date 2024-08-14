@@ -1,10 +1,10 @@
 #!/bin/sh
 set -e
 
-if [ "${S3_ADDRESSING_STYLE}" = "path" ]; then
-  export PATH_STYLE=true
-else
+if [ "${S3_ADDRESSING_STYLE}" = "virtual" ]; then
   export PATH_STYLE=false
+else
+  export PATH_STYLE=true
 fi
 
 # only use entrypoint if running htsget-actix
