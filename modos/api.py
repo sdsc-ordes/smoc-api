@@ -176,23 +176,45 @@ class MODO:
         kg = attrs_to_graph(self.metadata, uri_prefix=uri_prefix)
         return kg
 
-    def show_contents(self, element_id: Optional[str] = None):
-        """human-readable print of the object's contents"""
+    def show_contents(self, element: Optional[str] = None) -> str:
+        """Produces a YAML document of the object's contents.
+
+        Parameters
+        ----------
+        element:
+            Element, or group of elements (e.g. data or data/element_id) to show.
+            If not provided, shows the metadata of the entire MODO.
+
+        """
         meta = self.metadata
-        if element_id:
-            meta = {element_id: meta[element_id]}
+
+        if element in meta:
+            data = meta[element]
+        elif element in {g[0] for g in self.zarr.groups()}:
+            data = {k: meta[k] for k in meta if k.startswith(element)}
+        else:
+            data = meta
         # Pretty print metadata contents as yaml
 
-        return yaml.dump(meta, sort_keys=False)
+        return yaml.dump(data, sort_keys=False)
 
     def list_files(self) -> List[Path]:
         """Lists files in the archive recursively (except for the zarr file)."""
         return [fi for fi in self.storage.list()]
 
-    def list_arrays(self, element_id: Optional[str] = None):
-        """Lists arrays in the archive recursively."""
+    def list_arrays(
+        self, element: Optional[str] = None
+    ) -> zarr.hierarchy.TreeViewer:
+        """Views arrays in the archive recursively.
+
+        Parameters
+        ----------
+        element:
+            Element, or group of elements (e.g. data or data/element_id) to show.
+            If not provided, shows the metadata of the entire MODO.
+        """
         root = zarr.convenience.open_consolidated(self.zarr.store)
-        return root[element_id or "/"].tree()
+        return root[element or "/"].tree()
 
     def query(self, query: str):
         """Use SPARQL to query the metadata graph"""
