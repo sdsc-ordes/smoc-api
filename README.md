@@ -108,7 +108,7 @@ The user facing API is in `modos.api`. It provides full programmatic access to t
 For advanced use cases, the object's metadata can be queried with SPARQL!
 ```python
 >>> # Build a table with all files from male samples
->>> ex.query("""
+>>> query = """
 ...   SELECT ?assay ?sample ?file
 ...   WHERE {
 ...     [] schema:name ?assay ;
@@ -116,12 +116,13 @@ For advanced use cases, the object's metadata can be queried with SPARQL!
 ...         modos:data_path ?file ;
 ...         modos:has_sample [
 ...           schema:name ?sample ;
-...           modos:sex ?sex .
+...           modos:sex ?sex
 ...         ]
 ...       ] .
 ...     FILTER(?sex = "Male")
 ...   }
-... """).serialize(format="csv").decode())
+... """
+>>> ex.query(query).serialize(format="csv").decode())
 assay,sample,file
 Assay 1,Sample 1,file://ex/calls1.bcf
 Assay 1,Sample 1,file://ex/demo1.cram
