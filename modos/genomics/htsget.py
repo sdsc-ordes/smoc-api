@@ -75,7 +75,8 @@ def build_htsget_url(
     stem = path.with_suffix("") if path.name.endswith("gz") else path
     stem = stem.with_suffix("")
 
-    url = f"{host}{endpoint}/{stem}?format={format.name}"
+    netloc = host if str(host).endswith("/") else f"{host}/"
+    url = f"{netloc}{endpoint}/{stem}?format={format.name}"
     if region:
         url += f"&{region.to_htsget_query()}"
     return url
@@ -84,7 +85,7 @@ def build_htsget_url(
 @validate_call
 def parse_htsget_url(url: HttpUrl) -> tuple[str, Path, Optional[Region]]:
     """Given a URL to an htsget resource, extract the host, path, and region."""
-    parsed = urlparse(url)
+    parsed = urlparse(str(url))
     query = parse_qs(parsed.query)
 
     if "format" not in query:
@@ -98,7 +99,7 @@ def parse_htsget_url(url: HttpUrl) -> tuple[str, Path, Optional[Region]]:
         f".{format.name.lower()}"
     )
     try:
-        region = Region.from_htsget_query(url)
+        region = Region.from_htsget_query(str(url))
     except KeyError:
         region = None
     return (host, path, region)

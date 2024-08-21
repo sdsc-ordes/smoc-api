@@ -56,7 +56,7 @@ services:
     networks:
       - modos-network
     environment:
-      - ENDPOINT=${S3_PUBLIC_URL:-http://localhost/s3}
+      - ENDPOINT=${S3_LOCAL_URL:-http://localhost/s3}
       - BUCKET=${S3_BUCKET:-modos-demo}
       - S3_ADDRESSING_STYLE=${S3_ADDRESSING_STYLE:-auto}
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minio}
