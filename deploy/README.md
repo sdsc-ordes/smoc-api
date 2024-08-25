@@ -89,7 +89,7 @@ There are two options to use htsget streaming with the minio embedded in the com
 
 2. Or set `S3_PUBLIC_URL=http://<LOCAL-IP>:9000` where `<LOCAL-IP>` is your local IP address (find it using hostname -I).
 
-> [!NOTE]
-> This is because the S3 host must be available under the same name to both the client and htsget.
-
 These steps are not needed when using an external S3 server, in which case `S3_PUBLIC_URL` can just be set to the external S3 endpoint.
+
+> [!NOTE]
+> These steps are needed because the S3 host must be available under the same name to both the client and htsget. This is because the canonical URI (incl. hostname) is used to [derive s3 signature keys](https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html).
