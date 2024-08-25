@@ -87,7 +87,7 @@ There are two options to use htsget streaming with the minio embedded in the com
 1. Either manually create a host mapping from the minio service to localhost:
 > `echo "127.0.0.1 minio" >> /etc/hosts`
 
-2. Or set `S3_PUBLIC_URL` to your local IP address (find it using hostname -I).
+2. Or set `S3_PUBLIC_URL=http://<LOCAL-IP>:9000` where `<LOCAL-IP>` is your local IP address (find it using hostname -I).
 
 > [!NOTE]
 > This is because the S3 host must be available under the same name to both the client and htsget.
