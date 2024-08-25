@@ -12,7 +12,7 @@ The modos-server is meant to provide remote access to the MODOs. Currently, it c
 - [x] list available MODO
 - [x] return their metadata
 - [x] expose a MODO directly as a client-accessible S3 bucket / folder
-- [ ] stream CRAM slices CRAM using htsget
+- [x] stream CRAM slices using htsget
 - [ ] manage authentication and access control
 
 The MODOs are stored in an s3 (minio) bucket, and an htsget server is deployed alongside the modos-server to handle slicing and streaming of CRAM files. A REST API is exposed to the client to interact with the remote MODOs.
@@ -79,3 +79,17 @@ mv .example.env .env
 docker compose up --build
 # docker compose automatically reads the .env file
 ```
+
+### Streaming with minio
+
+There are two options to use htsget streaming with the minio embedded in the compose setup:
+
+1. Either manually create a host mapping from the minio service to localhost:
+> `echo "127.0.0.1 minio" >> /etc/hosts`
+
+2. Or set `S3_PUBLIC_URL=http://<LOCAL-IP>:9000` where `<LOCAL-IP>` is your local IP address (find it using hostname -I).
+
+These steps are not needed when using an external S3 server, in which case `S3_PUBLIC_URL` can just be set to the external S3 endpoint.
+
+> [!NOTE]
+> These steps are needed because the S3 host must be available under the same name to both the client and htsget. This is because the canonical URI (incl. hostname) is used to [derive s3 signature keys](https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html).

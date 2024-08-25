@@ -15,7 +15,7 @@ services:
     volumes:
       - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
     environment:
-      - S3_PUBLIC_URL=${S3_PUBLIC_URL:-http://localhost/s3}
+      - S3_PUBLIC_URL=${S3_PUBLIC_URL:-http://localhost/s3/}
       - S3_LOCAL_URL=${S3_lOCAL_URL:-http://minio:9000}
       - HTSGET_PUBLIC_URL=${HTSGET_PUBLIC_URL:-http://localhost/htsget}
       - HTSGET_LOCAL_URL=${HTSGET_LOCAL_URL:-http://htsget:8080}
@@ -27,9 +27,8 @@ services:
 
   minio:
     image: docker.io/bitnami/minio:2024
-    expose:
-      - "9000" # api
     ports:
+      - "9000:9000" # api
       - "9001:9001" # console
     volumes:
       - minio-data:/bitnami/minio/data
@@ -56,7 +55,7 @@ services:
     networks:
       - modos-network
     environment:
-      - ENDPOINT=${S3_LOCAL_URL:-http://localhost/s3}
+      - ENDPOINT=${S3_PUBLIC_URL:-http://minio:9000}
       - BUCKET=${S3_BUCKET:-modos-demo}
       - S3_ADDRESSING_STYLE=${S3_ADDRESSING_STYLE:-auto}
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minio}

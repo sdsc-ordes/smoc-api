@@ -19,3 +19,10 @@ you can enter a development shell with all requirements installed by doing:
 ```shell
 nix develop ./nix#default
 ```
+
+## Making a release
+
+Releases are deployed to pypi.org through github actions.
+To create a new release, create a PR named "chore: bump to X.Y.Z" where X.Y.Z is the new version. In the PR upgrade versions in the repo (sphinx config and pyproject.toml).
+
+Once the PR is merged, a release can be created through the github UI on the merge commit. This will trigger corresponding release builds on PyPI and ghcr.io.
