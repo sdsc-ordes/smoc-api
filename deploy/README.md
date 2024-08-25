@@ -81,7 +81,8 @@ docker compose up --build
 ```
 
 > [!IMPORTANT]
-> To use htsget streaming with the minio embedded in the compose setup,
-> a host mapping must be added to the host:
+> There are two options to use htsget streaming with the minio embedded in the compose setup:
+> Either manually create a host mapping from the minio service to localhost:
 > `echo "127.0.0.1 minio" >> /etc/hosts`
-> This is due to a [limitation of minio](https://github.com/minio/minio/discussions/14363).
+> Or set S3_PUBLIC_URL to your local IP address (find it using hostname -I).
+> This is because the S3 host must be available under the same name to the client and htsget.
