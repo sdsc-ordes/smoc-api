@@ -12,7 +12,7 @@ The modos-server is meant to provide remote access to the MODOs. Currently, it c
 - [x] list available MODO
 - [x] return their metadata
 - [x] expose a MODO directly as a client-accessible S3 bucket / folder
-- [x] stream CRAM slices CRAM using htsget
+- [x] stream CRAM slices using htsget
 - [ ] manage authentication and access control
 
 The MODOs are stored in an s3 (minio) bucket, and an htsget server is deployed alongside the modos-server to handle slicing and streaming of CRAM files. A REST API is exposed to the client to interact with the remote MODOs.
