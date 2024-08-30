@@ -180,12 +180,12 @@ def remove(
     ctx: typer.Context,
     object_path: OBJECT_PATH_ARG,
     element_id: Annotated[
-        str,
+        Optional[str],
         typer.Argument(
             ...,
-            help="The identifier within the modo. Use modos show to check it.",
+            help="The identifier within the modo. Use modos show to check it. Leave empty to remove the whole object.",
         ),
-    ],
+    ] = None,
     force: Annotated[
         bool,
         typer.Option(
@@ -197,7 +197,7 @@ def remove(
 ):
     """Removes an element and its files from the modo."""
     modo = MODO(object_path, endpoint=ctx.obj.endpoint)
-    if element_id == modo.path.name:
+    if (element_id is None) or (element_id == modo.path.name):
         if force:
             modo.remove_object()
         else:
