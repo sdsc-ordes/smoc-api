@@ -349,7 +349,7 @@ def stream(
         str,
         typer.Argument(
             ...,
-            help="The path to the file to stream . Use modos show --files to check it.",
+            help="The s3 path of the file to stream . Use modos show --files to check it.",
         ),
     ],
     region: Annotated[
@@ -370,7 +370,7 @@ def stream(
     _region = Region.from_ucsc(region) if region else None
 
     # NOTE: bucket is not included in htsget paths
-    source = Path(*Path(file_path).parts[1:])
+    source = Path(*Path(file_path.removeprefix("s3://")).parts[1:])
     endpoint = ctx.obj.endpoint
 
     if not endpoint:
