@@ -1,5 +1,6 @@
 REGISTRY="ghcr.io/sdsc-ordes"
 IMAGE_NAME="modos-api"
+LOCAL_IP := $(shell ip route get 1 | sed -n 's/^.*src \([0-9.]*\) .*$$/\1/p')
 VERSION :=$(shell grep -E '^version += +' pyproject.toml | sed -E 's/.*= +//')
 
 .PHONY: install
@@ -33,6 +34,13 @@ docker-build: ## Build the modos-api client Docker image
 test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"
 	@poetry run pytest
+
+.PHONY: deploy
+deploy:
+	@echo "$(LOCAL_IP)";exit 0
+	@echo "🐋 Deploying server with docker compose"
+	cd deploy; S3_PUBLC_URL="http://$(LOCAL_IP):9000" docker compose up --build --force-recreate
+
 
 .PHONY: help
 help:
