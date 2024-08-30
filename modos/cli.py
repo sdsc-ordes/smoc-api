@@ -361,12 +361,7 @@ def stream(
         ),
     ] = None,
 ):
-    """Stream genomic file from a remote modo into stdout.
-
-
-    Example:
-    modos -e http://modos.example.org stream  my-bucket/ex-modo/demo1.cram
-    """
+    """Stream genomic file from a remote modo into stdout."""
     _region = Region.from_ucsc(region) if region else None
 
     # NOTE: bucket is not included in htsget paths
