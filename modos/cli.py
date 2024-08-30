@@ -180,12 +180,12 @@ def remove(
     ctx: typer.Context,
     object_path: OBJECT_PATH_ARG,
     element_id: Annotated[
-        str,
+        Optional[str],
         typer.Argument(
             ...,
-            help="The identifier within the modo. Use modos show to check it.",
+            help="The identifier within the modo. Use modos show to check it. Leave empty to remove the whole object.",
         ),
-    ],
+    ] = None,
     force: Annotated[
         bool,
         typer.Option(
@@ -197,7 +197,7 @@ def remove(
 ):
     """Removes an element and its files from the modo."""
     modo = MODO(object_path, endpoint=ctx.obj.endpoint)
-    if element_id == modo.path.name:
+    if (element_id is None) or (element_id == modo.path.name):
         if force:
             modo.remove_object()
         else:
@@ -349,7 +349,7 @@ def stream(
         str,
         typer.Argument(
             ...,
-            help="The path to the file to stream . Use modos show --files to check it.",
+            help="The s3 path of the file to stream . Use modos show --files to check it.",
         ),
     ],
     region: Annotated[
@@ -361,16 +361,11 @@ def stream(
         ),
     ] = None,
 ):
-    """Stream genomic file from a remote modo into stdout.
-
-
-    Example:
-    modos -e http://modos.example.org stream  my-bucket/ex-modo/demo1.cram
-    """
+    """Stream genomic file from a remote modo into stdout."""
     _region = Region.from_ucsc(region) if region else None
 
     # NOTE: bucket is not included in htsget paths
-    source = Path(*Path(file_path).parts[1:])
+    source = Path(*Path(file_path.removeprefix("s3://")).parts[1:])
     endpoint = ctx.obj.endpoint
 
     if not endpoint:
