@@ -63,7 +63,8 @@ pip install git+https://github.com/sdsc-ordes/modos-api.git@main
 The CLI is convenient for quickly managing modos (creation, edition, deletion) and quick inspections:
 
 ```sh
-$ modos show  -s3 https://s3.example.org --zarr ex-bucket/ex-modo
+$ # remote example
+$ modos --endpoint http://localhost show --zarr s3://ex-bucket/ex-modo
 /
  ├── assay
  │   └── assay1
@@ -75,6 +76,7 @@ $ modos show  -s3 https://s3.example.org --zarr ex-bucket/ex-modo
  └── sample
      └── sample1
 
+$ # local example
 $ modos show --files data/ex
 data/ex/reference1.fa.fai
 data/ex/demo1.cram
