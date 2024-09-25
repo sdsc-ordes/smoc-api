@@ -24,7 +24,9 @@ class SlotCodeCompleter(Completer):
         self.matcher.find_codes(document.text)
 
         for rec in self.matcher.find_codes(document.text):
-            yield Completion(rec, start_position=-document.cursor_position)
+            yield Completion(
+                rec.label, start_position=-document.cursor_position
+            )
 
 
 def fuzzy_complete(matcher: CodeMatcher):
