@@ -1,4 +1,5 @@
 """Utilities to automatically find / recommend terminology codes from text."""
+from dataclasses import dataclass
 import requests
 from typing import Optional, Protocol
 
@@ -10,8 +11,14 @@ SLOT_TERMINOLOGIES = {
 }
 
 
+@dataclass
+class Code:
+    label: str
+    uri: str
+
+
 class CodeMatcher(Protocol):
-    def find_codes(self, query: str) -> list[str]:
+    def find_codes(self, query: str) -> list[Code]:
         ...
 
 
@@ -30,7 +37,7 @@ class LocalCodeMatcher(CodeMatcher):
                 cannot do code matching."""
             )
 
-    def find_codes(self, query: str) -> list[str]:
+    def find_codes(self, query: str) -> list[Code]:
         return self.matcher.top(query, 50)
 
 
@@ -41,10 +48,11 @@ class RemoteCodeMatcher(CodeMatcher):
         self.endpoint = endpoint
         self.slot = slot
 
-    def find_codes(self, query: str) -> list[str]:
-        return requests.get(
+    def find_codes(self, query: str) -> list[Code]:
+        codes = requests.get(
             f"{self.endpoint}?collection={self.slot}?query={query}"
         ).json()["codes"]
+        return [Code(label=code["label"], uri=code["uri"]) for code in codes]
 
 
 def get_slot_matchers(
