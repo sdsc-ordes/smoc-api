@@ -189,6 +189,7 @@ def add(
     typer.echo(f"Updating {object_path}.", err=True)
     modo = MODO(object_path, endpoint=ctx.obj.endpoint)
     target_class = element_type.get_target_class()
+    endpoint = EndpointManager(ctx.obj.endpoint)
 
     if from_file and element:
         raise ValueError("Only one of --from-file or --element can be used.")
@@ -198,7 +199,7 @@ def add(
         obj = json_loader.loads(element, target_class=target_class)
     else:
         exclude = {"id": [Path(id).name for id in modo.metadata.keys()]}
-        filled = prompt_for_slots(target_class, exclude)
+        filled = SlotPrompter(endpoint).prompt_for_slots(target_class, exclude)
         obj = target_class(**filled)
 
     modo.add_element(obj, source_file=source_file, part_of=parent)
