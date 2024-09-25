@@ -6,7 +6,7 @@ from typing import Optional, Protocol
 SLOT_TERMINOLOGIES = {
     "cell_type": "https://purl.obolibrary.org/obo/cl.owl",
     "source_material": "https://purl.obolibrary.org/obo/uberon.owl",
-    "taxid": "https://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim.owl",
+    "taxon_id": "https://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim.owl",
 }
 
 
@@ -31,7 +31,7 @@ class LocalCodeMatcher(CodeMatcher):
             )
 
     def find_codes(self, query: str) -> list[str]:
-        return self.matcher.rank(query)
+        return self.matcher.top(query, 50)
 
 
 class RemoteCodeMatcher(CodeMatcher):
