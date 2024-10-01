@@ -50,7 +50,7 @@ class RemoteCodeMatcher(CodeMatcher):
 
     def find_codes(self, query: str) -> list[Code]:
         codes = requests.get(
-            f"{self.endpoint}?collection={self.slot}?query={query}"
+            f"{self.endpoint}/top?collection={self.slot}&query={query}&top=50"
         ).json()["codes"]
         return [Code(label=code["label"], uri=code["uri"]) for code in codes]
 
