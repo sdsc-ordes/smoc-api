@@ -91,7 +91,9 @@ def create(
     elif meta:
         obj = json_loader.loads(meta, target_class=model.MODO)
     else:
-        filled = SlotPrompter(endpoint).prompt_for_slots(model.MODO)
+        filled = SlotPrompter(endpoint, suggest=False).prompt_for_slots(
+            model.MODO
+        )
         obj = model.MODO(**filled)
 
     attrs = obj.__dict__
