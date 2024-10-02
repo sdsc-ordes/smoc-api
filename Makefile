@@ -36,7 +36,7 @@ test: ## Test the code with pytest
 	@poetry run pytest
 
 .PHONY: deploy
-deploy:
+deploy: ## Deploy services using docker compose
 	@echo "$(LOCAL_IP)";exit 0
 	@echo "🐋 Deploying server with docker compose"
 	cd deploy; S3_PUBLC_URL="http://$(LOCAL_IP):9000" docker compose up --build --force-recreate
