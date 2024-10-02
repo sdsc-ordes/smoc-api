@@ -64,6 +64,16 @@ services:
       - RUST_LOG=debug
 
 
+  fuzon:
+    build: ./fuzon
+    volumes:
+      - ./fuzon/config.json.template:/fuzon/config.json.template:ro
+    expose:
+      - "8080" # ticket server
+    networks:
+      - modos-network
+
+
   modos-server:
     build: ./modos-server
     expose:
