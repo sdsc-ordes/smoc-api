@@ -2304,6 +2304,28 @@ files = [
 ]
 
 [[package]]
+name = "pyteomics"
+version = "4.7.4"
+description = "A framework for proteomics data analysis."
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyteomics-4.7.4-py2.py3-none-any.whl", hash = "sha256:5b3919a10088fe085d0e0c3eab0ecbd269188efa635ea828b55bbeb76eb666e0"},
+    {file = "pyteomics-4.7.4.tar.gz", hash = "sha256:cd8a9b48ea3a3075bbbc3085880b5a4f76eb7359e3c71ee3948d9bb2aa48883b"},
+]
+
+[package.extras]
+all = ["h5py", "hdf5plugin", "lxml", "matplotlib", "numpy", "pandas (>=0.17)", "psims (>v0.1.42)", "pynumpress", "scikit-learn", "sqlalchemy"]
+df = ["pandas (>=0.17)"]
+graphics = ["matplotlib"]
+mzmlb = ["h5py", "hdf5plugin"]
+numpress = ["pynumpress"]
+proforma = ["psims (>v0.1.42)"]
+tda = ["numpy"]
+unimod = ["lxml", "sqlalchemy"]
+xml = ["lxml", "numpy"]
+
+[[package]]
 name = "pytest"
 version = "8.3.3"
 description = "pytest: simple powerful testing with Python"
@@ -3248,4 +3270,4 @@ pyfuzon = ["pyfuzon"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "30d0ac8505b9a534c8dcbb66830b477b7428be845abc5e6ec4c5e267fa9bb5c0"
+content-hash = "ebb0f9147547daa3251a2ad86b13429a118dc62a94d31441146462a5cd773436"
