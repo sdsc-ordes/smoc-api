@@ -174,7 +174,7 @@ def add(
         typer.Option(
             "--from-file",
             "-f",
-            help="Include a data file associated with the instance. The file must be in json or yaml format.",
+            help="Read instance metadata from a file. The file must be in json or yaml format.",
         ),
     ] = None,
     source_file: Annotated[
