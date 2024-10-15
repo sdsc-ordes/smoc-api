@@ -6,10 +6,12 @@ import pysam
 import modos_schema.datamodel as model
 
 
-def extract_cram_metadata(cram_path: Path) -> list:
+def extract_cram_metadata(
+    instance: model.AlignmentSet, base_path: Path
+) -> list:
     """Extract metadata from the CRAM file header and
     convert specific attributes according to the modo schema."""
-    cram = pysam.AlignmentFile(str(cram_path), mode="rc")
+    cram = pysam.AlignmentFile(str(base_path / instance.data_path), mode="rc")
     cram_head = cram.header
     ref_list: list = []
     for refseq in cram_head.get("SQ"):

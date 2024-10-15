@@ -65,13 +65,12 @@ def extract_metadata(instance, base_path: Path) -> List:
     if not isinstance(instance, model.DataEntity):
         raise ValueError(f"{instance} is not a DataEntity, cannot extract")
 
-    file_path = base_path / instance.data_path
     match str(instance.data_format):
         case "mzTab":
-            return extract_mztab_metadata(file_path)
+            return extract_mztab_metadata(instance, base_path)
         case "CRAM":
-            return extract_cram_metadata(file_path)
+            return extract_cram_metadata(instance, base_path)
         case _:
             raise NotImplementedError(
-                f"Metadata extraction not impolemented for this format: {instance.data_format}"
+                f"Metadata extraction not implemented for this format: {instance.data_format}"
             )

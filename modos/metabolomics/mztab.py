@@ -25,13 +25,13 @@ def get_samples(mz: MzTab) -> list[model.Sample]:
     return samples
 
 
-def get_assay(mz: MzTab) -> model.Assay:
+def get_assay(mz: MzTab, data_id: str) -> model.Assay:
     meta = mz.metadata
     assay = model.Assay(
-        id=f"assay/{meta['mzTab-ID']}",
+        id=meta["mzTab-ID"],
         name=meta.get("title", None),
         description=meta.get("description", None),
-        has_data=f"data/{meta['mzTab-ID']}",
+        has_data=data_id,
         has_sample=[sample["name"] for sample in mz.samples.values()],
         omics_type="METABOLOMICS"
         if re.match(r".*-M", mz.version)
@@ -41,9 +41,11 @@ def get_assay(mz: MzTab) -> model.Assay:
     return assay
 
 
-def extract_mztab_metadata(path: Path) -> list[model.Assay | model.Sample]:
-    mz = load_mztab(path)
+def extract_mztab_metadata(
+    instance: model.MassSpectrometryResults, base_path: Path
+) -> list[model.Assay | model.Sample]:
+    mz = load_mztab(base_path / instance.data_path)
     elems = []
     elems.extend(get_samples(mz))
-    elems.append(get_assay(mz))
+    elems.append(get_assay(mz, instance.id))
     return elems
