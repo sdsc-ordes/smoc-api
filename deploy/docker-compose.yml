@@ -21,7 +21,7 @@ services:
       - FUZON_LOCAL_URL=${FUZON_LOCAL_URL:-http://fuzon:8080}
       - HTSGET_LOCAL_URL=${HTSGET_LOCAL_URL:-http://htsget:8080}
       - MODOS_LOCAL_URL=${MODOS_LOCAL_URL:-http://modos-server:8000}
-      - S3_LOCAL_URL=${S3_lOCAL_URL:-http://minio:9000}
+      - S3_LOCAL_URL=${S3_LOCAL_URL:-http://minio:9000}
     ports:
       - "80:80"
     networks:
