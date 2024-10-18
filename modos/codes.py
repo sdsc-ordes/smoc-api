@@ -37,8 +37,8 @@ class LocalCodeMatcher(CodeMatcher):
                 cannot do code matching."""
             )
 
-    def find_codes(self, query: str) -> list[Code]:
-        return self.matcher.top(query, 50)
+    def find_codes(self, query: str, top: int = 50) -> list[Code]:
+        return self.matcher.top(query, top)
 
 
 class RemoteCodeMatcher(CodeMatcher):
@@ -48,9 +48,9 @@ class RemoteCodeMatcher(CodeMatcher):
         self.endpoint = endpoint
         self.slot = slot
 
-    def find_codes(self, query: str) -> list[Code]:
+    def find_codes(self, query: str, top: int = 50) -> list[Code]:
         codes = requests.get(
-            f"{self.endpoint}/top?collection={self.slot}&query={query}&top=50"
+            f"{self.endpoint}/top?collection={self.slot}&query={query}&top={top}"
         ).json()["codes"]
         return [Code(label=code["label"], uri=code["uri"]) for code in codes]
 
