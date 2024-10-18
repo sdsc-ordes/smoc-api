@@ -18,7 +18,7 @@ class Code:
 
 
 class CodeMatcher(Protocol):
-    def find_codes(self, query: str) -> list[Code]:
+    def find_codes(self, query: str, top: int) -> list[Code]:
         ...
 
 
