@@ -105,7 +105,7 @@ class SlotPrompter:
             set(get_slots(target_class, required_only=False)) - required_slots
         )
 
-        # Always require identifiers if possible
+        # Always require identifiers
         if "id" in optional_slots:
             optional_slots.remove("id")
             required_slots.add("id")
