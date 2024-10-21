@@ -208,6 +208,20 @@ def add(
 
 
 @cli.command()
+def enrich(
+    ctx: typer.Context,
+    object_path: OBJECT_PATH_ARG,
+):
+    """Enrich metadata of a digital object using file contents."""
+
+    typer.echo(f"Enriching metadata for {object_path}.", err=True)
+    modo = MODO(object_path, endpoint=ctx.obj.endpoint)
+    # Attempt to extract metadata from files
+    modo.enrich_metadata()
+    zarr.consolidate_metadata(modo.zarr.store)
+
+
+@cli.command()
 def show(
     ctx: typer.Context,
     object_path: OBJECT_PATH_ARG,
