@@ -86,10 +86,9 @@ class MODO:
     ['sample/sample1']
 
     # List files in the archive
-    >>> files = sorted(demo.list_files())
-    >>> assert Path('data/ex/demo1.cram') in files
-    >>> assert Path('data/ex/reference1.fa') in files
-
+    >>> files = [str(x) for x in demo.list_files()]
+    >>> assert 'data/ex/demo1.cram' in files
+    >>> assert 'data/ex/reference.fa' in files
     """
 
     def __init__(

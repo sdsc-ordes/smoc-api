@@ -124,7 +124,7 @@ def test_stream_genomics_region(test_modo):
     seq = test_modo.stream_genomics(
         file_path=file_path[0],
         region="BA000007.3",
-        reference_filename="data/ex/reference1.fa",
+        reference_filename="data/ex/reference.fa",
     )
     assert isinstance(seq, Iterator)
     assert isinstance(next(seq), pysam.AlignedSegment)
