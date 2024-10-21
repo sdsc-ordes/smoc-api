@@ -16,16 +16,16 @@ import typer
 from types import SimpleNamespace
 import zarr
 
-from .api import MODO
-from .helpers.schema import UserElementType
+from modos.api import MODO
+from modos.helpers.schema import UserElementType
 
-from . import __version__
-from .genomics.htsget import HtsgetConnection
-from .genomics.region import Region
-from .io import parse_instance
-from .prompt import SlotPrompter
-from .remote import EndpointManager
-from .storage import connect_s3
+from modos import __version__
+from modos.genomics.htsget import HtsgetConnection
+from modos.genomics.region import Region
+from modos.io import parse_instance
+from modos.prompt import SlotPrompter
+from modos.remote import EndpointManager
+from modos.storage import connect_s3
 
 
 class RdfFormat(str, Enum):

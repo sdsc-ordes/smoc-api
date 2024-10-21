@@ -16,14 +16,14 @@ import zarr
 from pydantic import HttpUrl
 from pysam import AlignedSegment, VariantRecord
 
-from .rdf import attrs_to_graph
-from .storage import (
+from modos.rdf import attrs_to_graph
+from modos.storage import (
     add_metadata_group,
     list_zarr_items,
     LocalStorage,
     S3Storage,
 )
-from .helpers.schema import (
+from modos.helpers.schema import (
     class_from_name,
     dict_to_instance,
     ElementType,
@@ -32,11 +32,11 @@ from .helpers.schema import (
     UserElementType,
     update_haspart_id,
 )
-from .genomics.formats import GenomicFileSuffix, read_pysam
-from .genomics.htsget import HtsgetConnection
-from .genomics.region import Region
-from .io import extract_metadata, parse_attributes
-from .remote import EndpointManager, is_s3_path
+from modos.genomics.formats import GenomicFileSuffix, read_pysam
+from modos.genomics.htsget import HtsgetConnection
+from modos.genomics.region import Region
+from modos.io import extract_metadata, parse_attributes
+from modos.remote import EndpointManager, is_s3_path
 
 
 class MODO:

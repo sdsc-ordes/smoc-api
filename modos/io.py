@@ -11,9 +11,9 @@ from linkml_runtime.loaders import (
 import modos_schema.datamodel as model
 import pysam
 
-from .genomics.cram import extract_cram_metadata
-from .metabolomics.mztab import extract_mztab_metadata
-from .helpers.schema import dict_to_instance
+from modos.genomics.cram import extract_cram_metadata
+from modos.metabolomics.mztab import extract_mztab_metadata
+from modos.helpers.schema import dict_to_instance
 
 ext2loader = {
     "json": json_loader,

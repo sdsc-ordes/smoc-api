@@ -7,14 +7,14 @@ from prompt_toolkit import prompt
 from prompt_toolkit.completion import Completer, Completion
 import typer
 
-from .codes import CodeMatcher, get_slot_matchers
-from .helpers.schema import (
+from modos.codes import CodeMatcher, get_slot_matchers
+from modos.helpers.schema import (
     get_enum_values,
     get_slots,
     get_slot_range,
     load_schema,
 )
-from .remote import EndpointManager
+from modos.remote import EndpointManager
 
 
 class SlotCodeCompleter(Completer):
