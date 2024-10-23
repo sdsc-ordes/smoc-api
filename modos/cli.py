@@ -24,7 +24,7 @@ from modos.codes import get_slot_matcher, SLOT_TERMINOLOGIES
 from modos.genomics.htsget import HtsgetConnection
 from modos.genomics.region import Region
 from modos.io import parse_instance
-from modos.prompt import SlotPrompter
+from modos.prompt import SlotPrompter, fuzzy_complete
 from modos.remote import EndpointManager, list_remote_items
 from modos.storage import connect_s3
 
@@ -308,17 +308,19 @@ def search_codes(
     ] = 50,
 ):
     """Search for terminology codes using free text."""
-    prompter = SlotPrompter(
-        EndpointManager(ctx.obj.endpoint),
-        prompt=f'Browsing terms for slot "{slot}". Use tab to cycle suggestions.\n> ',
+    matcher = get_slot_matcher(
+        slot,
+        EndpointManager(ctx.obj.endpoint).fuzon,
     )
-    for matcher in prompter.slot_matchers.values():
-        matcher.top = top
+    matcher.top = top
     if query:
-        matches = prompter.slot_matchers[slot].find_codes(query)
+        matches = matcher.find_codes(query)
         out = "\n".join([f"{m.uri} | {m.label}" for m in matches])
     else:
-        out = prompter.prompt_for_slot(slot)
+        out = fuzzy_complete(
+            prompt_txt=f'Browsing terms for slot "{slot}". Use tab to cycle suggestions.\n> ',
+            matcher=matcher,
+        )
     print(out)
 
 
