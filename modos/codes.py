@@ -1,9 +1,9 @@
 """Utilities to automatically find / recommend terminology codes from text."""
 from dataclasses import dataclass
-import requests
 from typing import Optional, Protocol
 
-from requests.models import MissingSchema
+from pathlib import Path
+import requests
 
 
 SLOT_TERMINOLOGIES = {
@@ -49,6 +49,9 @@ class LocalCodeMatcher(CodeMatcher):
         try:
             self.matcher = cache.load_by_source(sources)
         except RuntimeError:
+            Path(cache.get_cache_path(sources)).parent.mkdir(
+                parents=True, exist_ok=True
+            )
             cache.cache_by_source(sources)
             self.matcher = cache.load_by_source(sources)
 
