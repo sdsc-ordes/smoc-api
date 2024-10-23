@@ -55,13 +55,17 @@ class EndpointManager:
         return self.list().get("s3")
 
     @property
+    def fuzon(self) -> Optional[HttpUrl]:
+        return self.list().get("fuzon")
+
+    @property
     def htsget(self) -> Optional[HttpUrl]:
         return self.list().get("htsget")
 
 
 @validate_call
 def list_remote_items(url: HttpUrl) -> list[HttpUrl]:
-    return requests.get(url=f"{url}/list").json()
+    return requests.get(url=f"{url}/list").json()["modos"]
 
 
 @validate_call
