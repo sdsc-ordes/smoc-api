@@ -19,13 +19,14 @@ import zarr
 from .api import MODO
 from .helpers.schema import UserElementType
 
-from . import __version__
-from .genomics.htsget import HtsgetConnection
-from .genomics.region import Region
-from .io import parse_instance
-from .prompt import SlotPrompter
-from .remote import EndpointManager, list_remote_items
-from .storage import connect_s3
+from modos import __version__
+from modos.codes import get_slot_matcher, SLOT_TERMINOLOGIES
+from modos.genomics.htsget import HtsgetConnection
+from modos.genomics.region import Region
+from modos.io import parse_instance
+from modos.prompt import SlotPrompter
+from modos.remote import EndpointManager, list_remote_items
+from modos.storage import connect_s3
 
 
 class RdfFormat(str, Enum):
@@ -279,6 +280,40 @@ def list(
 
     for item in list_remote_items(ctx.obj.endpoint):
         print(item)
+
+
+@cli.command()
+def search_codes(
+    ctx: typer.Context,
+    slot: Annotated[
+        str,
+        typer.Argument(
+            ...,
+            help=f"The slot to search for codes. Possible values are {', '.join(SLOT_TERMINOLOGIES.keys())}",
+        ),
+    ],
+    query: Annotated[
+        Optional[str],
+        typer.Option(
+            "--query", "-q", help="Predefined text to use when search codes."
+        ),
+    ] = None,
+    top: Annotated[
+        int,
+        typer.Option(
+            "--top",
+            "-t",
+            help="Show at most N codes when using a prefedined query.",
+        ),
+    ] = 10,
+):
+    """Search for terminology codes using free text."""
+    prompter = SlotPrompter(
+        EndpointManager(ctx.obj.endpoint),
+        prompt=f'Browsing terms for slot "{slot}". Use tab to cycle suggestions.\n> ',
+    )
+    out = prompter.prompt_for_slot(slot)
+    print(out)
 
 
 @cli.command()
