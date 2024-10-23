@@ -3,11 +3,15 @@ from dataclasses import dataclass
 import requests
 from typing import Optional, Protocol
 
+from requests.models import MissingSchema
+
 
 SLOT_TERMINOLOGIES = {
-    "cell_type": "https://purl.obolibrary.org/obo/cl.owl",
-    "source_material": "https://purl.obolibrary.org/obo/uberon.owl",
-    "taxon_id": "https://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim.owl",
+    "cell_type": ["https://purl.obolibrary.org/obo/cl.owl"],
+    "source_material": ["https://purl.obolibrary.org/obo/uberon.owl"],
+    "taxon_id": [
+        "https://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim.owl"
+    ],
 }
 
 
@@ -35,14 +39,18 @@ class LocalCodeMatcher(CodeMatcher):
         self.top = top
 
         try:
-            from pyfuzon import TermMatcher
-
-            self.matcher = TermMatcher.from_files([SLOT_TERMINOLOGIES[slot]])
+            from pyfuzon import cache
         except ImportError:
-            raise ValueError(
-                """No endpoint provided and pyfuzon not installed,
-                cannot do code matching."""
+            raise ModuleNotFoundError(
+                "pyfuzon must be installed to perform local code matching."
             )
+
+        sources = SLOT_TERMINOLOGIES[slot]
+        try:
+            self.matcher = cache.load_by_source(sources)
+        except RuntimeError:
+            cache.cache_by_source(sources)
+            self.matcher = cache.load_by_source(sources)
 
     def find_codes(self, query: str) -> list[Code]:
         return self.matcher.top(query, self.top)
