@@ -29,7 +29,7 @@ def list_modos() -> list[str]:
     """List MODO entries in bucket."""
     modos = minio.ls(BUCKET, refresh=True)
     # NOTE: modo contains bucket name
-    return [modo for modo in modos]
+    return [f"s3://{modo}" for modo in modos]
 
 
 @app.get("/meta")

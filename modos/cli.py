@@ -24,7 +24,7 @@ from .genomics.htsget import HtsgetConnection
 from .genomics.region import Region
 from .io import parse_instance
 from .prompt import SlotPrompter
-from .remote import EndpointManager
+from .remote import EndpointManager, list_remote_items
 from .storage import connect_s3
 
 
@@ -267,6 +267,18 @@ def publish(
             format=output_format
         )
     )
+
+
+@cli.command()
+def list(
+    ctx: typer.Context,
+):
+    """List remote modos on the endpoint."""
+    if ctx.obj.endpoint is None:
+        raise ValueError("Must provide an endpoint using modos --endpoint")
+
+    for item in list_remote_items(ctx.obj.endpoint):
+        print(item)
 
 
 @cli.command()
