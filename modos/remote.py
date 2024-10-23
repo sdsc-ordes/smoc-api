@@ -65,7 +65,7 @@ class EndpointManager:
 
 @validate_call
 def list_remote_items(url: HttpUrl) -> list[HttpUrl]:
-    return requests.get(url=f"{url}/list").json()
+    return requests.get(url=f"{url}/list").json()["modos"]
 
 
 @validate_call
