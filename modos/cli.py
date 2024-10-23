@@ -305,14 +305,20 @@ def search_codes(
             "-t",
             help="Show at most N codes when using a prefedined query.",
         ),
-    ] = 10,
+    ] = 50,
 ):
     """Search for terminology codes using free text."""
     prompter = SlotPrompter(
         EndpointManager(ctx.obj.endpoint),
         prompt=f'Browsing terms for slot "{slot}". Use tab to cycle suggestions.\n> ',
     )
-    out = prompter.prompt_for_slot(slot)
+    for matcher in prompter.slot_matchers.values():
+        matcher.top = top
+    if query:
+        matches = prompter.slot_matchers[slot].find_codes(query)
+        out = "\n".join([f"{m.uri} | {m.label}" for m in matches])
+    else:
+        out = prompter.prompt_for_slot(slot)
     print(out)
 
 
