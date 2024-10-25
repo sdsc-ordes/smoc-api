@@ -1642,24 +1642,17 @@ urllib3 = "*"
 
 [[package]]
 name = "modos-schema"
-version = "0.2.0"
+version = "0.2.1"
 description = "Metadata schema for the Multi-Omics Digital Object System"
 optional = false
-python-versions = "^3.9"
-files = []
-develop = false
+python-versions = "<4.0,>=3.9"
+files = [
+    {file = "modos_schema-0.2.1-py3-none-any.whl", hash = "sha256:045f8b9b1332eb05cd376220f9197b2219a4275d72c8aeb76bc11adf950d75d9"},
+    {file = "modos_schema-0.2.1.tar.gz", hash = "sha256:fb38e54dbf1da5fafbf5c6405ecaaca2a1a0e3acf3ae9fe1567d2c6eca7d7653"},
+]
 
 [package.dependencies]
-linkml-runtime = "^1.6"
-
-[package.extras]
-docs = []
-
-[package.source]
-type = "git"
-url = "https://github.com/sdsc-ordes/modos-schema.git"
-reference = "chore/support-py313"
-resolved_reference = "17648d73ce55996dce37ef1fe945468b20fb5e6f"
+linkml-runtime = ">=1.6,<2.0"
 
 [[package]]
 name = "multidict"
@@ -3388,4 +3381,4 @@ pyfuzon = ["pyfuzon"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "8ebdd7d5fc0b2273a4370fb6e24c8d4378969350ee28cacc97d173ef53eeb3ac"
+content-hash = "a01b609f8c276cbff1b9656543a8db9c18878a91e5ed942752d6663aacfcfc15"
