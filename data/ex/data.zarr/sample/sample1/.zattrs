@@ -1,9 +1,8 @@
 {
     "@type": "Sample",
-    "collector": [
-        "Foo university"
-    ],
-    "description": "A dummy sample for tests.",
+    "cell_type": "http://purl.obolibrary.org/obo/CL_0002627",
+    "description": "Dummy sample for tests",
     "name": "Sample 1",
-    "sex": "Male"
+    "sex": "Male",
+    "source_material": "http://purl.obolibrary.org/obo/UBERON_0002316"
 }

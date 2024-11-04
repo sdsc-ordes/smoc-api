@@ -14,6 +14,7 @@ from modos.helpers.schema import (
     get_slot_range,
     load_schema,
 )
+
 from modos.remote import EndpointManager
 
 
@@ -49,11 +50,25 @@ def fuzzy_complete(prompt_txt: str, matcher: CodeMatcher):
 
 
 class SlotPrompter:
-    """Introspects the schema to prompt the user for values based on input class/slot."""
+    """Introspects the schema to prompt the user for values based on input class/slot.
+
+    Parameters
+    ---------
+    endpoint:
+        Endpoint running a fuzon server for code matching.
+    suggest:
+        Whether to generate auto-suggestion dynamically.
+    prompt:
+        Override the default prompt messages.
+    """
 
     def __init__(
-        self, endpoint: Optional[EndpointManager] = None, suggest=True
+        self,
+        endpoint: Optional[EndpointManager] = None,
+        suggest=True,
+        prompt: Optional[str] = None,
     ):
+        self.prompt = prompt
         if suggest:
             self.slot_matchers = get_slot_matchers(endpoint.fuzon)
         else:
@@ -69,8 +84,13 @@ class SlotPrompter:
         elif optional:
             default = ""
 
-        prefix = "(optional) " if optional else "(required) "
-        prompt = f"{prefix}Enter a value for {slot_name}"
+        # generate slot-specific prompt unless overridden
+        if self.prompt is None:
+            prefix = "(optional) " if optional else "(required) "
+            prompt = f"{prefix}Enter a value for {slot_name}"
+        else:
+            prompt = self.prompt
+
         if slot_name in self.slot_matchers:
             output = fuzzy_complete(prompt, self.slot_matchers[slot_name])
         else:

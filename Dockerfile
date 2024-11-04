@@ -1,17 +1,15 @@
 ARG VERSION_BUILD
 
-FROM python:3.11-slim
 
-ENV PYTHONUNBUFFERED=true
-WORKDIR /app
 
 ##################################################
 # Poetry setup
 ##################################################
-FROM python AS poetry
+FROM python:3.12-slim AS poetry
 
 WORKDIR /app
 # Install poetry
+ENV PYTHONUNBUFFERED=true
 ENV POETRY_HOME=/opt/poetry
 ENV POETRY_VIRTUALENVS_IN_PROJECT=true
 ENV PATH="$POETRY_HOME/bin:$PATH"
@@ -32,7 +30,7 @@ RUN poetry install --no-interaction --no-ansi -vvv
 ##################################################
 # modos setup
 ##################################################
-FROM python AS runtime
+FROM python:3.12-slim AS runtime
 ARG VERSION_BUILD
 ENV PATH="/app/.venv/bin:$PATH"
 COPY --from=poetry /app /app

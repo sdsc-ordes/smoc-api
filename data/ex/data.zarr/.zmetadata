@@ -39,6 +39,9 @@
             "has_reference": [
                 "reference/reference1"
             ],
+            "has_sample": [
+                "sample/sample1"
+            ],
             "name": "Demo 1"
         },
         "data/demo1/.zgroup": {
@@ -60,12 +63,11 @@
         },
         "sample/sample1/.zattrs": {
             "@type": "Sample",
-            "collector": [
-                "Foo university"
-            ],
-            "description": "A dummy sample for tests.",
+            "cell_type": "http://purl.obolibrary.org/obo/CL_0002627",
+            "description": "Dummy sample for tests",
             "name": "Sample 1",
-            "sex": "Male"
+            "sex": "Male",
+            "source_material": "http://purl.obolibrary.org/obo/UBERON_0002316"
         },
         "sample/sample1/.zgroup": {
             "zarr_format": 2

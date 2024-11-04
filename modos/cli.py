@@ -16,15 +16,17 @@ import typer
 from types import SimpleNamespace
 import zarr
 
-from modos.api import MODO
-from modos.helpers.schema import UserElementType
-
 from modos import __version__
+from modos.api import MODO
+from modos.codes import get_slot_matcher, SLOT_TERMINOLOGIES
+from modos.helpers.schema import UserElementType
 from modos.genomics.htsget import HtsgetConnection
 from modos.genomics.region import Region
 from modos.io import parse_instance
 from modos.prompt import SlotPrompter
 from modos.remote import EndpointManager
+from modos.prompt import SlotPrompter, fuzzy_complete
+from modos.remote import EndpointManager, list_remote_items
 from modos.storage import connect_s3
 
 
@@ -281,6 +283,60 @@ def publish(
             format=output_format
         )
     )
+
+
+@cli.command()
+def list(
+    ctx: typer.Context,
+):
+    """List remote modos on the endpoint."""
+    if ctx.obj.endpoint is None:
+        raise ValueError("Must provide an endpoint using modos --endpoint")
+
+    for item in list_remote_items(ctx.obj.endpoint):
+        print(item)
+
+
+@cli.command()
+def search_codes(
+    ctx: typer.Context,
+    slot: Annotated[
+        str,
+        typer.Argument(
+            ...,
+            help=f"The slot to search for codes. Possible values are {', '.join(SLOT_TERMINOLOGIES.keys())}",
+        ),
+    ],
+    query: Annotated[
+        Optional[str],
+        typer.Option(
+            "--query", "-q", help="Predefined text to use when search codes."
+        ),
+    ] = None,
+    top: Annotated[
+        int,
+        typer.Option(
+            "--top",
+            "-t",
+            help="Show at most N codes when using a prefedined query.",
+        ),
+    ] = 50,
+):
+    """Search for terminology codes using free text."""
+    matcher = get_slot_matcher(
+        slot,
+        EndpointManager(ctx.obj.endpoint).fuzon,
+    )
+    matcher.top = top
+    if query:
+        matches = matcher.find_codes(query)
+        out = "\n".join([f"{m.uri} | {m.label}" for m in matches])
+    else:
+        out = fuzzy_complete(
+            prompt_txt=f'Browsing terms for slot "{slot}". Use tab to cycle suggestions.\n> ',
+            matcher=matcher,
+        )
+    print(out)
 
 
 @cli.command()

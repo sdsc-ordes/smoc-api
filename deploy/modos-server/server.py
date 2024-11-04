@@ -25,11 +25,11 @@ minio = connect_s3(S3_LOCAL_URL, {"anon": True})  # type: ignore
 
 
 @app.get("/list")
-def list_modos() -> list[str]:
+def list_modos() -> dict[str, list[str]]:
     """List MODO entries in bucket."""
     modos = minio.ls(BUCKET, refresh=True)
     # NOTE: modo contains bucket name
-    return [modo for modo in modos]
+    return {"modos": [f"s3://{modo}" for modo in modos]}
 
 
 @app.get("/meta")

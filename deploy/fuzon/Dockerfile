@@ -6,7 +6,7 @@ RUN cargo install cargo-strip
 
 RUN apt-get update && apt-get install -y git
 
-RUN git clone https://github.com/sdsc-ordes/fuzon.git --branch v0.2.3 .
+RUN git clone https://github.com/sdsc-ordes/fuzon.git --branch v0.2.5 .
 
 RUN cd fuzon-http && cargo build --release && cargo strip
 
