@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import io
 import os
 from pathlib import Path
 import re
@@ -45,6 +46,10 @@ class Storage(ABC):
     def list(self, target: Optional[Path]) -> Generator[Path, None, None]:
         ...
 
+    @abstractmethod
+    def open(self, target: Path) -> io.BufferedReader:
+        ...
+
     def empty(self) -> bool:
         return len(self.zarr.attrs.keys()) == 0
 
@@ -82,6 +87,9 @@ class LocalStorage(Storage):
             for file in path.rglob("*"):
                 if file.is_file():
                     yield file
+
+    def open(self, target: Path) -> io.BufferedReader:
+        return open(self.path / target, "rb")
 
     def remove(self, target: Path):
         if target.exists():
@@ -194,6 +202,9 @@ class S3Storage(Storage):
             elif fs.isdir(node):
                 for file in fs.find(node):
                     yield Path(file)
+
+    def open(self, target: Path) -> io.BufferedReader:
+        return self.zarr.store.fs.open(str(self.path / target))
 
     def remove(self, target: Path):
         if self.zarr.store.fs.exists(target):
