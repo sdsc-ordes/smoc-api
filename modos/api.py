@@ -302,50 +302,10 @@ class MODO:
             Id of the parent element. It must be scoped to the type.
             For example "sample/foo".
         """
-        # Check that ID does not exist in modo
-        if element.id in [Path(id).name for id in self.metadata.keys()]:
-            raise ValueError(
-                f"Please specify a unique ID. Element with ID {element.id} already exist."
-            )
 
-        # Copy data file to storage and update data_path in metadata
-        if source_file:
-            source_path = Path(source_file)
-            target_path = Path(element._get("data_path"))
-            self.storage.put(source_path, target_path)
-            try:
-                # Genomic files have an associated index file
-                ft = GenomicFileSuffix.from_path(source_path)
-                source_ix = source_path.with_suffix(
-                    source_path.suffix + ft.get_index_suffix()
-                )
-                target_ix = target_path.with_suffix(
-                    source_path.suffix + ft.get_index_suffix()
-                )
-                self.storage.put(source_ix, target_ix)
-            except ValueError:
-                pass
-
-        # Inferred from type
-        type_name = UserElementType.from_object(element).value
-        type_group = self.zarr[type_name]
-        element_path = f"{type_name}/{element.id}"
-
-        # Update part_of (parent) relationship
-        if part_of is not None:
-            partof_group = self.zarr[part_of]
-            set_haspart_relationship(
-                element.__class__.__name__, element_path, partof_group
-            )
-
-        # Update haspart relationship
-        element = update_haspart_id(element)
-
-        # Add element to metadata
-        attrs = json.loads(json_dumper.dumps(element))
-        add_metadata_group(type_group, attrs)
-        self.update_date()
-        zarr.consolidate_metadata(self.zarr.store)
+        self._add_any_element(
+            element, source_file, part_of, allowed_elements=UserElementType
+        )
 
     def _add_any_element(
         self,
@@ -358,8 +318,9 @@ class MODO:
         ),
         source_file: Optional[Path] = None,
         part_of: Optional[str] = None,
+        allowed_elements: type = ElementType,
     ):
-        """Add an element of any type to the storage."""
+        """Add an element of any type to the storage. This is meant to be called internally to add elements automatically."""
         # Check that ID does not exist in modo
         if element.id in [Path(id).name for id in self.metadata.keys()]:
             raise ValueError(
@@ -386,7 +347,7 @@ class MODO:
                 pass
 
         # Inferred from type inferred from type
-        type_name = ElementType.from_object(element).value
+        type_name = allowed_elements.from_object(element).value
         type_group = self.zarr[type_name]
         element_path = f"{type_name}/{element.id}"
 
