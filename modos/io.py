@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from typing import List
+from typing import List, Optional
 
 from linkml_runtime.loaders import (
     json_loader,
@@ -9,10 +9,13 @@ from linkml_runtime.loaders import (
     rdf_loader,
 )
 import modos_schema.datamodel as model
+import pandas as pd
+from pyfuzon.matcher import dataclass
 import pysam
+import zarr
 
-from modos.genomics.cram import extract_cram_metadata
-from modos.metabolomics.mztab import extract_mztab_metadata
+import modos.genomics.cram as cram
+import modos.metabolomics.mztab as mztab
 from modos.helpers.schema import dict_to_instance
 
 ext2loader = {
@@ -60,17 +63,27 @@ def parse_multiple_instances(path: Path) -> List:
     return instances
 
 
-def extract_metadata(instance, base_path: Path) -> List:
+@dataclass
+class ExtractedMetadata:
+    elements: list[model.NamedThing]
+    arrays: Optional[dict[str, zarr.Array]] = None
+
+
+def extract_metadata(instance, base_path: Path) -> ExtractedMetadata:
     """Extract metadata from files associated to a model instance"""
     if not isinstance(instance, model.DataEntity):
         raise ValueError(f"{instance} is not a DataEntity, cannot extract")
 
     match str(instance.data_format):
         case "mzTab":
-            return extract_mztab_metadata(instance, base_path)
+            elems = mztab.extract_metadata(instance, base_path)
+            arrays = None
         case "CRAM":
-            return extract_cram_metadata(instance, base_path)
+            elems = cram.extract_metadata(instance, base_path)
+            arrays = None
         case _:
             raise NotImplementedError(
                 f"Metadata extraction not implemented for this format: {instance.data_format}"
             )
+
+    return ExtractedMetadata(elements=elems, arrays=arrays)

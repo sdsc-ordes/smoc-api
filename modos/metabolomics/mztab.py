@@ -2,6 +2,7 @@
 from pathlib import Path
 import re
 
+import pandas as pd
 from pyteomics.mztab import MzTab
 import modos_schema.datamodel as model
 
@@ -41,7 +42,7 @@ def get_assay(mz: MzTab, data_id: str) -> model.Assay:
     return assay
 
 
-def extract_mztab_metadata(
+def extract_metadata(
     instance: model.MassSpectrometryResults, base_path: Path
 ) -> list[model.Assay | model.Sample]:
     mz = load_mztab(base_path / instance.data_path)
@@ -49,3 +50,8 @@ def extract_mztab_metadata(
     elems.extend(get_samples(mz))
     elems.append(get_assay(mz, instance.id))
     return elems
+
+
+def extract_tables(path: Path) -> dict[str, pd.DataFrame]:
+    mz = load_mztab(path)
+    return {table: mz[table] for table in ("SME", "SMF", "SML")}

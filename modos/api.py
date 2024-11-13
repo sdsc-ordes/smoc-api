@@ -10,11 +10,12 @@ import yaml
 from linkml_runtime.dumpers import json_dumper
 import rdflib
 import modos_schema.datamodel as model
+import numcodecs
+from pydantic import HttpUrl
+from pysam import AlignedSegment, VariantRecord
 import zarr.hierarchy
 import zarr
 
-from pydantic import HttpUrl
-from pysam import AlignedSegment, VariantRecord
 
 from modos.rdf import attrs_to_graph
 from modos.storage import (
@@ -420,13 +421,13 @@ class MODO:
                 continue
             try:
                 data_inst = dict_to_instance(entity | {"id": id})
-                elements = extract_metadata(data_inst, self.path)
+                extracted = extract_metadata(data_inst, self.path)
             # skip entities whose format does not support enrich
             except NotImplementedError:
                 continue
 
             new_elements = []
-            for ele in elements:
+            for ele in extracted.elements:
                 if ele.name in inst_names:
                     self.update_element(inst_names[ele.name], ele)
                 elif ele not in new_elements:
@@ -434,6 +435,19 @@ class MODO:
                     self._add_any_element(ele)
                 else:
                     continue
+
+            # Add arrays if the parent is not an array already.
+            parent = self.zarr[id]
+            if extracted.arrays is None or not isinstance(
+                parent, zarr.hierarchy.Group
+            ):
+                continue
+
+            # Nest arrays directly in parent group
+            for name, arr in extracted.arrays.items():
+                parent.create_dataset(
+                    name, data=arr, object_codec=numcodecs.VLenUTF8()
+                )
 
     def stream_genomics(
         self,
