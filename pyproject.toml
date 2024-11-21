@@ -9,7 +9,7 @@ packages = [{ include = "modos" }]
 
 [tool.poetry.dependencies]
 calamus = "^0.4.2"
-modos_schema = { git = "https://github.com/sdsc-ordes/modos-schema.git", branch = "feat/table" }
+modos_schema = { git = "https://github.com/sdsc-ordes/modos-schema.git", branch = "perf/pydantic-gen" }
 pysam = "^0.22.0"
 python = "^3.10"
 pyyaml = "^6.0.1"
