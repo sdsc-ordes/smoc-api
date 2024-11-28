@@ -31,10 +31,10 @@ class EndpointManager:
       'htsget': Url('http://htsget.example.org/')
     }
     >>> ex.htsget # doctest: +SKIP
-    Url('http://htsget.example.org/')
+    HttpUrl('http://htsget.example.org/')
     >>> ex = EndpointManager(services={"s3": "http://s3.example.org"})
     >>> ex.s3
-    Url('http://s3.example.org/')
+    HttpUrl('http://s3.example.org/')
 
     """
 
