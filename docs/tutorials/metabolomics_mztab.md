@@ -87,8 +87,8 @@ mz = MzTab('data/ex/metabo_ms1.mztab')
 
 modo = MODO('s3://example/modo')
 with open("local.mztab", "w") as mz_handle:
-  data = modo.storage.open("metabo_ms1.mztab").read()
-  mz.write(data)
+  for line in modo.storage.open("metabo_ms1.mztab"):
+      mz_handle.write(line)
 
 mz = MzTab("local.mztab")
 ```
