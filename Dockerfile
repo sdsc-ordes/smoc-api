@@ -24,7 +24,7 @@ RUN apt-get update && \
     apt-get install -y gcc
 
 # Poetry install
-RUN poetry install --no-interaction --no-ansi -vvv
+RUN poetry install --all-extras --no-interaction --no-ansi -vvv
 
 
 ##################################################
