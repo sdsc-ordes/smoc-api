@@ -10,20 +10,21 @@ import yaml
 from linkml_runtime.dumpers import json_dumper
 import rdflib
 import modos_schema.datamodel as model
+import numcodecs
+from pydantic import HttpUrl
+from pysam import AlignedSegment, VariantRecord
 import zarr.hierarchy
 import zarr
 
-from pydantic import HttpUrl
-from pysam import AlignedSegment, VariantRecord
 
-from .rdf import attrs_to_graph
-from .storage import (
+from modos.rdf import attrs_to_graph
+from modos.storage import (
     add_metadata_group,
     list_zarr_items,
     LocalStorage,
     S3Storage,
 )
-from .helpers.schema import (
+from modos.helpers.schema import (
     class_from_name,
     dict_to_instance,
     ElementType,
@@ -32,11 +33,11 @@ from .helpers.schema import (
     UserElementType,
     update_haspart_id,
 )
-from .genomics.formats import GenomicFileSuffix, read_pysam
-from .genomics.htsget import HtsgetConnection
-from .genomics.region import Region
-from .io import extract_metadata, parse_attributes
-from .remote import EndpointManager, is_s3_path
+from modos.genomics.formats import GenomicFileSuffix, read_pysam
+from modos.genomics.htsget import HtsgetConnection
+from modos.genomics.region import Region
+from modos.io import extract_metadata, parse_attributes
+from modos.remote import EndpointManager, is_s3_path
 
 
 class MODO:
@@ -86,10 +87,9 @@ class MODO:
     ['sample/sample1']
 
     # List files in the archive
-    >>> files = sorted(demo.list_files())
-    >>> assert Path('data/ex/demo1.cram') in files
-    >>> assert Path('data/ex/reference1.fa') in files
-
+    >>> files = [str(x) for x in demo.list_files()]
+    >>> assert 'data/ex/demo1.cram' in files
+    >>> assert 'data/ex/reference.fa' in files
     """
 
     def __init__(
@@ -303,50 +303,10 @@ class MODO:
             Id of the parent element. It must be scoped to the type.
             For example "sample/foo".
         """
-        # Check that ID does not exist in modo
-        if element.id in [Path(id).name for id in self.metadata.keys()]:
-            raise ValueError(
-                f"Please specify a unique ID. Element with ID {element.id} already exist."
-            )
 
-        # Copy data file to storage and update data_path in metadata
-        if source_file:
-            source_path = Path(source_file)
-            target_path = Path(element._get("data_path"))
-            self.storage.put(source_path, target_path)
-            try:
-                # Genomic files have an associated index file
-                ft = GenomicFileSuffix.from_path(source_path)
-                source_ix = source_path.with_suffix(
-                    source_path.suffix + ft.get_index_suffix()
-                )
-                target_ix = target_path.with_suffix(
-                    source_path.suffix + ft.get_index_suffix()
-                )
-                self.storage.put(source_ix, target_ix)
-            except ValueError:
-                pass
-
-        # Inferred from type
-        type_name = UserElementType.from_object(element).value
-        type_group = self.zarr[type_name]
-        element_path = f"{type_name}/{element.id}"
-
-        # Update part_of (parent) relationship
-        if part_of is not None:
-            partof_group = self.zarr[part_of]
-            set_haspart_relationship(
-                element.__class__.__name__, element_path, partof_group
-            )
-
-        # Update haspart relationship
-        element = update_haspart_id(element)
-
-        # Add element to metadata
-        attrs = json.loads(json_dumper.dumps(element))
-        add_metadata_group(type_group, attrs)
-        self.update_date()
-        zarr.consolidate_metadata(self.zarr.store)
+        self._add_any_element(
+            element, source_file, part_of, allowed_elements=UserElementType
+        )
 
     def _add_any_element(
         self,
@@ -359,8 +319,9 @@ class MODO:
         ),
         source_file: Optional[Path] = None,
         part_of: Optional[str] = None,
+        allowed_elements: type = ElementType,
     ):
-        """Add an element of any type to the storage."""
+        """Add an element of any type to the storage. This is meant to be called internally to add elements automatically."""
         # Check that ID does not exist in modo
         if element.id in [Path(id).name for id in self.metadata.keys()]:
             raise ValueError(
@@ -372,8 +333,9 @@ class MODO:
             source_path = Path(source_file)
             target_path = Path(element._get("data_path"))
             self.storage.put(source_path, target_path)
+
+            # Genomic files have an associated index file
             try:
-                # Genomic files have an associated index file
                 ft = GenomicFileSuffix.from_path(source_path)
                 source_ix = source_path.with_suffix(
                     source_path.suffix + ft.get_index_suffix()
@@ -386,7 +348,7 @@ class MODO:
                 pass
 
         # Inferred from type inferred from type
-        type_name = ElementType.from_object(element).value
+        type_name = allowed_elements.from_object(element).value
         type_group = self.zarr[type_name]
         element_path = f"{type_name}/{element.id}"
 
@@ -459,13 +421,13 @@ class MODO:
                 continue
             try:
                 data_inst = dict_to_instance(entity | {"id": id})
-                elements = extract_metadata(data_inst, self.path)
+                extracted = extract_metadata(data_inst, self.path)
             # skip entities whose format does not support enrich
             except NotImplementedError:
                 continue
 
             new_elements = []
-            for ele in elements:
+            for ele in extracted.elements:
                 if ele.name in inst_names:
                     self.update_element(inst_names[ele.name], ele)
                 elif ele not in new_elements:
@@ -473,6 +435,19 @@ class MODO:
                     self._add_any_element(ele)
                 else:
                     continue
+
+            # Add arrays if the parent is not an array already.
+            parent = self.zarr[id]
+            if extracted.arrays is None or not isinstance(
+                parent, zarr.hierarchy.Group
+            ):
+                continue
+
+            # Nest arrays directly in parent group
+            for name, arr in extracted.arrays.items():
+                parent.create_dataset(
+                    name, data=arr, object_codec=numcodecs.VLenUTF8()
+                )
 
     def stream_genomics(
         self,

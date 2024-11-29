@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import io
 import os
 from pathlib import Path
 import re
@@ -12,7 +13,7 @@ import zarr
 import zarr.hierarchy as zh
 
 
-from .helpers.schema import ElementType
+from modos.helpers.schema import ElementType
 
 ZARR_ROOT = Path("data.zarr")
 S3_ADDRESSING_STYLE = os.getenv("S3_ADDRESSING_STYLE", "auto")
@@ -43,6 +44,10 @@ class Storage(ABC):
 
     @abstractmethod
     def list(self, target: Optional[Path]) -> Generator[Path, None, None]:
+        ...
+
+    @abstractmethod
+    def open(self, target: Path) -> io.BufferedReader:
         ...
 
     def empty(self) -> bool:
@@ -82,6 +87,9 @@ class LocalStorage(Storage):
             for file in path.rglob("*"):
                 if file.is_file():
                     yield file
+
+    def open(self, target: Path) -> io.BufferedReader:
+        return open(self.path / target, "rb")
 
     def remove(self, target: Path):
         if target.exists():
@@ -194,6 +202,9 @@ class S3Storage(Storage):
             elif fs.isdir(node):
                 for file in fs.find(node):
                     yield Path(file)
+
+    def open(self, target: Path) -> io.BufferedReader:
+        return self.zarr.store.fs.open(str(self.path / target))
 
     def remove(self, target: Path):
         if self.zarr.store.fs.exists(target):

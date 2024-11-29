@@ -16,14 +16,15 @@ import typer
 from types import SimpleNamespace
 import zarr
 
-from .api import MODO
-from .helpers.schema import UserElementType
-
 from modos import __version__
+from modos.api import MODO
 from modos.codes import get_slot_matcher, SLOT_TERMINOLOGIES
+from modos.helpers.schema import UserElementType
 from modos.genomics.htsget import HtsgetConnection
 from modos.genomics.region import Region
 from modos.io import parse_instance
+from modos.prompt import SlotPrompter
+from modos.remote import EndpointManager
 from modos.prompt import SlotPrompter, fuzzy_complete
 from modos.remote import EndpointManager, list_remote_items
 from modos.storage import connect_s3
@@ -175,7 +176,7 @@ def add(
         typer.Option(
             "--from-file",
             "-f",
-            help="Include a data file associated with the instance. The file must be in json or yaml format.",
+            help="Read instance metadata from a file. The file must be in json or yaml format.",
         ),
     ] = None,
     source_file: Annotated[
@@ -206,6 +207,20 @@ def add(
         obj = target_class(**filled)
 
     modo.add_element(obj, source_file=source_file, part_of=parent)
+
+
+@cli.command()
+def enrich(
+    ctx: typer.Context,
+    object_path: OBJECT_PATH_ARG,
+):
+    """Enrich metadata of a digital object using file contents."""
+
+    typer.echo(f"Enriching metadata for {object_path}.", err=True)
+    modo = MODO(object_path, endpoint=ctx.obj.endpoint)
+    # Attempt to extract metadata from files
+    modo.enrich_metadata()
+    zarr.consolidate_metadata(modo.zarr.store)
 
 
 @cli.command()
