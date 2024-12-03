@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pathlib import Path
 import re
 from typing import List, Optional
@@ -9,9 +10,6 @@ from linkml_runtime.loaders import (
     rdf_loader,
 )
 import modos_schema.datamodel as model
-import pandas as pd
-from pyfuzon.matcher import dataclass
-import pysam
 import zarr
 
 import modos.genomics.cram as cram
