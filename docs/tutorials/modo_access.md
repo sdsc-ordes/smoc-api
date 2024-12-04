@@ -137,8 +137,13 @@ modos publish --base-uri "http://demo-data" "data/ex"
 ::::
 
 ## Enrich metadata
-Genomic files such as cram files store relevant metadata, e.g. their reference sequences, in their header. These information can be automatically extracted and included into a `MODO`.
+Some formats, such as CRAM, store relevant metadata, e.g. their reference sequences, in their header. These information can be automatically extracted and included into a `MODO`.
 
+
+::::{tab-set}
+
+:::{tab-item} python
+:sync: python
 ```{code-block} python
 # Enrich modo
 modo.enrich_metadata()
@@ -146,3 +151,14 @@ modo.enrich_metadata()
 # Check the added elements
 modo.list_arrays()
 ```
+:::
+
+:::{tab-item} cli
+:sync: cli
+```{code-block} console
+modos enrich
+modos show --zarr
+```
+:::
+
+::::
